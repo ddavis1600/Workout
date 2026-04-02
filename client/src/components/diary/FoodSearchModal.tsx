@@ -17,7 +17,7 @@ export default function FoodSearchModal({ isOpen, onClose, onAdd }: FoodSearchMo
   const [results, setResults] = useState<Food[]>([]);
   const [loading, setLoading] = useState(false);
   const [servings, setServings] = useState<Record<number, number>>({});
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     if (!query.trim()) {

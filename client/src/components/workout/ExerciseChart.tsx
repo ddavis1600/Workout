@@ -55,7 +55,7 @@ export default function ExerciseChart({ exerciseId, exerciseName }: ExerciseChar
                 color: '#e2e8f0',
               }}
               labelStyle={{ color: '#94a3b8' }}
-              formatter={(value: number) => [`${value} lbs`, 'Max Weight']}
+              formatter={(value) => [`${value} lbs`, 'Max Weight']}
             />
             <Line
               type="monotone"
