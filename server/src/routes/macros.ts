@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
-import db from '../db/connection';
-import { calculateBMR, calculateTDEE, calculateMacros } from '../utils/macroCalculator';
+import db from '../db/connection.js';
+import { calculateBMR, calculateTDEE, calculateMacros } from '../utils/macroCalculator.js';
 
 const router = Router();
 

@@ -1,13 +1,13 @@
 import express from 'express';
 import cors from 'cors';
-import { runMigrations } from './db/migrate';
-import { seedExercises } from './seed/exercises';
-import { seedFoods } from './seed/foods';
-import exercisesRouter from './routes/exercises';
-import workoutsRouter from './routes/workouts';
-import foodsRouter from './routes/foods';
-import diaryRouter from './routes/diary';
-import macrosRouter from './routes/macros';
+import { runMigrations } from './db/migrate.js';
+import { seedExercises } from './seed/exercises.js';
+import { seedFoods } from './seed/foods.js';
+import exercisesRouter from './routes/exercises.js';
+import workoutsRouter from './routes/workouts.js';
+import foodsRouter from './routes/foods.js';
+import diaryRouter from './routes/diary.js';
+import macrosRouter from './routes/macros.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
