@@ -12,7 +12,10 @@ struct FitTrackApp: App {
             WorkoutSet.self,
             UserProfile.self,
             Food.self,
-            DiaryEntry.self
+            DiaryEntry.self,
+            Habit.self,
+            HabitCompletion.self,
+            WeightEntry.self
         ])
         let config = ModelConfiguration(schema: schema)
         do {

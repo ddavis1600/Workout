@@ -14,18 +14,17 @@ struct DiaryView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                Color.slateBackground.ignoresSafeArea()
-
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        datePicker
-                        summarySection
-                        mealSections
-                    }
-                    .padding()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    datePicker
+                    summarySection
+                    mealSections
+                    // Bottom padding so content isn't hidden behind tab bar
+                    Spacer().frame(height: 20)
                 }
+                .padding()
             }
+            .background(Color.slateBackground)
             .navigationTitle("Food Diary")
             .onAppear {
                 if viewModel == nil {

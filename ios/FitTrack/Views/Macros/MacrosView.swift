@@ -17,6 +17,14 @@ struct MacrosView: View {
     // Preview calculation
     @State private var previewTargets: MacroTargets?
     @State private var previewTDEE: Double = 0
+    @State private var hasCalculated = false
+
+    // Manual entry mode
+    @State private var manualMode = false
+    @State private var manualCalories = ""
+    @State private var manualProtein = ""
+    @State private var manualCarbs = ""
+    @State private var manualFat = ""
 
     @State private var showingSaved = false
 
@@ -27,11 +35,17 @@ struct MacrosView: View {
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 24) {
-                        unitSystemPicker
-                        bodyStatsSection
-                        goalSection
-                        if previewTargets != nil {
-                            resultsSection
+                        modePicker
+                        if manualMode {
+                            manualEntrySection
+                        } else {
+                            unitSystemPicker
+                            bodyStatsSection
+                            goalSection
+                            calculateButton
+                            if hasCalculated, previewTargets != nil {
+                                resultsSection
+                            }
                         }
                         saveButton
                     }
@@ -46,18 +60,74 @@ struct MacrosView: View {
                     loadFromProfile(vm)
                 }
             }
-            .onChange(of: weight) { recalculatePreview() }
-            .onChange(of: height) { recalculatePreview() }
-            .onChange(of: age) { recalculatePreview() }
-            .onChange(of: gender) { recalculatePreview() }
-            .onChange(of: activityLevel) { recalculatePreview() }
-            .onChange(of: selectedGoal) { recalculatePreview() }
-            .onChange(of: unitSystem) { recalculatePreview() }
             .overlay {
                 if showingSaved {
                     savedToast
                 }
             }
+        }
+    }
+
+    // MARK: - Mode Picker
+
+    private var modePicker: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Entry Mode")
+                .font(.headline)
+                .foregroundStyle(.white)
+            Picker("Mode", selection: $manualMode) {
+                Text("Calculate").tag(false)
+                Text("Manual Entry").tag(true)
+            }
+            .pickerStyle(.segmented)
+        }
+    }
+
+    // MARK: - Manual Entry
+
+    private var manualEntrySection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Set Your Macros")
+                .font(.headline)
+                .foregroundStyle(.white)
+
+            VStack(spacing: 14) {
+                macroField(label: "Daily Calories (kcal)", text: $manualCalories)
+                macroField(label: "Protein (g)", text: $manualProtein)
+                macroField(label: "Carbs (g)", text: $manualCarbs)
+                macroField(label: "Fat (g)", text: $manualFat)
+            }
+            .padding()
+            .background(Color.slateCard)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(Color.slateBorder, lineWidth: 1)
+            )
+
+            if let cal = Double(manualCalories), cal > 0 {
+                MacroTargetsView(
+                    calories: cal,
+                    protein: Double(manualProtein) ?? 0,
+                    carbs: Double(manualCarbs) ?? 0,
+                    fat: Double(manualFat) ?? 0
+                )
+            }
+        }
+    }
+
+    private func macroField(label: String, text: Binding<String>) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(label)
+                .font(.subheadline)
+                .foregroundStyle(Color.slateText)
+            TextField("0", text: text)
+                .keyboardType(.decimalPad)
+                .textFieldStyle(.plain)
+                .padding(12)
+                .background(Color.slateBackground)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .foregroundStyle(.white)
         }
     }
 
@@ -102,6 +172,26 @@ struct MacrosView: View {
         GoalSelectorView(selectedGoal: $selectedGoal)
     }
 
+    // MARK: - Calculate Button
+
+    private var calculateButton: some View {
+        Button {
+            recalculatePreview()
+            withAnimation {
+                hasCalculated = true
+            }
+        } label: {
+            Label("Calculate Macros", systemImage: "function")
+                .font(.headline)
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(isFormValid ? Color.blue : Color.blue.opacity(0.4))
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+        }
+        .disabled(!isFormValid)
+    }
+
     // MARK: - Results
 
     private var resultsSection: some View {
@@ -128,6 +218,27 @@ struct MacrosView: View {
             )
 
             if let targets = previewTargets {
+                // Adjusted calories for goal
+                VStack(spacing: 4) {
+                    Text("Adjusted for \(selectedGoal.capitalized)")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.slateText)
+                    Text("\(Int(targets.calories))")
+                        .font(.system(size: 36, weight: .bold, design: .rounded))
+                        .foregroundStyle(Color.emerald)
+                    Text("calories / day")
+                        .font(.caption)
+                        .foregroundStyle(Color.slateText)
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.slateCard)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(Color.slateBorder, lineWidth: 1)
+                )
+
                 MacroTargetsView(
                     calories: targets.calories,
                     protein: targets.protein,
@@ -142,7 +253,11 @@ struct MacrosView: View {
 
     private var saveButton: some View {
         Button {
-            saveProfile()
+            if manualMode {
+                saveManualProfile()
+            } else {
+                saveProfile()
+            }
         } label: {
             Text("Save Profile")
                 .font(.headline)
@@ -152,8 +267,8 @@ struct MacrosView: View {
                 .background(Color.emerald)
                 .clipShape(RoundedRectangle(cornerRadius: 14))
         }
-        .disabled(!isFormValid)
-        .opacity(isFormValid ? 1.0 : 0.5)
+        .disabled(manualMode ? !isManualValid : (!isFormValid || !hasCalculated))
+        .opacity((manualMode ? isManualValid : (isFormValid && hasCalculated)) ? 1.0 : 0.5)
     }
 
     // MARK: - Saved Toast
@@ -184,16 +299,28 @@ struct MacrosView: View {
         return true
     }
 
+    private var isManualValid: Bool {
+        guard let c = Double(manualCalories), c > 0 else { return false }
+        return true
+    }
+
     private func loadFromProfile(_ vm: MacrosViewModel) {
         let profile = vm.profile
         unitSystem = profile.unitSystem
-        weight = String(format: "%.1f", profile.displayWeight)
-        height = String(format: "%.1f", profile.displayHeight)
-        age = "\(profile.age)"
+        weight = profile.displayWeight > 0 ? String(format: "%.0f", profile.displayWeight) : ""
+        height = profile.displayHeight > 0 ? String(format: "%.0f", profile.displayHeight) : ""
+        age = profile.age > 0 ? "\(profile.age)" : ""
         gender = profile.gender
         activityLevel = profile.activityLevel
         selectedGoal = profile.goal
-        recalculatePreview()
+
+        // Load manual values from existing targets
+        if profile.calorieTarget > 0 {
+            manualCalories = String(format: "%.0f", profile.calorieTarget)
+            manualProtein = String(format: "%.0f", profile.proteinTarget)
+            manualCarbs = String(format: "%.0f", profile.carbTarget)
+            manualFat = String(format: "%.0f", profile.fatTarget)
+        }
     }
 
     private func recalculatePreview() {
@@ -238,6 +365,28 @@ struct MacrosView: View {
             unitSystem: unitSystem
         )
 
+        showSavedToast()
+    }
+
+    private func saveManualProfile() {
+        guard let vm = viewModel else { return }
+
+        let cal = Double(manualCalories) ?? 0
+        let pro = Double(manualProtein) ?? 0
+        let carb = Double(manualCarbs) ?? 0
+        let fat = Double(manualFat) ?? 0
+
+        vm.profile.calorieTarget = cal
+        vm.profile.proteinTarget = pro
+        vm.profile.carbTarget = carb
+        vm.profile.fatTarget = fat
+        vm.profile.updatedAt = .now
+
+        try? modelContext.save()
+        showSavedToast()
+    }
+
+    private func showSavedToast() {
         withAnimation {
             showingSaved = true
         }

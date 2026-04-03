@@ -5,7 +5,7 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
 
     enum Tab: String, CaseIterable {
-        case dashboard, workouts, progress, macros, diary
+        case dashboard, workouts, progress, habits, weight, macros, diary
     }
 
     @State private var selectedTab: Tab = .dashboard
@@ -29,6 +29,18 @@ struct ContentView: View {
                     Label("Progress", systemImage: "chart.line.uptrend.xyaxis")
                 }
                 .tag(Tab.progress)
+
+            HabitsView()
+                .tabItem {
+                    Label("Habits", systemImage: "checkmark.circle.fill")
+                }
+                .tag(Tab.habits)
+
+            WeightTrackingView()
+                .tabItem {
+                    Label("Weight", systemImage: "scalemass.fill")
+                }
+                .tag(Tab.weight)
 
             MacrosView()
                 .tabItem {
@@ -55,6 +67,9 @@ struct ContentView: View {
             WorkoutSet.self,
             UserProfile.self,
             Food.self,
-            DiaryEntry.self
+            DiaryEntry.self,
+            Habit.self,
+            HabitCompletion.self,
+            WeightEntry.self
         ], inMemory: true)
 }

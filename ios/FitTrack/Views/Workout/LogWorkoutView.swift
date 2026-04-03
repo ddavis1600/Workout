@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import Combine
 
 struct LogWorkoutView: View {
     @Environment(\.dismiss) private var dismiss
@@ -12,6 +13,11 @@ struct LogWorkoutView: View {
     @State private var workoutNotes = ""
     @State private var exerciseGroups: [ExerciseGroup] = []
     @State private var showingExercisePicker = false
+
+    // Timer state
+    @State private var elapsedSeconds: Int = 0
+    @State private var timerIsRunning = true
+    @State private var timerSubscription: AnyCancellable?
 
     struct SetEntry: Identifiable {
         let id = UUID()
@@ -33,6 +39,7 @@ struct LogWorkoutView: View {
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
+                        timerSection
                         workoutInfoSection
                         exerciseSections
                         addExerciseButton
@@ -64,7 +71,79 @@ struct LogWorkoutView: View {
                     exerciseGroups.append(ExerciseGroup(exercise: exercise, sets: [initialSet]))
                 }
             }
+            .onAppear {
+                startTimer()
+            }
+            .onDisappear {
+                stopTimer()
+            }
         }
+    }
+
+    // MARK: - Timer
+
+    private var timerSection: some View {
+        VStack(spacing: 10) {
+            Text(formattedElapsedTime)
+                .font(.system(size: 40, weight: .medium, design: .monospaced))
+                .foregroundStyle(Color.emerald)
+                .frame(maxWidth: .infinity, alignment: .center)
+
+            HStack(spacing: 20) {
+                Button {
+                    if timerIsRunning {
+                        stopTimer()
+                    } else {
+                        startTimer()
+                    }
+                    timerIsRunning.toggle()
+                } label: {
+                    Label(timerIsRunning ? "Pause" : "Resume",
+                          systemImage: timerIsRunning ? "pause.fill" : "play.fill")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(Color.emerald)
+                }
+
+                Button {
+                    stopTimer()
+                    elapsedSeconds = 0
+                    timerIsRunning = false
+                } label: {
+                    Label("Reset", systemImage: "arrow.counterclockwise")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(Color.slateText)
+                }
+            }
+        }
+        .padding(.vertical, 16)
+        .padding(.horizontal)
+        .frame(maxWidth: .infinity)
+        .background(Color.slateCard)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(Color.slateBorder, lineWidth: 1)
+        )
+    }
+
+    private var formattedElapsedTime: String {
+        let hours = elapsedSeconds / 3600
+        let minutes = (elapsedSeconds % 3600) / 60
+        let seconds = elapsedSeconds % 60
+        return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+    }
+
+    private func startTimer() {
+        timerSubscription = Timer.publish(every: 1, on: .main, in: .common)
+            .autoconnect()
+            .sink { _ in
+                elapsedSeconds += 1
+            }
+    }
+
+    private func stopTimer() {
+        timerSubscription?.cancel()
+        timerSubscription = nil
     }
 
     // MARK: - Workout Info
@@ -197,10 +276,13 @@ struct LogWorkoutView: View {
     // MARK: - Save
 
     private func saveWorkout() {
+        stopTimer()
+        let durationMin = max(1, Int(round(Double(elapsedSeconds) / 60.0)))
         let workout = Workout(
             name: workoutName,
             date: workoutDate,
-            notes: workoutNotes
+            notes: workoutNotes,
+            durationMinutes: elapsedSeconds > 0 ? durationMin : nil
         )
 
         modelContext.insert(workout)

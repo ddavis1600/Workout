@@ -41,6 +41,12 @@
 		A10000000000000000000020 /* SetRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000020 /* SetRowView.swift */; };
 		A10000000000000000000021 /* WorkoutDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000021 /* WorkoutDetailView.swift */; };
 		A10000000000000000000022 /* WorkoutListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000022 /* WorkoutListView.swift */; };
+		C10000000000000000000001 /* Habit.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000000000000000000001 /* Habit.swift */; };
+		C10000000000000000000002 /* HabitCompletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000000000000000000002 /* HabitCompletion.swift */; };
+		C10000000000000000000003 /* WeightEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000000000000000000003 /* WeightEntry.swift */; };
+		C10000000000000000000004 /* HabitsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000000000000000000004 /* HabitsView.swift */; };
+		C10000000000000000000005 /* WeightTrackingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000000000000000000005 /* WeightTrackingView.swift */; };
+		C10000000000000000000006 /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000000000000000000006 /* HealthKitManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -79,6 +85,12 @@
 		A20000000000000000000021 /* WorkoutDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutDetailView.swift; sourceTree = "<group>"; };
 		A20000000000000000000022 /* WorkoutListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutListView.swift; sourceTree = "<group>"; };
 		A20000000000000000000099 /* FitTrack.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FitTrack.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C20000000000000000000001 /* Habit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Habit.swift; sourceTree = "<group>"; };
+		C20000000000000000000002 /* HabitCompletion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HabitCompletion.swift; sourceTree = "<group>"; };
+		C20000000000000000000003 /* WeightEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightEntry.swift; sourceTree = "<group>"; };
+		C20000000000000000000004 /* HabitsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HabitsView.swift; sourceTree = "<group>"; };
+		C20000000000000000000005 /* WeightTrackingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightTrackingView.swift; sourceTree = "<group>"; };
+		C20000000000000000000006 /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -128,7 +140,10 @@
 				A20000000000000000000004 /* DiaryEntry.swift */,
 				A20000000000000000000005 /* Exercise.swift */,
 				A20000000000000000000006 /* Food.swift */,
+				C20000000000000000000001 /* Habit.swift */,
+				C20000000000000000000002 /* HabitCompletion.swift */,
 				A20000000000000000000007 /* UserProfile.swift */,
+				C20000000000000000000003 /* WeightEntry.swift */,
 				A20000000000000000000008 /* Workout.swift */,
 				A20000000000000000000009 /* WorkoutSet.swift */,
 			);
@@ -139,6 +154,7 @@
 			isa = PBXGroup;
 			children = (
 				A2000000000000000000000A /* Extensions.swift */,
+				C20000000000000000000006 /* HealthKitManager.swift */,
 				A2000000000000000000000B /* MacroCalculator.swift */,
 				A2000000000000000000000C /* SeedData.swift */,
 			);
@@ -162,10 +178,28 @@
 				A40000000000000000000008 /* Components */,
 				A40000000000000000000009 /* Dashboard */,
 				A4000000000000000000000A /* Diary */,
+				C4000000000000000000000D /* Habits */,
 				A4000000000000000000000B /* Macros */,
+				C4000000000000000000000E /* Weight */,
 				A4000000000000000000000C /* Workout */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		C4000000000000000000000D /* Habits */ = {
+			isa = PBXGroup;
+			children = (
+				C20000000000000000000004 /* HabitsView.swift */,
+			);
+			path = Habits;
+			sourceTree = "<group>";
+		};
+		C4000000000000000000000E /* Weight */ = {
+			isa = PBXGroup;
+			children = (
+				C20000000000000000000005 /* WeightTrackingView.swift */,
+			);
+			path = Weight;
 			sourceTree = "<group>";
 		};
 		A40000000000000000000008 /* Components */ = {
@@ -320,6 +354,12 @@
 				A10000000000000000000020 /* SetRowView.swift in Sources */,
 				A10000000000000000000021 /* WorkoutDetailView.swift in Sources */,
 				A10000000000000000000022 /* WorkoutListView.swift in Sources */,
+				C10000000000000000000001 /* Habit.swift in Sources */,
+				C10000000000000000000002 /* HabitCompletion.swift in Sources */,
+				C10000000000000000000003 /* WeightEntry.swift in Sources */,
+				C10000000000000000000004 /* HabitsView.swift in Sources */,
+				C10000000000000000000005 /* WeightTrackingView.swift in Sources */,
+				C10000000000000000000006 /* HealthKitManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -456,6 +496,8 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "FitTrack reads your weight data from Apple Health to display your progress.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "FitTrack saves your weight entries to Apple Health to keep your data in sync.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -488,6 +530,8 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "FitTrack reads your weight data from Apple Health to display your progress.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "FitTrack saves your weight entries to Apple Health to keep your data in sync.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
