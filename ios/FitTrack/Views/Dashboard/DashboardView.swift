@@ -7,26 +7,25 @@ struct DashboardView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                Color.slateBackground.ignoresSafeArea()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    welcomeHeader
 
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        welcomeHeader
-
-                        if let vm = viewModel {
-                            if vm.profile == nil || vm.profile?.calorieTarget == 0 {
-                                setupMacrosCard
-                            } else {
-                                macroSummarySection(vm: vm)
-                            }
-
-                            recentWorkoutsSection(vm: vm)
+                    if let vm = viewModel {
+                        if vm.profile == nil || vm.profile?.calorieTarget == 0 {
+                            setupMacrosCard
+                        } else {
+                            macroSummarySection(vm: vm)
                         }
+
+                        recentWorkoutsSection(vm: vm)
                     }
-                    .padding()
+
+                    Spacer().frame(height: 20)
                 }
+                .padding()
             }
+            .background(Color.slateBackground)
             .navigationTitle("Dashboard")
             .onAppear {
                 if viewModel == nil {

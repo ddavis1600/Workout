@@ -11,17 +11,16 @@ struct ProgressChartView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                Color.slateBackground.ignoresSafeArea()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    exercisePicker
+                    chartSection
 
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        exercisePicker
-                        chartSection
-                    }
-                    .padding()
+                    Spacer().frame(height: 20)
                 }
+                .padding()
             }
+            .background(Color.slateBackground)
             .navigationTitle("Progress")
             .onAppear {
                 if viewModel == nil {

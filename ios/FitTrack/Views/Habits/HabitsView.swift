@@ -38,24 +38,23 @@ struct HabitsView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                Color.slateBackground.ignoresSafeArea()
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Weekly overview
+                    weeklyOverview
 
-                ScrollView {
-                    VStack(spacing: 20) {
-                        // Weekly overview
-                        weeklyOverview
-
-                        // Habits list
-                        if habits.isEmpty {
-                            emptyState
-                        } else {
-                            habitsList
-                        }
+                    // Habits list
+                    if habits.isEmpty {
+                        emptyState
+                    } else {
+                        habitsList
                     }
-                    .padding()
+
+                    Spacer().frame(height: 20)
                 }
+                .padding()
             }
+            .background(Color.slateBackground)
             .navigationTitle("Habits")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {

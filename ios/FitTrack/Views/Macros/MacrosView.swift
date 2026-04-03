@@ -30,28 +30,26 @@ struct MacrosView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                Color.slateBackground.ignoresSafeArea()
-
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 24) {
-                        modePicker
-                        if manualMode {
-                            manualEntrySection
-                        } else {
-                            unitSystemPicker
-                            bodyStatsSection
-                            goalSection
-                            calculateButton
-                            if hasCalculated, previewTargets != nil {
-                                resultsSection
-                            }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    modePicker
+                    if manualMode {
+                        manualEntrySection
+                    } else {
+                        unitSystemPicker
+                        bodyStatsSection
+                        goalSection
+                        calculateButton
+                        if hasCalculated, previewTargets != nil {
+                            resultsSection
                         }
-                        saveButton
                     }
-                    .padding()
+                    saveButton
+                    Spacer().frame(height: 20)
                 }
+                .padding()
             }
+            .background(Color.slateBackground)
             .navigationTitle("Macros")
             .onAppear {
                 if viewModel == nil {

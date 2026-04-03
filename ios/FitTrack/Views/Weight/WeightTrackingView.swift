@@ -56,32 +56,31 @@ struct WeightTrackingView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                Color.slateBackground.ignoresSafeArea()
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Current weight card
+                    currentWeightCard
 
-                ScrollView {
-                    VStack(spacing: 20) {
-                        // Current weight card
-                        currentWeightCard
-
-                        // Chart
-                        if !filteredEntries.isEmpty {
-                            chartSection
-                        }
-
-                        // Health sync toggle
-                        healthSyncCard
-
-                        // Recent entries
-                        if !recentEntries.isEmpty {
-                            recentEntriesSection
-                        } else {
-                            emptyState
-                        }
+                    // Chart
+                    if !filteredEntries.isEmpty {
+                        chartSection
                     }
-                    .padding()
+
+                    // Health sync toggle
+                    healthSyncCard
+
+                    // Recent entries
+                    if !recentEntries.isEmpty {
+                        recentEntriesSection
+                    } else {
+                        emptyState
+                    }
+
+                    Spacer().frame(height: 20)
                 }
+                .padding()
             }
+            .background(Color.slateBackground)
             .navigationTitle("Weight")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {

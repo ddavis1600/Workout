@@ -11,51 +11,58 @@ struct ContentView: View {
     @State private var selectedTab: Tab = .dashboard
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            DashboardView()
-                .tabItem {
-                    Label("Dashboard", systemImage: "house.fill")
+        VStack(spacing: 0) {
+            // Content area
+            Group {
+                switch selectedTab {
+                case .dashboard: DashboardView()
+                case .workouts:  WorkoutListView()
+                case .progress:  ProgressChartView()
+                case .habits:    HabitsView()
+                case .weight:    WeightTrackingView()
+                case .macros:    MacrosView()
+                case .diary:     DiaryView()
                 }
-                .tag(Tab.dashboard)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            WorkoutListView()
-                .tabItem {
-                    Label("Workouts", systemImage: "dumbbell.fill")
-                }
-                .tag(Tab.workouts)
-
-            ProgressChartView()
-                .tabItem {
-                    Label("Progress", systemImage: "chart.line.uptrend.xyaxis")
-                }
-                .tag(Tab.progress)
-
-            HabitsView()
-                .tabItem {
-                    Label("Habits", systemImage: "checkmark.circle.fill")
-                }
-                .tag(Tab.habits)
-
-            WeightTrackingView()
-                .tabItem {
-                    Label("Weight", systemImage: "scalemass.fill")
-                }
-                .tag(Tab.weight)
-
-            MacrosView()
-                .tabItem {
-                    Label("Macros", systemImage: "chart.pie.fill")
-                }
-                .tag(Tab.macros)
-
-            DiaryView()
-                .tabItem {
-                    Label("Diary", systemImage: "book.fill")
-                }
-                .tag(Tab.diary)
+            // Custom tab bar
+            customTabBar
         }
-        .tint(.emerald)
         .preferredColorScheme(.dark)
+    }
+
+    private var customTabBar: some View {
+        HStack(spacing: 0) {
+            tabButton(.dashboard, icon: "house.fill", label: "Home")
+            tabButton(.workouts, icon: "dumbbell.fill", label: "Workouts")
+            tabButton(.progress, icon: "chart.line.uptrend.xyaxis", label: "Progress")
+            tabButton(.habits, icon: "checkmark.circle.fill", label: "Habits")
+            tabButton(.weight, icon: "scalemass.fill", label: "Weight")
+            tabButton(.macros, icon: "chart.pie.fill", label: "Macros")
+            tabButton(.diary, icon: "book.fill", label: "Diary")
+        }
+        .padding(.top, 8)
+        .padding(.bottom, 2)
+        .background(
+            Color(red: 0.11, green: 0.13, blue: 0.17)
+                .shadow(color: .black.opacity(0.3), radius: 8, y: -4)
+        )
+    }
+
+    private func tabButton(_ tab: Tab, icon: String, label: String) -> some View {
+        Button {
+            selectedTab = tab
+        } label: {
+            VStack(spacing: 3) {
+                Image(systemName: icon)
+                    .font(.system(size: 18))
+                Text(label)
+                    .font(.system(size: 9, weight: .medium))
+            }
+            .foregroundStyle(selectedTab == tab ? Color.emerald : Color.slateText)
+            .frame(maxWidth: .infinity)
+        }
     }
 }
 

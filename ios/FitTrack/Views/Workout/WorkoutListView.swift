@@ -8,9 +8,7 @@ struct WorkoutListView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                Color.slateBackground.ignoresSafeArea()
-
+            Group {
                 if let vm = viewModel {
                     if vm.workouts.isEmpty {
                         emptyState
@@ -19,6 +17,7 @@ struct WorkoutListView: View {
                     }
                 }
             }
+            .background(Color.slateBackground)
             .navigationTitle("Workouts")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -80,6 +79,8 @@ struct WorkoutListView: View {
                         }
                     }
                 }
+
+                Spacer().frame(height: 20)
             }
             .padding()
         }
