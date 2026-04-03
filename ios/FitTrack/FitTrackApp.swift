@@ -17,7 +17,13 @@ struct FitTrackApp: App {
             HabitCompletion.self,
             WeightEntry.self
         ])
-        let config = ModelConfiguration(schema: schema)
+
+        // Use CloudKit for iCloud sync across devices
+        let config = ModelConfiguration(
+            schema: schema,
+            cloudKitDatabase: .automatic
+        )
+
         do {
             container = try ModelContainer(for: schema, configurations: config)
         } catch {
