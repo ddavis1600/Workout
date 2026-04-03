@@ -3,7 +3,7 @@ import Foundation
 
 @Model
 final class HabitCompletion {
-    var date: Date = .now
+    var date: Date = Date()
     @Relationship(inverse: \Habit.completions) var habit: Habit?
 
     init(date: Date = .now) {

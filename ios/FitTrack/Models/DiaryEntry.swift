@@ -3,11 +3,11 @@ import SwiftData
 
 @Model
 final class DiaryEntry {
-    var date: Date = .now
+    var date: Date = Date()
     var mealType: String = "breakfast"
     var food: Food?
     var servings: Double = 1.0
-    var createdAt: Date = .now
+    var createdAt: Date = Date()
 
     var totalCalories: Double {
         (food?.calories ?? 0) * servings

@@ -6,7 +6,7 @@ final class Habit {
     var name: String = ""
     var icon: String = "checkmark.circle"
     var color: String = "emerald"
-    var createdAt: Date = .now
+    var createdAt: Date = Date()
     @Relationship(deleteRule: .cascade) var completions: [HabitCompletion]
 
     init(name: String, icon: String = "checkmark.circle", color: String = "emerald") {

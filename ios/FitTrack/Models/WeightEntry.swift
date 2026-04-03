@@ -3,7 +3,7 @@ import Foundation
 
 @Model
 final class WeightEntry {
-    var date: Date = .now
+    var date: Date = Date()
     var weight: Double = 0    // stored in kg
     var note: String = ""
 
