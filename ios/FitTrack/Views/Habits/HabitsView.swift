@@ -148,37 +148,65 @@ struct HabitsView: View {
         }
     }
 
+    private func completionPercentage(for habit: Habit) -> Int {
+        let calendar = Calendar.current
+        let daysSinceCreation = max(1, calendar.dateComponents([.day], from: habit.createdAt.startOfDay, to: Date.now.startOfDay).day ?? 1)
+        let completedDays = habit.completions.count
+        return min(100, Int(round(Double(completedDays) / Double(daysSinceCreation) * 100)))
+    }
+
     private func habitRow(_ habit: Habit) -> some View {
-        HStack(spacing: 14) {
-            Image(systemName: habit.icon)
-                .font(.title2)
-                .foregroundColor(colorForHabit(habit.color))
-                .frame(width: 36, height: 36)
+        VStack(spacing: 10) {
+            HStack(spacing: 14) {
+                Image(systemName: habit.icon)
+                    .font(.title2)
+                    .foregroundColor(colorForHabit(habit.color))
+                    .frame(width: 36, height: 36)
 
-            VStack(alignment: .leading, spacing: 3) {
-                Text(habit.name)
-                    .font(.body.weight(.medium))
-                    .foregroundColor(.white)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(habit.name)
+                        .font(.body.weight(.medium))
+                        .foregroundColor(.white)
 
-                let streak = habit.currentStreak()
-                if streak > 0 {
-                    Text("\u{1F525} \(streak) day streak")
-                        .font(.caption)
-                        .foregroundColor(.slateText)
+                    HStack(spacing: 8) {
+                        let streak = habit.currentStreak()
+                        if streak > 0 {
+                            Text("\u{1F525} \(streak) day streak")
+                                .font(.caption)
+                                .foregroundColor(.slateText)
+                        }
+                        Text("\(completionPercentage(for: habit))% completed")
+                            .font(.caption)
+                            .foregroundColor(.slateText)
+                    }
+                }
+
+                Spacer()
+
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        habit.toggle(on: .now, context: modelContext)
+                    }
+                } label: {
+                    Image(systemName: habit.isCompleted(on: .now) ? "checkmark.circle.fill" : "circle")
+                        .font(.title)
+                        .foregroundColor(habit.isCompleted(on: .now) ? colorForHabit(habit.color) : .slateBorder)
                 }
             }
 
-            Spacer()
-
-            Button {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    habit.toggle(on: .now, context: modelContext)
+            // Completion progress bar
+            let pct = Double(completionPercentage(for: habit)) / 100.0
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(Color.slateBorder)
+                        .frame(height: 6)
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(colorForHabit(habit.color))
+                        .frame(width: geo.size.width * pct, height: 6)
                 }
-            } label: {
-                Image(systemName: habit.isCompleted(on: .now) ? "checkmark.circle.fill" : "circle")
-                    .font(.title)
-                    .foregroundColor(habit.isCompleted(on: .now) ? colorForHabit(habit.color) : .slateBorder)
             }
+            .frame(height: 6)
         }
         .padding()
         .background(Color.slateCard)

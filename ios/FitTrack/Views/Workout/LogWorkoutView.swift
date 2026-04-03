@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import Combine
+import PhotosUI
 
 struct LogWorkoutView: View {
     @Environment(\.dismiss) private var dismiss
@@ -13,6 +14,10 @@ struct LogWorkoutView: View {
     @State private var workoutNotes = ""
     @State private var exerciseGroups: [ExerciseGroup] = []
     @State private var showingExercisePicker = false
+
+    // Photo state
+    @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var selectedPhotoData: Data?
 
     // Timer state
     @State private var elapsedSeconds: Int = 0
@@ -41,6 +46,7 @@ struct LogWorkoutView: View {
                     VStack(alignment: .leading, spacing: 20) {
                         timerSection
                         workoutInfoSection
+                        photoSection
                         exerciseSections
                         addExerciseButton
                     }
@@ -175,6 +181,63 @@ struct LogWorkoutView: View {
         }
     }
 
+    // MARK: - Photo
+
+    private var photoSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Photo")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Color.slateText)
+
+            if let photoData = selectedPhotoData, let uiImage = UIImage(data: photoData) {
+                ZStack(alignment: .topTrailing) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(maxWidth: .infinity, maxHeight: 200)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                    Button {
+                        selectedPhotoData = nil
+                        selectedPhotoItem = nil
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title2)
+                            .foregroundStyle(.white, .black.opacity(0.6))
+                    }
+                    .padding(8)
+                }
+            }
+
+            PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                Label(selectedPhotoData == nil ? "Add Photo" : "Change Photo", systemImage: "camera.fill")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(Color.emerald)
+                    .frame(maxWidth: .infinity)
+                    .padding(12)
+                    .background(Color.slateCard)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.emerald.opacity(0.3), lineWidth: 1)
+                    )
+            }
+            .onChange(of: selectedPhotoItem) { _, newItem in
+                Task {
+                    if let data = try? await newItem?.loadTransferable(type: Data.self) {
+                        // Compress to JPEG to save space
+                        if let uiImage = UIImage(data: data),
+                           let compressed = uiImage.jpegData(compressionQuality: 0.7) {
+                            selectedPhotoData = compressed
+                        } else {
+                            selectedPhotoData = data
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     // MARK: - Exercise Sections
 
     private var exerciseSections: some View {
@@ -282,7 +345,8 @@ struct LogWorkoutView: View {
             name: workoutName,
             date: workoutDate,
             notes: workoutNotes,
-            durationMinutes: elapsedSeconds > 0 ? durationMin : nil
+            durationMinutes: elapsedSeconds > 0 ? durationMin : nil,
+            photoData: selectedPhotoData
         )
 
         modelContext.insert(workout)

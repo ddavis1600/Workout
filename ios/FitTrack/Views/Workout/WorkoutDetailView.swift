@@ -30,6 +30,13 @@ struct WorkoutDetailView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
+                    if let photoData = workout.photoData, let uiImage = UIImage(data: photoData) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(maxWidth: .infinity, maxHeight: 250)
+                            .clipShape(RoundedRectangle(cornerRadius: 14))
+                    }
                     headerSection
                     exerciseSections
                 }
