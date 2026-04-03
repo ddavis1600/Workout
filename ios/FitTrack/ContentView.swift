@@ -11,25 +11,29 @@ struct ContentView: View {
     @State private var selectedTab: Tab = .dashboard
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Content area
-            Group {
-                switch selectedTab {
-                case .dashboard: DashboardView()
-                case .workouts:  WorkoutListView()
-                case .progress:  ProgressChartView()
-                case .habits:    HabitsView()
-                case .weight:    WeightTrackingView()
-                case .macros:    MacrosView()
-                case .diary:     DiaryView()
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        ZStack(alignment: .bottom) {
+            // Content area - fills entire screen
+            currentTabView
+                .padding(.bottom, 56)
 
-            // Custom tab bar
+            // Custom tab bar pinned to bottom
             customTabBar
         }
+        .ignoresSafeArea(.keyboard)
         .preferredColorScheme(.dark)
+    }
+
+    @ViewBuilder
+    private var currentTabView: some View {
+        switch selectedTab {
+        case .dashboard: DashboardView()
+        case .workouts:  WorkoutListView()
+        case .progress:  ProgressChartView()
+        case .habits:    HabitsView()
+        case .weight:    WeightTrackingView()
+        case .macros:    MacrosView()
+        case .diary:     DiaryView()
+        }
     }
 
     private var customTabBar: some View {
@@ -42,10 +46,11 @@ struct ContentView: View {
             tabButton(.macros, icon: "chart.pie.fill", label: "Macros")
             tabButton(.diary, icon: "book.fill", label: "Diary")
         }
-        .padding(.top, 8)
-        .padding(.bottom, 2)
+        .padding(.top, 6)
+        .padding(.bottom, 28)
         .background(
             Color(red: 0.11, green: 0.13, blue: 0.17)
+                .ignoresSafeArea(edges: .bottom)
                 .shadow(color: .black.opacity(0.3), radius: 8, y: -4)
         )
     }
@@ -54,9 +59,9 @@ struct ContentView: View {
         Button {
             selectedTab = tab
         } label: {
-            VStack(spacing: 3) {
+            VStack(spacing: 2) {
                 Image(systemName: icon)
-                    .font(.system(size: 18))
+                    .font(.system(size: 17))
                 Text(label)
                     .font(.system(size: 9, weight: .medium))
             }

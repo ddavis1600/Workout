@@ -24,8 +24,11 @@ struct DashboardView: View {
                     Spacer().frame(height: 20)
                 }
                 .padding()
+                .frame(maxWidth: .infinity)
             }
+            .scrollIndicators(.visible)
             .background(Color.slateBackground)
+            .toolbarBackground(Color.slateBackground, for: .navigationBar)
             .navigationTitle("Dashboard")
             .onAppear {
                 if viewModel == nil {

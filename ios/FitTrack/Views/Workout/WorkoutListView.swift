@@ -18,6 +18,7 @@ struct WorkoutListView: View {
                 }
             }
             .background(Color.slateBackground)
+            .toolbarBackground(Color.slateBackground, for: .navigationBar)
             .navigationTitle("Workouts")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -66,6 +67,7 @@ struct WorkoutListView: View {
     private func workoutList(vm: WorkoutViewModel) -> some View {
         ScrollView {
             LazyVStack(spacing: 12) {
+
                 ForEach(vm.workouts, id: \.self) { workout in
                     NavigationLink(destination: WorkoutDetailView(workout: workout)) {
                         workoutRow(workout)
@@ -83,7 +85,10 @@ struct WorkoutListView: View {
                 Spacer().frame(height: 20)
             }
             .padding()
+            .frame(maxWidth: .infinity)
         }
+        .scrollIndicators(.visible)
+        .background(Color.slateBackground)
     }
 
     private func workoutRow(_ workout: Workout) -> some View {
