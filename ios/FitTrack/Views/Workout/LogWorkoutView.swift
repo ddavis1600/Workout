@@ -24,6 +24,13 @@ struct LogWorkoutView: View {
     @State private var timerIsRunning = true
     @State private var timerSubscription: AnyCancellable?
 
+    // Heart rate
+    @State private var heartRateService = HeartRateService()
+    private var userAge: Int {
+        let age = UserDefaults.standard.integer(forKey: "heartRateUserAge")
+        return age > 0 ? age : 25
+    }
+
     struct SetEntry: Identifiable {
         let id = UUID()
         var reps: String
@@ -45,6 +52,7 @@ struct LogWorkoutView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
                         timerSection
+                        WorkoutHeartRateCard(service: heartRateService, userAge: userAge)
                         workoutInfoSection
                         photoSection
                         exerciseSections
@@ -77,11 +85,14 @@ struct LogWorkoutView: View {
                     exerciseGroups.append(ExerciseGroup(exercise: exercise, sets: [initialSet]))
                 }
             }
-            .onAppear {
+            .task {
                 startTimer()
+                heartRateService.resetSession()
+                await heartRateService.startMonitoring()
             }
             .onDisappear {
                 stopTimer()
+                heartRateService.stopMonitoring()
             }
         }
     }
@@ -340,6 +351,8 @@ struct LogWorkoutView: View {
 
     private func saveWorkout() {
         stopTimer()
+        heartRateService.stopMonitoring()
+
         let durationMin = max(1, Int(round(Double(elapsedSeconds) / 60.0)))
         let workout = Workout(
             name: workoutName,
@@ -348,6 +361,20 @@ struct LogWorkoutView: View {
             durationMinutes: elapsedSeconds > 0 ? durationMin : nil,
             photoData: selectedPhotoData
         )
+
+        // Save heart rate data if available
+        if heartRateService.sessionAvgBPM > 0 {
+            workout.avgHeartRate = heartRateService.sessionAvgBPM
+            workout.maxHeartRate = heartRateService.sessionMaxBPM
+            workout.minHeartRate = heartRateService.sessionMinBPM
+            let maxHR = 220 - userAge
+            let durations = heartRateService.zoneDurations(maxHR: maxHR)
+            workout.hrZone1Seconds = durations[1]
+            workout.hrZone2Seconds = durations[2]
+            workout.hrZone3Seconds = durations[3]
+            workout.hrZone4Seconds = durations[4]
+            workout.hrZone5Seconds = durations[5]
+        }
 
         modelContext.insert(workout)
 

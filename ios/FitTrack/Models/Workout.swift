@@ -8,6 +8,14 @@ final class Workout {
     var notes: String = ""
     var durationMinutes: Int?
     var photoData: Data?
+    var avgHeartRate: Int?
+    var maxHeartRate: Int?
+    var minHeartRate: Int?
+    var hrZone1Seconds: Double?
+    var hrZone2Seconds: Double?
+    var hrZone3Seconds: Double?
+    var hrZone4Seconds: Double?
+    var hrZone5Seconds: Double?
     @Relationship(deleteRule: .cascade) var sets: [WorkoutSet] = []
     var createdAt: Date = Date()
 
