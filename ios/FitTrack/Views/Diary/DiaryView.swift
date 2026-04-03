@@ -29,7 +29,7 @@ struct DiaryView: View {
             .background(Color.slateBackground)
             .toolbarBackground(Color.slateBackground, for: .navigationBar)
             .navigationTitle("Food Diary")
-            .onAppear {
+            .task {
                 if viewModel == nil {
                     viewModel = DiaryViewModel(modelContext: modelContext)
                 } else {

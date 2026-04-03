@@ -19,6 +19,9 @@ struct DashboardView: View {
                         }
 
                         recentWorkoutsSection(vm: vm)
+                    } else {
+                        ProgressView()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
 
                     Spacer().frame(height: 20)
@@ -30,7 +33,7 @@ struct DashboardView: View {
             .background(Color.slateBackground)
             .toolbarBackground(Color.slateBackground, for: .navigationBar)
             .navigationTitle("Dashboard")
-            .onAppear {
+            .task {
                 if viewModel == nil {
                     viewModel = DashboardViewModel(modelContext: modelContext)
                 } else {

@@ -15,6 +15,9 @@ struct WorkoutListView: View {
                     } else {
                         workoutList(vm: vm)
                     }
+                } else {
+                    ProgressView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
             .background(Color.slateBackground)
@@ -30,12 +33,14 @@ struct WorkoutListView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showingLogWorkout) {
+            .sheet(isPresented: $showingLogWorkout, onDismiss: {
+                viewModel?.fetchWorkouts()
+            }) {
                 if let vm = viewModel {
                     LogWorkoutView(viewModel: vm)
                 }
             }
-            .onAppear {
+            .task {
                 if viewModel == nil {
                     viewModel = WorkoutViewModel(modelContext: modelContext)
                 }

@@ -25,7 +25,7 @@ struct ProgressChartView: View {
             .background(Color.slateBackground)
             .toolbarBackground(Color.slateBackground, for: .navigationBar)
             .navigationTitle("Progress")
-            .onAppear {
+            .task {
                 if viewModel == nil {
                     let vm = WorkoutViewModel(modelContext: modelContext)
                     viewModel = vm

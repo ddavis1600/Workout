@@ -11,16 +11,11 @@ struct ContentView: View {
     @State private var selectedTab: Tab = .dashboard
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            // Content area - fills entire screen
-            currentTabView
-                .padding(.bottom, 56)
-
-            // Custom tab bar pinned to bottom
-            customTabBar
-        }
-        .ignoresSafeArea(.keyboard)
-        .preferredColorScheme(.dark)
+        currentTabView
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                customTabBar
+            }
+            .preferredColorScheme(.dark)
     }
 
     @ViewBuilder
@@ -37,22 +32,22 @@ struct ContentView: View {
     }
 
     private var customTabBar: some View {
-        HStack(spacing: 0) {
-            tabButton(.dashboard, icon: "house.fill", label: "Home")
-            tabButton(.workouts, icon: "dumbbell.fill", label: "Workouts")
-            tabButton(.progress, icon: "chart.line.uptrend.xyaxis", label: "Progress")
-            tabButton(.habits, icon: "checkmark.circle.fill", label: "Habits")
-            tabButton(.weight, icon: "scalemass.fill", label: "Weight")
-            tabButton(.macros, icon: "chart.pie.fill", label: "Macros")
-            tabButton(.diary, icon: "book.fill", label: "Diary")
+        VStack(spacing: 0) {
+            Divider()
+                .overlay(Color.slateBorder)
+            HStack(spacing: 0) {
+                tabButton(.dashboard, icon: "house.fill", label: "Home")
+                tabButton(.workouts, icon: "dumbbell.fill", label: "Workouts")
+                tabButton(.progress, icon: "chart.line.uptrend.xyaxis", label: "Progress")
+                tabButton(.habits, icon: "checkmark.circle.fill", label: "Habits")
+                tabButton(.weight, icon: "scalemass.fill", label: "Weight")
+                tabButton(.macros, icon: "chart.pie.fill", label: "Macros")
+                tabButton(.diary, icon: "book.fill", label: "Diary")
+            }
+            .padding(.top, 6)
+            .padding(.bottom, 4)
         }
-        .padding(.top, 6)
-        .padding(.bottom, 28)
-        .background(
-            Color(red: 0.11, green: 0.13, blue: 0.17)
-                .ignoresSafeArea(edges: .bottom)
-                .shadow(color: .black.opacity(0.3), radius: 8, y: -4)
-        )
+        .background(Color(red: 0.11, green: 0.13, blue: 0.17))
     }
 
     private func tabButton(_ tab: Tab, icon: String, label: String) -> some View {

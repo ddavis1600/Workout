@@ -54,7 +54,7 @@ struct MacrosView: View {
             .background(Color.slateBackground)
             .toolbarBackground(Color.slateBackground, for: .navigationBar)
             .navigationTitle("Macros")
-            .onAppear {
+            .task {
                 if viewModel == nil {
                     let vm = MacrosViewModel(modelContext: modelContext)
                     viewModel = vm
