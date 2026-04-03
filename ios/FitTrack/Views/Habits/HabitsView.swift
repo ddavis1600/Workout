@@ -124,14 +124,14 @@ struct HabitsView: View {
             // Month navigation
             HStack {
                 Button {
-                    withAnimation {
-                        displayedMonth = calendar.date(byAdding: .month, value: -1, to: displayedMonth) ?? displayedMonth
-                    }
+                    displayedMonth = calendar.date(byAdding: .month, value: -1, to: displayedMonth) ?? displayedMonth
                 } label: {
                     Image(systemName: "chevron.left")
                         .foregroundColor(.emerald)
-                        .frame(width: 36, height: 36)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
 
                 Spacer()
 
@@ -142,14 +142,14 @@ struct HabitsView: View {
                 Spacer()
 
                 Button {
-                    withAnimation {
-                        displayedMonth = calendar.date(byAdding: .month, value: 1, to: displayedMonth) ?? displayedMonth
-                    }
+                    displayedMonth = calendar.date(byAdding: .month, value: 1, to: displayedMonth) ?? displayedMonth
                 } label: {
                     Image(systemName: "chevron.right")
                         .foregroundColor(.emerald)
-                        .frame(width: 36, height: 36)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
             }
 
             // Day-of-week headers
@@ -194,12 +194,9 @@ struct HabitsView: View {
         let isFuture = date > Date().startOfDay
 
         return Button {
-            withAnimation(.easeInOut(duration: 0.15)) {
-                selectedDate = date.startOfDay
-            }
+            selectedDate = date.startOfDay
         } label: {
             ZStack {
-                // Background based on completion
                 if isSelected {
                     Circle()
                         .fill(Color.emerald)
@@ -222,7 +219,9 @@ struct HabitsView: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: 36)
+            .contentShape(Circle())
         }
+        .buttonStyle(.plain)
         .disabled(isFuture)
     }
 
@@ -283,14 +282,14 @@ struct HabitsView: View {
                 Spacer()
 
                 Button {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        habit.toggle(on: selectedDate, context: modelContext)
-                    }
+                    habit.toggle(on: selectedDate, context: modelContext)
                 } label: {
                     Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
                         .font(.title)
                         .foregroundColor(isCompleted ? colorForHabit(habit.color) : .slateBorder)
+                        .contentShape(Circle())
                 }
+                .buttonStyle(.plain)
             }
 
             // Completion progress bar
