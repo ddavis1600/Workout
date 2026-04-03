@@ -5,7 +5,7 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
 
     enum Tab: String, CaseIterable {
-        case dashboard, workouts, progress, habits, weight, macros, diary
+        case dashboard, workouts, progress, habits, weight, macros, diary, heartRate
     }
 
     @State private var selectedTab: Tab = .dashboard
@@ -28,6 +28,7 @@ struct ContentView: View {
         case .weight:    WeightTrackingView()
         case .macros:    MacrosView()
         case .diary:     DiaryView()
+        case .heartRate: HeartRateView()
         }
     }
 
@@ -43,6 +44,7 @@ struct ContentView: View {
                 tabButton(.weight, icon: "scalemass.fill", label: "Weight")
                 tabButton(.macros, icon: "chart.pie.fill", label: "Macros")
                 tabButton(.diary, icon: "book.fill", label: "Diary")
+                tabButton(.heartRate, icon: "heart.fill", label: "Heart")
             }
             .padding(.top, 6)
             .padding(.bottom, 4)
@@ -56,9 +58,9 @@ struct ContentView: View {
         } label: {
             VStack(spacing: 2) {
                 Image(systemName: icon)
-                    .font(.system(size: 17))
+                    .font(.system(size: 15))
                 Text(label)
-                    .font(.system(size: 9, weight: .medium))
+                    .font(.system(size: 8, weight: .medium))
             }
             .foregroundStyle(selectedTab == tab ? Color.emerald : Color.slateText)
             .frame(maxWidth: .infinity)

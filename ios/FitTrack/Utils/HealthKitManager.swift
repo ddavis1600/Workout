@@ -1,9 +1,10 @@
 import HealthKit
 import SwiftData
+import Combine
 
 class HealthKitManager {
     static let shared = HealthKitManager()
-    private let healthStore = HKHealthStore()
+    let healthStore = HKHealthStore()
 
     var isAvailable: Bool {
         HKHealthStore.isHealthDataAvailable()
@@ -12,8 +13,12 @@ class HealthKitManager {
     func requestAuthorization() async -> Bool {
         guard isAvailable else { return false }
         let weightType = HKQuantityType(.bodyMass)
+        let heartRateType = HKQuantityType(.heartRate)
         do {
-            try await healthStore.requestAuthorization(toShare: [weightType], read: [weightType])
+            try await healthStore.requestAuthorization(
+                toShare: [weightType],
+                read: [weightType, heartRateType]
+            )
             return true
         } catch {
             print("HealthKit auth failed: \(error)")
