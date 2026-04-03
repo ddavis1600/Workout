@@ -5,17 +5,10 @@ struct HabitsView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Habit.createdAt) private var habits: [Habit]
     @State private var showingAddSheet = false
-    @State private var selectedDate: Date = .now
+    @State private var selectedDate: Date = Date().startOfDay
+    @State private var displayedMonth: Date = Date()
 
-    private var weekDates: [Date] {
-        let calendar = Calendar.current
-        let today = Date.now.startOfDay
-        let weekday = calendar.component(.weekday, from: today)
-        // Monday = start of week (weekday: 2 in Gregorian)
-        let daysFromMonday = (weekday + 5) % 7
-        let monday = calendar.date(byAdding: .day, value: -daysFromMonday, to: today)!
-        return (0..<7).map { calendar.date(byAdding: .day, value: $0, to: monday)! }
-    }
+    private var calendar: Calendar { Calendar.current }
 
     private func completionRatio(for date: Date) -> Double {
         guard !habits.isEmpty else { return 0 }
@@ -34,26 +27,74 @@ struct HabitsView: View {
         }
     }
 
-    private let dayLabels = ["M", "T", "W", "T", "F", "S", "S"]
+    // Generate all days for the displayed month grid
+    private var monthDays: [Date?] {
+        let comps = calendar.dateComponents([.year, .month], from: displayedMonth)
+        guard let firstOfMonth = calendar.date(from: comps),
+              let range = calendar.range(of: .day, in: .month, for: firstOfMonth) else {
+            return []
+        }
+        let firstWeekday = (calendar.component(.weekday, from: firstOfMonth) + 5) % 7 // Monday = 0
+        var days: [Date?] = Array(repeating: nil, count: firstWeekday)
+        for day in range {
+            if let date = calendar.date(byAdding: .day, value: day - 1, to: firstOfMonth) {
+                days.append(date)
+            }
+        }
+        // Pad to complete the last week
+        while days.count % 7 != 0 {
+            days.append(nil)
+        }
+        return days
+    }
+
+    private var monthYearString: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM yyyy"
+        return formatter.string(from: displayedMonth)
+    }
+
+    private var selectedDateString: String {
+        if calendar.isDateInToday(selectedDate) {
+            return "Today"
+        }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE, MMM d"
+        return formatter.string(from: selectedDate)
+    }
 
     var body: some View {
         NavigationStack {
             List {
-                    // Weekly overview
-                    weeklyOverview
+                // Calendar
+                calendarSection
+                    .listRowBackground(Color.slateBackground)
+                    .listRowSeparator(.hidden)
+                    .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+
+                // Selected date header
+                Section {
+                    Text(selectedDateString)
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                         .listRowBackground(Color.slateBackground)
                         .listRowSeparator(.hidden)
+                }
 
-                    // Habits list
-                    if habits.isEmpty {
-                        emptyState
+                // Habits list
+                if habits.isEmpty {
+                    emptyState
+                        .listRowBackground(Color.slateBackground)
+                        .listRowSeparator(.hidden)
+                } else {
+                    ForEach(habits) { habit in
+                        habitRow(habit)
                             .listRowBackground(Color.slateBackground)
                             .listRowSeparator(.hidden)
-                    } else {
-                        habitsList
-                            .listRowBackground(Color.slateBackground)
-                            .listRowSeparator(.hidden)
+                            .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
                     }
+                }
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
@@ -76,44 +117,66 @@ struct HabitsView: View {
         }
     }
 
-    private var weeklyOverview: some View {
+    // MARK: - Calendar
+
+    private var calendarSection: some View {
         VStack(spacing: 12) {
-            Text("This Week")
-                .font(.headline)
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            // Month navigation
+            HStack {
+                Button {
+                    withAnimation {
+                        displayedMonth = calendar.date(byAdding: .month, value: -1, to: displayedMonth) ?? displayedMonth
+                    }
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .foregroundColor(.emerald)
+                        .frame(width: 36, height: 36)
+                }
 
-            HStack(spacing: 16) {
-                ForEach(Array(weekDates.enumerated()), id: \.offset) { index, date in
-                    VStack(spacing: 6) {
-                        Text(dayLabels[index])
-                            .font(.caption2)
-                            .foregroundColor(.slateText)
+                Spacer()
 
-                        let ratio = completionRatio(for: date)
-                        Circle()
-                            .fill(ratio >= 1.0 ? Color.emerald : ratio > 0 ? Color.emerald.opacity(0.4) : Color.slateBorder)
-                            .frame(width: 32, height: 32)
-                            .overlay {
-                                if ratio >= 1.0 {
-                                    Image(systemName: "checkmark")
-                                        .font(.caption.bold())
-                                        .foregroundColor(.white)
-                                } else if ratio > 0 {
-                                    Text("\(Int(ratio * 100))%")
-                                        .font(.system(size: 8).bold())
-                                        .foregroundColor(.white)
-                                }
-                            }
+                Text(monthYearString)
+                    .font(.headline)
+                    .foregroundColor(.white)
 
-                        if Calendar.current.isDateInToday(date) {
-                            Circle()
-                                .fill(Color.emerald)
-                                .frame(width: 4, height: 4)
+                Spacer()
+
+                Button {
+                    withAnimation {
+                        displayedMonth = calendar.date(byAdding: .month, value: 1, to: displayedMonth) ?? displayedMonth
+                    }
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(.emerald)
+                        .frame(width: 36, height: 36)
+                }
+            }
+
+            // Day-of-week headers
+            let dayLabels = ["M", "T", "W", "T", "F", "S", "S"]
+            HStack(spacing: 0) {
+                ForEach(dayLabels.indices, id: \.self) { i in
+                    Text(dayLabels[i])
+                        .font(.caption2.weight(.semibold))
+                        .foregroundColor(.slateText)
+                        .frame(maxWidth: .infinity)
+                }
+            }
+
+            // Day grid
+            let days = monthDays
+            let weeks = stride(from: 0, to: days.count, by: 7).map { Array(days[$0..<min($0 + 7, days.count)]) }
+
+            ForEach(weeks.indices, id: \.self) { weekIndex in
+                HStack(spacing: 0) {
+                    ForEach(0..<7, id: \.self) { dayIndex in
+                        let idx = weekIndex * 7 + dayIndex
+                        if idx < days.count, let date = days[idx] {
+                            calendarDayCell(date: date)
                         } else {
-                            Circle()
-                                .fill(Color.clear)
-                                .frame(width: 4, height: 4)
+                            Color.clear
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 36)
                         }
                     }
                 }
@@ -123,6 +186,47 @@ struct HabitsView: View {
         .background(Color.slateCard)
         .cornerRadius(16)
     }
+
+    private func calendarDayCell(date: Date) -> some View {
+        let isSelected = calendar.isDate(date, inSameDayAs: selectedDate)
+        let isToday = calendar.isDateInToday(date)
+        let ratio = completionRatio(for: date)
+        let isFuture = date > Date().startOfDay
+
+        return Button {
+            withAnimation(.easeInOut(duration: 0.15)) {
+                selectedDate = date.startOfDay
+            }
+        } label: {
+            ZStack {
+                // Background based on completion
+                if isSelected {
+                    Circle()
+                        .fill(Color.emerald)
+                } else if ratio >= 1.0 {
+                    Circle()
+                        .fill(Color.emerald.opacity(0.3))
+                } else if ratio > 0 {
+                    Circle()
+                        .fill(Color.emerald.opacity(0.12))
+                }
+
+                Text("\(calendar.component(.day, from: date))")
+                    .font(.system(size: 14, weight: isToday ? .bold : .regular))
+                    .foregroundColor(
+                        isSelected ? .white :
+                        isFuture ? .slateText.opacity(0.4) :
+                        isToday ? .emerald :
+                        .white
+                    )
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 36)
+        }
+        .disabled(isFuture)
+    }
+
+    // MARK: - Empty State
 
     private var emptyState: some View {
         VStack(spacing: 16) {
@@ -140,23 +244,18 @@ struct HabitsView: View {
         .padding(.vertical, 60)
     }
 
-    private var habitsList: some View {
-        VStack(spacing: 12) {
-            ForEach(habits) { habit in
-                habitRow(habit)
-            }
-        }
-    }
+    // MARK: - Habit Row
 
     private func completionPercentage(for habit: Habit) -> Int {
-        let calendar = Calendar.current
         let daysSinceCreation = max(1, calendar.dateComponents([.day], from: habit.createdAt.startOfDay, to: Date.now.startOfDay).day ?? 1)
         let completedDays = habit.completions.count
         return min(100, Int(round(Double(completedDays) / Double(daysSinceCreation) * 100)))
     }
 
     private func habitRow(_ habit: Habit) -> some View {
-        VStack(spacing: 10) {
+        let isCompleted = habit.isCompleted(on: selectedDate)
+
+        return VStack(spacing: 10) {
             HStack(spacing: 14) {
                 Image(systemName: habit.icon)
                     .font(.title2)
@@ -185,12 +284,12 @@ struct HabitsView: View {
 
                 Button {
                     withAnimation(.easeInOut(duration: 0.2)) {
-                        habit.toggle(on: .now, context: modelContext)
+                        habit.toggle(on: selectedDate, context: modelContext)
                     }
                 } label: {
-                    Image(systemName: habit.isCompleted(on: .now) ? "checkmark.circle.fill" : "circle")
+                    Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
                         .font(.title)
-                        .foregroundColor(habit.isCompleted(on: .now) ? colorForHabit(habit.color) : .slateBorder)
+                        .foregroundColor(isCompleted ? colorForHabit(habit.color) : .slateBorder)
                 }
             }
 
@@ -211,14 +310,6 @@ struct HabitsView: View {
         .padding()
         .background(Color.slateCard)
         .cornerRadius(12)
-        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-            Button(role: .destructive) {
-                modelContext.delete(habit)
-                try? modelContext.save()
-            } label: {
-                Label("Delete", systemImage: "trash")
-            }
-        }
         .contextMenu {
             Button(role: .destructive) {
                 modelContext.delete(habit)
