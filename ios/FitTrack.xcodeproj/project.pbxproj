@@ -1,0 +1,536 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10000000000000000000001 /* FitTrackApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* FitTrackApp.swift */; };
+		A10000000000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* ContentView.swift */; };
+		A10000000000000000000003 /* DataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* DataController.swift */; };
+		A10000000000000000000004 /* DiaryEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* DiaryEntry.swift */; };
+		A10000000000000000000005 /* Exercise.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* Exercise.swift */; };
+		A10000000000000000000006 /* Food.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000006 /* Food.swift */; };
+		A10000000000000000000007 /* UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000007 /* UserProfile.swift */; };
+		A10000000000000000000008 /* Workout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* Workout.swift */; };
+		A10000000000000000000009 /* WorkoutSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000009 /* WorkoutSet.swift */; };
+		A1000000000000000000000A /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000A /* Extensions.swift */; };
+		A1000000000000000000000B /* MacroCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000B /* MacroCalculator.swift */; };
+		A1000000000000000000000C /* SeedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000C /* SeedData.swift */; };
+		A1000000000000000000000D /* DashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000D /* DashboardViewModel.swift */; };
+		A1000000000000000000000E /* DiaryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000E /* DiaryViewModel.swift */; };
+		A1000000000000000000000F /* MacrosViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000F /* MacrosViewModel.swift */; };
+		A10000000000000000000010 /* WorkoutViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000010 /* WorkoutViewModel.swift */; };
+		A10000000000000000000011 /* MacroProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000011 /* MacroProgressBar.swift */; };
+		A10000000000000000000012 /* MacroRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000012 /* MacroRing.swift */; };
+		A10000000000000000000013 /* StatCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000013 /* StatCard.swift */; };
+		A10000000000000000000014 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000014 /* DashboardView.swift */; };
+		A10000000000000000000015 /* RecentWorkoutsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000015 /* RecentWorkoutsCard.swift */; };
+		A10000000000000000000016 /* DiaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000016 /* DiaryView.swift */; };
+		A10000000000000000000017 /* FoodSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000017 /* FoodSearchView.swift */; };
+		A10000000000000000000018 /* MealSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000018 /* MealSectionView.swift */; };
+		A10000000000000000000019 /* BodyStatsForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000019 /* BodyStatsForm.swift */; };
+		A1000000000000000000001A /* GoalSelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001A /* GoalSelectorView.swift */; };
+		A1000000000000000000001B /* MacroTargetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001B /* MacroTargetsView.swift */; };
+		A1000000000000000000001C /* MacrosView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001C /* MacrosView.swift */; };
+		A1000000000000000000001D /* ExercisePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001D /* ExercisePickerView.swift */; };
+		A1000000000000000000001E /* LogWorkoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001E /* LogWorkoutView.swift */; };
+		A1000000000000000000001F /* ProgressChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001F /* ProgressChartView.swift */; };
+		A10000000000000000000020 /* SetRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000020 /* SetRowView.swift */; };
+		A10000000000000000000021 /* WorkoutDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000021 /* WorkoutDetailView.swift */; };
+		A10000000000000000000022 /* WorkoutListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000022 /* WorkoutListView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A20000000000000000000001 /* FitTrackApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitTrackApp.swift; sourceTree = "<group>"; };
+		A20000000000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A20000000000000000000003 /* DataController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataController.swift; sourceTree = "<group>"; };
+		A20000000000000000000004 /* DiaryEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaryEntry.swift; sourceTree = "<group>"; };
+		A20000000000000000000005 /* Exercise.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Exercise.swift; sourceTree = "<group>"; };
+		A20000000000000000000006 /* Food.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Food.swift; sourceTree = "<group>"; };
+		A20000000000000000000007 /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfile.swift; sourceTree = "<group>"; };
+		A20000000000000000000008 /* Workout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Workout.swift; sourceTree = "<group>"; };
+		A20000000000000000000009 /* WorkoutSet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutSet.swift; sourceTree = "<group>"; };
+		A2000000000000000000000A /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		A2000000000000000000000B /* MacroCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroCalculator.swift; sourceTree = "<group>"; };
+		A2000000000000000000000C /* SeedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeedData.swift; sourceTree = "<group>"; };
+		A2000000000000000000000D /* DashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
+		A2000000000000000000000E /* DiaryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaryViewModel.swift; sourceTree = "<group>"; };
+		A2000000000000000000000F /* MacrosViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacrosViewModel.swift; sourceTree = "<group>"; };
+		A20000000000000000000010 /* WorkoutViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutViewModel.swift; sourceTree = "<group>"; };
+		A20000000000000000000011 /* MacroProgressBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroProgressBar.swift; sourceTree = "<group>"; };
+		A20000000000000000000012 /* MacroRing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroRing.swift; sourceTree = "<group>"; };
+		A20000000000000000000013 /* StatCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatCard.swift; sourceTree = "<group>"; };
+		A20000000000000000000014 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		A20000000000000000000015 /* RecentWorkoutsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentWorkoutsCard.swift; sourceTree = "<group>"; };
+		A20000000000000000000016 /* DiaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaryView.swift; sourceTree = "<group>"; };
+		A20000000000000000000017 /* FoodSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodSearchView.swift; sourceTree = "<group>"; };
+		A20000000000000000000018 /* MealSectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealSectionView.swift; sourceTree = "<group>"; };
+		A20000000000000000000019 /* BodyStatsForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyStatsForm.swift; sourceTree = "<group>"; };
+		A2000000000000000000001A /* GoalSelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalSelectorView.swift; sourceTree = "<group>"; };
+		A2000000000000000000001B /* MacroTargetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroTargetsView.swift; sourceTree = "<group>"; };
+		A2000000000000000000001C /* MacrosView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacrosView.swift; sourceTree = "<group>"; };
+		A2000000000000000000001D /* ExercisePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExercisePickerView.swift; sourceTree = "<group>"; };
+		A2000000000000000000001E /* LogWorkoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogWorkoutView.swift; sourceTree = "<group>"; };
+		A2000000000000000000001F /* ProgressChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressChartView.swift; sourceTree = "<group>"; };
+		A20000000000000000000020 /* SetRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetRowView.swift; sourceTree = "<group>"; };
+		A20000000000000000000021 /* WorkoutDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutDetailView.swift; sourceTree = "<group>"; };
+		A20000000000000000000022 /* WorkoutListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutListView.swift; sourceTree = "<group>"; };
+		A20000000000000000000099 /* FitTrack.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FitTrack.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A30000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A40000000000000000000001 /* = root group = */ = {
+			isa = PBXGroup;
+			children = (
+				A40000000000000000000002 /* FitTrack */,
+				A40000000000000000000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A40000000000000000000002 /* FitTrack */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000001 /* FitTrackApp.swift */,
+				A20000000000000000000002 /* ContentView.swift */,
+				A40000000000000000000010 /* Data */,
+				A40000000000000000000004 /* Models */,
+				A40000000000000000000005 /* Utils */,
+				A40000000000000000000006 /* ViewModels */,
+				A40000000000000000000007 /* Views */,
+			);
+			path = FitTrack;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000099 /* FitTrack.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000004 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000004 /* DiaryEntry.swift */,
+				A20000000000000000000005 /* Exercise.swift */,
+				A20000000000000000000006 /* Food.swift */,
+				A20000000000000000000007 /* UserProfile.swift */,
+				A20000000000000000000008 /* Workout.swift */,
+				A20000000000000000000009 /* WorkoutSet.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000005 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				A2000000000000000000000A /* Extensions.swift */,
+				A2000000000000000000000B /* MacroCalculator.swift */,
+				A2000000000000000000000C /* SeedData.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000006 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				A2000000000000000000000D /* DashboardViewModel.swift */,
+				A2000000000000000000000E /* DiaryViewModel.swift */,
+				A2000000000000000000000F /* MacrosViewModel.swift */,
+				A20000000000000000000010 /* WorkoutViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000007 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				A40000000000000000000008 /* Components */,
+				A40000000000000000000009 /* Dashboard */,
+				A4000000000000000000000A /* Diary */,
+				A4000000000000000000000B /* Macros */,
+				A4000000000000000000000C /* Workout */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000008 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000011 /* MacroProgressBar.swift */,
+				A20000000000000000000012 /* MacroRing.swift */,
+				A20000000000000000000013 /* StatCard.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000009 /* Dashboard */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000014 /* DashboardView.swift */,
+				A20000000000000000000015 /* RecentWorkoutsCard.swift */,
+			);
+			path = Dashboard;
+			sourceTree = "<group>";
+		};
+		A4000000000000000000000A /* Diary */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000016 /* DiaryView.swift */,
+				A20000000000000000000017 /* FoodSearchView.swift */,
+				A20000000000000000000018 /* MealSectionView.swift */,
+			);
+			path = Diary;
+			sourceTree = "<group>";
+		};
+		A4000000000000000000000B /* Macros */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000019 /* BodyStatsForm.swift */,
+				A2000000000000000000001A /* GoalSelectorView.swift */,
+				A2000000000000000000001B /* MacroTargetsView.swift */,
+				A2000000000000000000001C /* MacrosView.swift */,
+			);
+			path = Macros;
+			sourceTree = "<group>";
+		};
+		A4000000000000000000000C /* Workout */ = {
+			isa = PBXGroup;
+			children = (
+				A2000000000000000000001D /* ExercisePickerView.swift */,
+				A2000000000000000000001E /* LogWorkoutView.swift */,
+				A2000000000000000000001F /* ProgressChartView.swift */,
+				A20000000000000000000020 /* SetRowView.swift */,
+				A20000000000000000000021 /* WorkoutDetailView.swift */,
+				A20000000000000000000022 /* WorkoutListView.swift */,
+			);
+			path = Workout;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000010 /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000003 /* DataController.swift */,
+			);
+			path = Data;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A50000000000000000000001 /* FitTrack */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A80000000000000000000002 /* Build configuration list for PBXNativeTarget "FitTrack" */;
+			buildPhases = (
+				A60000000000000000000001 /* Sources */,
+				A30000000000000000000001 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FitTrack;
+			productName = FitTrack;
+			productReference = A20000000000000000000099 /* FitTrack.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A70000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					A50000000000000000000001 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = A80000000000000000000001 /* Build configuration list for PBXProject "FitTrack" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A40000000000000000000001;
+			productRefGroup = A40000000000000000000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A50000000000000000000001 /* FitTrack */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A60000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000001 /* FitTrackApp.swift in Sources */,
+				A10000000000000000000002 /* ContentView.swift in Sources */,
+				A10000000000000000000003 /* DataController.swift in Sources */,
+				A10000000000000000000004 /* DiaryEntry.swift in Sources */,
+				A10000000000000000000005 /* Exercise.swift in Sources */,
+				A10000000000000000000006 /* Food.swift in Sources */,
+				A10000000000000000000007 /* UserProfile.swift in Sources */,
+				A10000000000000000000008 /* Workout.swift in Sources */,
+				A10000000000000000000009 /* WorkoutSet.swift in Sources */,
+				A1000000000000000000000A /* Extensions.swift in Sources */,
+				A1000000000000000000000B /* MacroCalculator.swift in Sources */,
+				A1000000000000000000000C /* SeedData.swift in Sources */,
+				A1000000000000000000000D /* DashboardViewModel.swift in Sources */,
+				A1000000000000000000000E /* DiaryViewModel.swift in Sources */,
+				A1000000000000000000000F /* MacrosViewModel.swift in Sources */,
+				A10000000000000000000010 /* WorkoutViewModel.swift in Sources */,
+				A10000000000000000000011 /* MacroProgressBar.swift in Sources */,
+				A10000000000000000000012 /* MacroRing.swift in Sources */,
+				A10000000000000000000013 /* StatCard.swift in Sources */,
+				A10000000000000000000014 /* DashboardView.swift in Sources */,
+				A10000000000000000000015 /* RecentWorkoutsCard.swift in Sources */,
+				A10000000000000000000016 /* DiaryView.swift in Sources */,
+				A10000000000000000000017 /* FoodSearchView.swift in Sources */,
+				A10000000000000000000018 /* MealSectionView.swift in Sources */,
+				A10000000000000000000019 /* BodyStatsForm.swift in Sources */,
+				A1000000000000000000001A /* GoalSelectorView.swift in Sources */,
+				A1000000000000000000001B /* MacroTargetsView.swift in Sources */,
+				A1000000000000000000001C /* MacrosView.swift in Sources */,
+				A1000000000000000000001D /* ExercisePickerView.swift in Sources */,
+				A1000000000000000000001E /* LogWorkoutView.swift in Sources */,
+				A1000000000000000000001F /* ProgressChartView.swift in Sources */,
+				A10000000000000000000020 /* SetRowView.swift in Sources */,
+				A10000000000000000000021 /* WorkoutDetailView.swift in Sources */,
+				A10000000000000000000022 /* WorkoutListView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		B10000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		B10000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		B10000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fittrack.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B10000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fittrack.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A80000000000000000000001 /* Build configuration list for PBXProject "FitTrack" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B10000000000000000000001 /* Debug */,
+				B10000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A80000000000000000000002 /* Build configuration list for PBXNativeTarget "FitTrack" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B10000000000000000000003 /* Debug */,
+				B10000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A70000000000000000000001 /* Project object */;
+}
