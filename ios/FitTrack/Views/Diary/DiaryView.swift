@@ -14,18 +14,19 @@ struct DiaryView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    datePicker
-                    summarySection
-                    mealSections
-                    // Bottom padding so content isn't hidden behind tab bar
-                    Spacer().frame(height: 20)
-                }
-                .padding()
-                .frame(maxWidth: .infinity)
+            List {
+                datePicker
+                    .listRowBackground(Color.slateBackground)
+                    .listRowSeparator(.hidden)
+                summarySection
+                    .listRowBackground(Color.slateBackground)
+                    .listRowSeparator(.hidden)
+                mealSections
+                    .listRowBackground(Color.slateBackground)
+                    .listRowSeparator(.hidden)
             }
-            .scrollIndicators(.visible)
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
             .background(Color.slateBackground)
             .toolbarBackground(Color.slateBackground, for: .navigationBar)
             .navigationTitle("Food Diary")

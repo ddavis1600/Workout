@@ -11,17 +11,16 @@ struct ProgressChartView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+            List {
                     exercisePicker
+                        .listRowBackground(Color.slateBackground)
+                        .listRowSeparator(.hidden)
                     chartSection
-
-                    Spacer().frame(height: 20)
-                }
-                .padding()
-                .frame(maxWidth: .infinity)
+                        .listRowBackground(Color.slateBackground)
+                        .listRowSeparator(.hidden)
             }
-            .scrollIndicators(.visible)
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
             .background(Color.slateBackground)
             .toolbarBackground(Color.slateBackground, for: .navigationBar)
             .navigationTitle("Progress")

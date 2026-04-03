@@ -38,24 +38,25 @@ struct HabitsView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
+            List {
                     // Weekly overview
                     weeklyOverview
+                        .listRowBackground(Color.slateBackground)
+                        .listRowSeparator(.hidden)
 
                     // Habits list
                     if habits.isEmpty {
                         emptyState
+                            .listRowBackground(Color.slateBackground)
+                            .listRowSeparator(.hidden)
                     } else {
                         habitsList
+                            .listRowBackground(Color.slateBackground)
+                            .listRowSeparator(.hidden)
                     }
-
-                    Spacer().frame(height: 20)
-                }
-                .padding()
-                .frame(maxWidth: .infinity)
             }
-            .scrollIndicators(.visible)
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
             .background(Color.slateBackground)
             .toolbarBackground(Color.slateBackground, for: .navigationBar)
             .navigationTitle("Habits")

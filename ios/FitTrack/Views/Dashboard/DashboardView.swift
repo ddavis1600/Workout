@@ -7,29 +7,34 @@ struct DashboardView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+            List {
                     welcomeHeader
+                        .listRowBackground(Color.slateBackground)
+                        .listRowSeparator(.hidden)
 
                     if let vm = viewModel {
                         if vm.profile == nil || vm.profile?.calorieTarget == 0 {
                             setupMacrosCard
+                                .listRowBackground(Color.slateBackground)
+                                .listRowSeparator(.hidden)
                         } else {
                             macroSummarySection(vm: vm)
+                                .listRowBackground(Color.slateBackground)
+                                .listRowSeparator(.hidden)
                         }
 
                         recentWorkoutsSection(vm: vm)
+                            .listRowBackground(Color.slateBackground)
+                            .listRowSeparator(.hidden)
                     } else {
                         ProgressView()
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .listRowBackground(Color.slateBackground)
+                            .listRowSeparator(.hidden)
                     }
-
-                    Spacer().frame(height: 20)
-                }
-                .padding()
-                .frame(maxWidth: .infinity)
             }
-            .scrollIndicators(.visible)
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
             .background(Color.slateBackground)
             .toolbarBackground(Color.slateBackground, for: .navigationBar)
             .navigationTitle("Dashboard")

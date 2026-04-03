@@ -30,27 +30,41 @@ struct MacrosView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    modePicker
-                    if manualMode {
-                        manualEntrySection
-                    } else {
-                        unitSystemPicker
-                        bodyStatsSection
-                        goalSection
-                        calculateButton
-                        if hasCalculated, previewTargets != nil {
-                            resultsSection
-                        }
+            List {
+                modePicker
+                    .listRowBackground(Color.slateBackground)
+                    .listRowSeparator(.hidden)
+
+                if manualMode {
+                    manualEntrySection
+                        .listRowBackground(Color.slateBackground)
+                        .listRowSeparator(.hidden)
+                } else {
+                    unitSystemPicker
+                        .listRowBackground(Color.slateBackground)
+                        .listRowSeparator(.hidden)
+                    bodyStatsSection
+                        .listRowBackground(Color.slateBackground)
+                        .listRowSeparator(.hidden)
+                    goalSection
+                        .listRowBackground(Color.slateBackground)
+                        .listRowSeparator(.hidden)
+                    calculateButton
+                        .listRowBackground(Color.slateBackground)
+                        .listRowSeparator(.hidden)
+                    if hasCalculated, previewTargets != nil {
+                        resultsSection
+                            .listRowBackground(Color.slateBackground)
+                            .listRowSeparator(.hidden)
                     }
-                    saveButton
-                    Spacer().frame(height: 20)
                 }
-                .padding()
-                .frame(maxWidth: .infinity)
+
+                saveButton
+                    .listRowBackground(Color.slateBackground)
+                    .listRowSeparator(.hidden)
             }
-            .scrollIndicators(.visible)
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
             .background(Color.slateBackground)
             .toolbarBackground(Color.slateBackground, for: .navigationBar)
             .navigationTitle("Macros")

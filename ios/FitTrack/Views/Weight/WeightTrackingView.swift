@@ -56,32 +56,37 @@ struct WeightTrackingView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
+            List {
                     // Current weight card
                     currentWeightCard
+                        .listRowBackground(Color.slateBackground)
+                        .listRowSeparator(.hidden)
 
                     // Chart
                     if !filteredEntries.isEmpty {
                         chartSection
+                            .listRowBackground(Color.slateBackground)
+                            .listRowSeparator(.hidden)
                     }
 
                     // Health sync toggle
                     healthSyncCard
+                        .listRowBackground(Color.slateBackground)
+                        .listRowSeparator(.hidden)
 
                     // Recent entries
                     if !recentEntries.isEmpty {
                         recentEntriesSection
+                            .listRowBackground(Color.slateBackground)
+                            .listRowSeparator(.hidden)
                     } else {
                         emptyState
+                            .listRowBackground(Color.slateBackground)
+                            .listRowSeparator(.hidden)
                     }
-
-                    Spacer().frame(height: 20)
-                }
-                .padding()
-                .frame(maxWidth: .infinity)
             }
-            .scrollIndicators(.visible)
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
             .background(Color.slateBackground)
             .toolbarBackground(Color.slateBackground, for: .navigationBar)
             .navigationTitle("Weight")

@@ -70,29 +70,25 @@ struct WorkoutListView: View {
     // MARK: - Workout List
 
     private func workoutList(vm: WorkoutViewModel) -> some View {
-        ScrollView {
-            LazyVStack(spacing: 12) {
-
-                ForEach(vm.workouts, id: \.self) { workout in
-                    NavigationLink(destination: WorkoutDetailView(workout: workout)) {
-                        workoutRow(workout)
-                    }
-                    .buttonStyle(.plain)
-                    .contextMenu {
-                        Button(role: .destructive) {
-                            vm.deleteWorkout(workout)
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
+        List {
+            ForEach(vm.workouts, id: \.self) { workout in
+                NavigationLink(destination: WorkoutDetailView(workout: workout)) {
+                    workoutRow(workout)
+                }
+                .buttonStyle(.plain)
+                .contextMenu {
+                    Button(role: .destructive) {
+                        vm.deleteWorkout(workout)
+                    } label: {
+                        Label("Delete", systemImage: "trash")
                     }
                 }
-
-                Spacer().frame(height: 20)
+                .listRowBackground(Color.slateBackground)
+                .listRowSeparator(.hidden)
             }
-            .padding()
-            .frame(maxWidth: .infinity)
         }
-        .scrollIndicators(.visible)
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
         .background(Color.slateBackground)
     }
 
