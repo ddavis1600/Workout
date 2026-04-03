@@ -363,11 +363,11 @@ class HeartRateViewModel: ObservableObject {
             anchor: nil,
             limit: HKObjectQueryNoLimit
         ) { [weak self] _, samples, _, _, _ in
-            self?.processHeartRateSamples(samples)
+            self?.handleHeartRateSamples(samples)
         }
 
         anchorQuery.updateHandler = { [weak self] _, samples, _, _, _ in
-            self?.processHeartRateSamples(samples)
+            self?.handleHeartRateSamples(samples)
         }
 
         heartRateQuery = anchorQuery
@@ -381,14 +381,15 @@ class HeartRateViewModel: ObservableObject {
         }
     }
 
-    private func processHeartRateSamples(_ samples: [HKSample]?) {
+    nonisolated private func handleHeartRateSamples(_ samples: [HKSample]?) {
         guard let heartRateSamples = samples as? [HKQuantitySample],
               let mostRecent = heartRateSamples.last else { return }
 
         let bpm = Int(mostRecent.quantity.doubleValue(for: HKUnit.count().unitDivided(by: .minute())))
-        Task { @MainActor in
-            self.currentBPM = bpm
-            self.lastUpdated = mostRecent.startDate
+        let date = mostRecent.startDate
+        Task { @MainActor [weak self] in
+            self?.currentBPM = bpm
+            self?.lastUpdated = date
         }
     }
 }
