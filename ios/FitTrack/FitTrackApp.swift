@@ -18,7 +18,7 @@ struct FitTrackApp: App {
             WeightEntry.self
         ])
 
-        // Use local storage for now; change to .automatic for iCloud sync on real devices
+        // Use local storage in simulator; CloudKit on real devices
         #if targetEnvironment(simulator)
         let config = ModelConfiguration(schema: schema, cloudKitDatabase: .none)
         #else
@@ -28,7 +28,17 @@ struct FitTrackApp: App {
         do {
             container = try ModelContainer(for: schema, configurations: config)
         } catch {
-            fatalError("Failed to create ModelContainer: \(error)")
+            // If schema changed, delete old store and retry
+            let url = config.url
+            try? FileManager.default.removeItem(at: url)
+            // Also remove WAL/SHM files
+            try? FileManager.default.removeItem(at: url.deletingPathExtension().appendingPathExtension("sqlite-wal"))
+            try? FileManager.default.removeItem(at: url.deletingPathExtension().appendingPathExtension("sqlite-shm"))
+            do {
+                container = try ModelContainer(for: schema, configurations: config)
+            } catch {
+                fatalError("Failed to create ModelContainer: \(error)")
+            }
         }
 
         // Seed data on first launch

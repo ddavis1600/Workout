@@ -4,11 +4,11 @@ import SwiftData
 @Model
 final class WorkoutSet {
     var exercise: Exercise?
-    var setNumber: Int
+    var setNumber: Int = 1
     var reps: Int?
     var weight: Double?
     var rpe: Double?
-    var notes: String
+    var notes: String = ""
     @Relationship(inverse: \Workout.sets) var workout: Workout?
 
     init(exercise: Exercise? = nil, setNumber: Int = 1, reps: Int? = nil, weight: Double? = nil, rpe: Double? = nil, notes: String = "") {
