@@ -3,8 +3,8 @@ import SwiftData
 
 @Model
 final class Exercise {
-    var name: String
-    var muscleGroup: String
+    var name: String = ""
+    var muscleGroup: String = ""
     var equipment: String?
 
     init(name: String, muscleGroup: String, equipment: String? = nil) {

@@ -3,15 +3,15 @@ import SwiftData
 
 @Model
 final class Food {
-    var name: String
+    var name: String = ""
     var brand: String?
-    var servingSize: Double
-    var servingUnit: String
-    var calories: Double
-    var protein: Double
-    var carbs: Double
-    var fat: Double
-    var isCustom: Bool
+    var servingSize: Double = 0
+    var servingUnit: String = "g"
+    var calories: Double = 0
+    var protein: Double = 0
+    var carbs: Double = 0
+    var fat: Double = 0
+    var isCustom: Bool = false
 
     init(
         name: String,

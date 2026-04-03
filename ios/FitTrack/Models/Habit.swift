@@ -3,10 +3,10 @@ import Foundation
 
 @Model
 final class Habit {
-    var name: String
-    var icon: String        // SF Symbol name
-    var color: String       // "emerald", "blue", "orange", "pink", "purple"
-    var createdAt: Date
+    var name: String = ""
+    var icon: String = "checkmark.circle"
+    var color: String = "emerald"
+    var createdAt: Date = .now
     @Relationship(deleteRule: .cascade) var completions: [HabitCompletion]
 
     init(name: String, icon: String = "checkmark.circle", color: String = "emerald") {

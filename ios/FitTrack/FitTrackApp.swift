@@ -18,27 +18,17 @@ struct FitTrackApp: App {
             WeightEntry.self
         ])
 
-        // Try CloudKit first for iCloud sync; fall back to local-only if it fails
-        // (CloudKit requires signed-in iCloud account and provisioned container)
-        let cloudConfig = ModelConfiguration(
-            schema: schema,
-            cloudKitDatabase: .automatic
-        )
-
-        let localConfig = ModelConfiguration(
-            schema: schema,
-            cloudKitDatabase: .none
-        )
+        // Use local storage for now; change to .automatic for iCloud sync on real devices
+        #if targetEnvironment(simulator)
+        let config = ModelConfiguration(schema: schema, cloudKitDatabase: .none)
+        #else
+        let config = ModelConfiguration(schema: schema, cloudKitDatabase: .automatic)
+        #endif
 
         do {
-            container = try ModelContainer(for: schema, configurations: cloudConfig)
+            container = try ModelContainer(for: schema, configurations: config)
         } catch {
-            // CloudKit not available (e.g. simulator, no iCloud account) — use local storage
-            do {
-                container = try ModelContainer(for: schema, configurations: localConfig)
-            } catch {
-                fatalError("Failed to create ModelContainer: \(error)")
-            }
+            fatalError("Failed to create ModelContainer: \(error)")
         }
 
         // Seed data on first launch
