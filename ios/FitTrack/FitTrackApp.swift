@@ -15,7 +15,8 @@ struct FitTrackApp: App {
             DiaryEntry.self,
             Habit.self,
             HabitCompletion.self,
-            WeightEntry.self
+            WeightEntry.self,
+            JournalEntry.self
         ])
 
         // Use local storage in simulator; CloudKit on real devices

@@ -51,6 +51,9 @@
 		E10000000000000000000001 /* HeartRateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000000000000000000001 /* HeartRateView.swift */; };
 		F10000000000000000000001 /* HeartRateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000001 /* HeartRateService.swift */; };
 		F10000000000000000000002 /* WorkoutHeartRateCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000002 /* WorkoutHeartRateCard.swift */; };
+		G10000000000000000000001 /* JournalEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = G20000000000000000000001 /* JournalEntry.swift */; };
+		G10000000000000000000002 /* JournalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = G20000000000000000000002 /* JournalView.swift */; };
+		G10000000000000000000003 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = G20000000000000000000003 /* SettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -99,6 +102,9 @@
 		E20000000000000000000001 /* HeartRateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartRateView.swift; sourceTree = "<group>"; };
 		F20000000000000000000001 /* HeartRateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartRateService.swift; sourceTree = "<group>"; };
 		F20000000000000000000002 /* WorkoutHeartRateCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutHeartRateCard.swift; sourceTree = "<group>"; };
+		G20000000000000000000001 /* JournalEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntry.swift; sourceTree = "<group>"; };
+		G20000000000000000000002 /* JournalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalView.swift; sourceTree = "<group>"; };
+		G20000000000000000000003 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -154,6 +160,7 @@
 				C20000000000000000000003 /* WeightEntry.swift */,
 				A20000000000000000000008 /* Workout.swift */,
 				A20000000000000000000009 /* WorkoutSet.swift */,
+				G20000000000000000000001 /* JournalEntry.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -190,7 +197,9 @@
 				A4000000000000000000000A /* Diary */,
 				C4000000000000000000000D /* Habits */,
 				E40000000000000000000001 /* HeartRate */,
+				G40000000000000000000001 /* Journal */,
 				A4000000000000000000000B /* Macros */,
+				G40000000000000000000002 /* Settings */,
 				C4000000000000000000000E /* Weight */,
 				A4000000000000000000000C /* Workout */,
 			);
@@ -219,6 +228,22 @@
 				E20000000000000000000001 /* HeartRateView.swift */,
 			);
 			path = HeartRate;
+			sourceTree = "<group>";
+		};
+		G40000000000000000000001 /* Journal */ = {
+			isa = PBXGroup;
+			children = (
+				G20000000000000000000002 /* JournalView.swift */,
+			);
+			path = Journal;
+			sourceTree = "<group>";
+		};
+		G40000000000000000000002 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				G20000000000000000000003 /* SettingsView.swift */,
+			);
+			path = Settings;
 			sourceTree = "<group>";
 		};
 		A40000000000000000000008 /* Components */ = {
@@ -384,6 +409,9 @@
 				E10000000000000000000001 /* HeartRateView.swift in Sources */,
 				F10000000000000000000001 /* HeartRateService.swift in Sources */,
 				F10000000000000000000002 /* WorkoutHeartRateCard.swift in Sources */,
+				G10000000000000000000001 /* JournalEntry.swift in Sources */,
+				G10000000000000000000002 /* JournalView.swift in Sources */,
+				G10000000000000000000003 /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -521,8 +549,9 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "FitTrack reads your weight data from Apple Health to display your progress.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "FitTrack reads your weight and heart rate data from Apple Health to display your progress.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "FitTrack saves your weight entries to Apple Health to keep your data in sync.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "FitTrack uses the microphone to record voice notes in your journal.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -556,8 +585,9 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "FitTrack reads your weight data from Apple Health to display your progress.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "FitTrack reads your weight and heart rate data from Apple Health to display your progress.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "FitTrack saves your weight entries to Apple Health to keep your data in sync.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "FitTrack uses the microphone to record voice notes in your journal.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

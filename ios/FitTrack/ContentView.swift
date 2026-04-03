@@ -5,10 +5,68 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
 
     enum Tab: String, CaseIterable {
-        case dashboard, workouts, progress, habits, weight, macros, diary, heartRate
+        case dashboard, workouts, progress, habits, weight, macros, diary, journal, heartRate, settings
+
+        var icon: String {
+            switch self {
+            case .dashboard: return "house.fill"
+            case .workouts: return "dumbbell.fill"
+            case .progress: return "chart.line.uptrend.xyaxis"
+            case .habits: return "checkmark.circle.fill"
+            case .weight: return "scalemass.fill"
+            case .macros: return "chart.pie.fill"
+            case .diary: return "book.fill"
+            case .journal: return "book.closed.fill"
+            case .heartRate: return "heart.fill"
+            case .settings: return "gearshape.fill"
+            }
+        }
+
+        var label: String {
+            switch self {
+            case .dashboard: return "Home"
+            case .workouts: return "Workouts"
+            case .progress: return "Progress"
+            case .habits: return "Habits"
+            case .weight: return "Weight"
+            case .macros: return "Macros"
+            case .diary: return "Diary"
+            case .journal: return "Journal"
+            case .heartRate: return "Heart"
+            case .settings: return "Settings"
+            }
+        }
+
+        var storageKey: String { "tab_\(rawValue)" }
     }
 
     @State private var selectedTab: Tab = .dashboard
+
+    // Tab visibility from UserDefaults
+    @AppStorage("tab_dashboard") private var showDashboard = true
+    @AppStorage("tab_workouts") private var showWorkouts = true
+    @AppStorage("tab_progress") private var showProgress = true
+    @AppStorage("tab_habits") private var showHabits = true
+    @AppStorage("tab_weight") private var showWeight = true
+    @AppStorage("tab_macros") private var showMacros = true
+    @AppStorage("tab_diary") private var showDiary = true
+    @AppStorage("tab_journal") private var showJournal = true
+    @AppStorage("tab_heartRate") private var showHeartRate = true
+
+    private var visibleTabs: [Tab] {
+        var tabs: [Tab] = []
+        if showDashboard { tabs.append(.dashboard) }
+        if showWorkouts { tabs.append(.workouts) }
+        if showProgress { tabs.append(.progress) }
+        if showHabits { tabs.append(.habits) }
+        if showWeight { tabs.append(.weight) }
+        if showMacros { tabs.append(.macros) }
+        if showDiary { tabs.append(.diary) }
+        if showJournal { tabs.append(.journal) }
+        if showHeartRate { tabs.append(.heartRate) }
+        tabs.append(.settings) // Settings always visible
+        return tabs
+    }
 
     var body: some View {
         currentTabView
@@ -16,6 +74,12 @@ struct ContentView: View {
                 customTabBar
             }
             .preferredColorScheme(.dark)
+            .onChange(of: visibleTabs) { _, newTabs in
+                // If current tab was hidden, switch to first visible
+                if !newTabs.contains(selectedTab) {
+                    selectedTab = newTabs.first ?? .settings
+                }
+            }
     }
 
     @ViewBuilder
@@ -28,7 +92,9 @@ struct ContentView: View {
         case .weight:    WeightTrackingView()
         case .macros:    MacrosView()
         case .diary:     DiaryView()
+        case .journal:   JournalView()
         case .heartRate: HeartRateView()
+        case .settings:  SettingsView()
         }
     }
 
@@ -37,14 +103,9 @@ struct ContentView: View {
             Divider()
                 .overlay(Color.slateBorder)
             HStack(spacing: 0) {
-                tabButton(.dashboard, icon: "house.fill", label: "Home")
-                tabButton(.workouts, icon: "dumbbell.fill", label: "Workouts")
-                tabButton(.progress, icon: "chart.line.uptrend.xyaxis", label: "Progress")
-                tabButton(.habits, icon: "checkmark.circle.fill", label: "Habits")
-                tabButton(.weight, icon: "scalemass.fill", label: "Weight")
-                tabButton(.macros, icon: "chart.pie.fill", label: "Macros")
-                tabButton(.diary, icon: "book.fill", label: "Diary")
-                tabButton(.heartRate, icon: "heart.fill", label: "Heart")
+                ForEach(visibleTabs, id: \.self) { tab in
+                    tabButton(tab)
+                }
             }
             .padding(.top, 6)
             .padding(.bottom, 4)
@@ -52,14 +113,14 @@ struct ContentView: View {
         .background(Color(red: 0.11, green: 0.13, blue: 0.17))
     }
 
-    private func tabButton(_ tab: Tab, icon: String, label: String) -> some View {
+    private func tabButton(_ tab: Tab) -> some View {
         Button {
             selectedTab = tab
         } label: {
             VStack(spacing: 2) {
-                Image(systemName: icon)
+                Image(systemName: tab.icon)
                     .font(.system(size: 15))
-                Text(label)
+                Text(tab.label)
                     .font(.system(size: 8, weight: .medium))
             }
             .foregroundStyle(selectedTab == tab ? Color.emerald : Color.slateText)
@@ -79,6 +140,7 @@ struct ContentView: View {
             DiaryEntry.self,
             Habit.self,
             HabitCompletion.self,
-            WeightEntry.self
+            WeightEntry.self,
+            JournalEntry.self
         ], inMemory: true)
 }
