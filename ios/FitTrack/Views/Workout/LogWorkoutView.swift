@@ -408,10 +408,10 @@ struct LogWorkoutView: View {
         workoutName = template.name
 
         for te in template.exercises.sorted(by: { $0.sortOrder < $1.sortOrder }) {
-            let descriptor = FetchDescriptor<Exercise>(predicate: #Predicate<Exercise> { ex in
-                ex.name == te.exerciseName
-            })
-            let exercise = (try? modelContext.fetch(descriptor))?.first
+            let searchName = te.exerciseName
+            let descriptor = FetchDescriptor<Exercise>()
+            let allExercises = (try? modelContext.fetch(descriptor)) ?? []
+            let exercise = allExercises.first(where: { $0.name == searchName })
                 ?? Exercise(name: te.exerciseName, muscleGroup: te.muscleGroup)
 
             var sets: [SetEntry] = []
