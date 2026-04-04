@@ -14,6 +14,8 @@ struct LogWorkoutView: View {
     @State private var workoutNotes = ""
     @State private var exerciseGroups: [ExerciseGroup] = []
     @State private var showingExercisePicker = false
+    @State private var showingSaveTemplate = false
+    var template: WorkoutTemplate?
 
     // Photo state
     @State private var selectedPhotoItem: PhotosPickerItem?
@@ -23,6 +25,11 @@ struct LogWorkoutView: View {
     @State private var elapsedSeconds: Int = 0
     @State private var timerIsRunning = true
     @State private var timerSubscription: AnyCancellable?
+
+    // Rest timer
+    @AppStorage("restTimerSeconds") private var restTimerDuration = 60
+    @AppStorage("restTimerEnabled") private var restTimerEnabled = true
+    @State private var showRestTimer = false
 
     // Heart rate
     @State private var heartRateService = HeartRateService()
@@ -36,6 +43,7 @@ struct LogWorkoutView: View {
         var reps: String
         var weight: String
         var rpe: String
+        var notes: String = ""
     }
 
     struct ExerciseGroup: Identifiable {
@@ -52,11 +60,19 @@ struct LogWorkoutView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
                         timerSection
+                        if showRestTimer {
+                            RestTimerView(duration: restTimerDuration) {
+                                withAnimation { showRestTimer = false }
+                            }
+                        }
                         WorkoutHeartRateCard(service: heartRateService, userAge: userAge)
                         workoutInfoSection
                         photoSection
                         exerciseSections
                         addExerciseButton
+                        if !exerciseGroups.isEmpty {
+                            saveAsTemplateButton
+                        }
                     }
                     .padding()
                 }
@@ -85,10 +101,23 @@ struct LogWorkoutView: View {
                     exerciseGroups.append(ExerciseGroup(exercise: exercise, sets: [initialSet]))
                 }
             }
+            .sheet(isPresented: $showingSaveTemplate) {
+                SaveTemplateSheet(exerciseGroups: exerciseGroups.map { group in
+                    let lastSet = group.sets.last
+                    return (
+                        exerciseName: group.exercise.name,
+                        muscleGroup: group.exercise.muscleGroup,
+                        setCount: group.sets.count,
+                        reps: lastSet?.reps ?? "",
+                        weight: lastSet?.weight ?? ""
+                    )
+                })
+            }
             .task {
                 startTimer()
                 heartRateService.resetSession()
                 await heartRateService.startMonitoring()
+                loadTemplate()
             }
             .onDisappear {
                 stopTimer()
@@ -292,6 +321,7 @@ struct LogWorkoutView: View {
                         reps: $setEntry.reps,
                         weight: $setEntry.weight,
                         rpe: $setEntry.rpe,
+                        notes: $setEntry.notes,
                         onDelete: {
                             withAnimation {
                                 group.sets.removeAll { $0.id == setEntry.id }
@@ -309,6 +339,9 @@ struct LogWorkoutView: View {
                     )
                     withAnimation {
                         group.sets.append(newSet)
+                    }
+                    if restTimerEnabled && group.sets.count > 1 {
+                        withAnimation { showRestTimer = true }
                     }
                 } label: {
                     Label("Add Set", systemImage: "plus")
@@ -344,6 +377,51 @@ struct LogWorkoutView: View {
                     RoundedRectangle(cornerRadius: 14)
                         .stroke(Color.emerald.opacity(0.3), lineWidth: 1)
                 )
+        }
+    }
+
+    // MARK: - Save as Template
+
+    private var saveAsTemplateButton: some View {
+        Button {
+            showingSaveTemplate = true
+        } label: {
+            Label("Save as Template", systemImage: "doc.badge.plus")
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(Color.emerald)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.slateCard)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(Color.slateBorder, lineWidth: 1)
+                )
+        }
+    }
+
+    // MARK: - Load Template
+
+    private func loadTemplate() {
+        guard let template = template, exerciseGroups.isEmpty else { return }
+        workoutName = template.name
+
+        for te in template.exercises.sorted(by: { $0.sortOrder < $1.sortOrder }) {
+            let descriptor = FetchDescriptor<Exercise>(predicate: #Predicate<Exercise> { ex in
+                ex.name == te.exerciseName
+            })
+            let exercise = (try? modelContext.fetch(descriptor))?.first
+                ?? Exercise(name: te.exerciseName, muscleGroup: te.muscleGroup)
+
+            var sets: [SetEntry] = []
+            for _ in 0..<te.defaultSets {
+                sets.append(SetEntry(
+                    reps: te.defaultReps > 0 ? "\(te.defaultReps)" : "",
+                    weight: te.defaultWeight > 0 ? "\(te.defaultWeight)" : "",
+                    rpe: ""
+                ))
+            }
+            exerciseGroups.append(ExerciseGroup(exercise: exercise, sets: sets))
         }
     }
 
@@ -385,7 +463,8 @@ struct LogWorkoutView: View {
                     setNumber: index + 1,
                     reps: Int(setEntry.reps),
                     weight: Double(setEntry.weight),
-                    rpe: Double(setEntry.rpe)
+                    rpe: Double(setEntry.rpe),
+                    notes: setEntry.notes
                 )
                 workoutSet.workout = workout
                 workout.sets.append(workoutSet)

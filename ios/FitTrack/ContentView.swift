@@ -5,7 +5,7 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
 
     enum Tab: String, CaseIterable {
-        case dashboard, workouts, progress, habits, weight, macros, diary, journal, heartRate, settings
+        case dashboard, workouts, progress, habits, weight, macros, diary, journal, heartRate, measurements, settings
 
         var icon: String {
             switch self {
@@ -18,6 +18,7 @@ struct ContentView: View {
             case .diary: return "book.fill"
             case .journal: return "book.closed.fill"
             case .heartRate: return "heart.fill"
+            case .measurements: return "ruler"
             case .settings: return "gearshape.fill"
             }
         }
@@ -33,6 +34,7 @@ struct ContentView: View {
             case .diary: return "Diary"
             case .journal: return "Journal"
             case .heartRate: return "Heart"
+            case .measurements: return "Measure"
             case .settings: return "Settings"
             }
         }
@@ -41,6 +43,7 @@ struct ContentView: View {
     }
 
     @State private var selectedTab: Tab = .dashboard
+    @AppStorage("appTheme") private var appTheme = "dark"
 
     // Tab visibility from UserDefaults
     @AppStorage("tab_dashboard") private var showDashboard = true
@@ -52,6 +55,7 @@ struct ContentView: View {
     @AppStorage("tab_diary") private var showDiary = true
     @AppStorage("tab_journal") private var showJournal = true
     @AppStorage("tab_heartRate") private var showHeartRate = true
+    @AppStorage("tab_measurements") private var showMeasurements = true
 
     private var visibleTabs: [Tab] {
         var tabs: [Tab] = []
@@ -64,6 +68,7 @@ struct ContentView: View {
         if showDiary { tabs.append(.diary) }
         if showJournal { tabs.append(.journal) }
         if showHeartRate { tabs.append(.heartRate) }
+        if showMeasurements { tabs.append(.measurements) }
         tabs.append(.settings) // Settings always visible
         return tabs
     }
@@ -73,7 +78,7 @@ struct ContentView: View {
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 customTabBar
             }
-            .preferredColorScheme(.dark)
+            .preferredColorScheme(appTheme == "system" ? nil : appTheme == "light" ? .light : .dark)
             .onChange(of: visibleTabs) { _, newTabs in
                 // If current tab was hidden, switch to first visible
                 if !newTabs.contains(selectedTab) {
@@ -94,6 +99,7 @@ struct ContentView: View {
         case .diary:     DiaryView()
         case .journal:   JournalView()
         case .heartRate: HeartRateView()
+        case .measurements: BodyMeasurementsView()
         case .settings:  SettingsView()
         }
     }
@@ -141,6 +147,9 @@ struct ContentView: View {
             Habit.self,
             HabitCompletion.self,
             WeightEntry.self,
-            JournalEntry.self
+            JournalEntry.self,
+            WorkoutTemplate.self,
+            TemplateExercise.self,
+            BodyMeasurement.self
         ], inMemory: true)
 }

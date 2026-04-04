@@ -115,6 +115,62 @@ actor FoodAPIService {
         }
     }
 
+    // MARK: - Barcode Lookup
+
+    private struct BarcodeResponse: Decodable {
+        let status: Int
+        let product: Product?
+    }
+
+    func fetchByBarcode(ean: String) async -> FoodAPIResult? {
+        guard let url = URL(string: "https://world.openfoodfacts.org/api/v0/product/\(ean).json") else {
+            return nil
+        }
+
+        do {
+            var request = URLRequest(url: url)
+            request.setValue("FitTrack iOS App - Contact: dev@fittrack.app", forHTTPHeaderField: "User-Agent")
+            request.timeoutInterval = 10
+
+            let (data, response) = try await URLSession.shared.data(for: request)
+
+            guard let httpResponse = response as? HTTPURLResponse,
+                  (200...299).contains(httpResponse.statusCode) else {
+                return nil
+            }
+
+            let decoded = try JSONDecoder().decode(BarcodeResponse.self, from: data)
+            guard decoded.status == 1,
+                  let product = decoded.product,
+                  let name = product.productName, !name.isEmpty,
+                  let nutriments = product.nutriments,
+                  let kcal100g = nutriments.energyKcal100g,
+                  let protein100g = nutriments.proteins100g,
+                  let carbs100g = nutriments.carbohydrates100g,
+                  let fat100g = nutriments.fat100g
+            else {
+                return nil
+            }
+
+            let servingQty = product.servingQuantity ?? 100.0
+            let servingUnit = parseServingUnit(from: product.servingSize)
+            let factor = servingQty / 100.0
+
+            return FoodAPIResult(
+                name: name,
+                brand: product.brands,
+                servingSize: servingQty,
+                servingUnit: servingUnit,
+                calories: round(kcal100g * factor * 10) / 10,
+                protein: round(protein100g * factor * 10) / 10,
+                carbs: round(carbs100g * factor * 10) / 10,
+                fat: round(fat100g * factor * 10) / 10
+            )
+        } catch {
+            return nil
+        }
+    }
+
     // MARK: - Helpers
 
     private func parseServingUnit(from servingSize: String?) -> String {

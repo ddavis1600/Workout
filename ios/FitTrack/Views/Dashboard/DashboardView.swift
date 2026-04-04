@@ -23,6 +23,10 @@ struct DashboardView: View {
                                 .listRowSeparator(.hidden)
                         }
 
+                        WeeklySummaryView()
+                            .listRowBackground(Color.slateBackground)
+                            .listRowSeparator(.hidden)
+
                         recentWorkoutsSection(vm: vm)
                             .listRowBackground(Color.slateBackground)
                             .listRowSeparator(.hidden)

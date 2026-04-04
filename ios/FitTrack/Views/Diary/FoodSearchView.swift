@@ -20,6 +20,9 @@ struct FoodSearchView: View {
     @State private var apiServings: Double = 1.0
     @State private var isSearchingOnline = false
     @State private var debounceTask: Task<Void, Never>?
+    @State private var showingBarcodeScanner = false
+    @State private var barcodeResult: FoodAPIResult?
+    @State private var isLoadingBarcode = false
 
     enum SearchTab: String, CaseIterable {
         case myFoods = "My Foods"
@@ -57,6 +60,41 @@ struct FoodSearchView: View {
                         dismiss()
                     }
                     .foregroundStyle(Color.slateText)
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showingBarcodeScanner = true
+                    } label: {
+                        Image(systemName: "barcode.viewfinder")
+                            .foregroundStyle(Color.emerald)
+                    }
+                }
+            }
+            .sheet(isPresented: $showingBarcodeScanner) {
+                NavigationStack {
+                    BarcodeScannerView { barcode in
+                        showingBarcodeScanner = false
+                        Task {
+                            isLoadingBarcode = true
+                            if let result = await FoodAPIService.shared.fetchByBarcode(ean: barcode) {
+                                barcodeResult = result
+                                selectedAPIResult = result
+                                selectedFood = nil
+                                apiServings = 1.0
+                                searchTab = .searchOnline
+                                apiResults = [result]
+                            }
+                            isLoadingBarcode = false
+                        }
+                    }
+                    .navigationTitle("Scan Barcode")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button("Cancel") { showingBarcodeScanner = false }
+                                .foregroundStyle(Color.slateText)
+                        }
+                    }
                 }
             }
             .searchable(text: $searchText, prompt: searchTab == .myFoods ? "Search foods" : "Search Open Food Facts")

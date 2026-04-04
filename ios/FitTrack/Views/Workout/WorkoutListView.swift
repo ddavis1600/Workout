@@ -5,6 +5,8 @@ struct WorkoutListView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var viewModel: WorkoutViewModel?
     @State private var showingLogWorkout = false
+    @State private var showingTemplates = false
+    @State private var selectedTemplate: WorkoutTemplate?
 
     var body: some View {
         NavigationStack {
@@ -24,8 +26,17 @@ struct WorkoutListView: View {
             .toolbarBackground(Color.slateBackground, for: .navigationBar)
             .navigationTitle("Workouts")
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        showingTemplates = true
+                    } label: {
+                        Image(systemName: "doc.on.doc")
+                            .foregroundStyle(Color.emerald)
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
+                        selectedTemplate = nil
                         showingLogWorkout = true
                     } label: {
                         Image(systemName: "plus")
@@ -37,7 +48,13 @@ struct WorkoutListView: View {
                 viewModel?.fetchWorkouts()
             }) {
                 if let vm = viewModel {
-                    LogWorkoutView(viewModel: vm)
+                    LogWorkoutView(viewModel: vm, template: selectedTemplate)
+                }
+            }
+            .sheet(isPresented: $showingTemplates) {
+                TemplateListView { template in
+                    selectedTemplate = template
+                    showingLogWorkout = true
                 }
             }
             .task {

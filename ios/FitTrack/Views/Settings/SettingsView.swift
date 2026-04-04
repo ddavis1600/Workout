@@ -1,6 +1,13 @@
 import SwiftUI
 
 struct SettingsView: View {
+    // Theme
+    @AppStorage("appTheme") private var appTheme = "dark"
+
+    // Rest timer
+    @AppStorage("restTimerEnabled") private var restTimerEnabled = true
+    @AppStorage("restTimerSeconds") private var restTimerSeconds = 60
+
     // Tab visibility — stored in UserDefaults
     @AppStorage("tab_dashboard") private var showDashboard = true
     @AppStorage("tab_workouts") private var showWorkouts = true
@@ -11,6 +18,7 @@ struct SettingsView: View {
     @AppStorage("tab_diary") private var showDiary = true
     @AppStorage("tab_journal") private var showJournal = true
     @AppStorage("tab_heartRate") private var showHeartRate = true
+    @AppStorage("tab_measurements") private var showMeasurements = true
 
     private var tabToggles: [(key: String, label: String, icon: String, binding: Binding<Bool>)] {
         [
@@ -23,11 +31,12 @@ struct SettingsView: View {
             ("diary", "Food Diary", "book.fill", $showDiary),
             ("journal", "Journal", "book.closed.fill", $showJournal),
             ("heartRate", "Heart Rate", "heart.fill", $showHeartRate),
+            ("measurements", "Measurements", "ruler", $showMeasurements),
         ]
     }
 
     private var enabledCount: Int {
-        [showDashboard, showWorkouts, showProgress, showHabits, showWeight, showMacros, showDiary, showJournal, showHeartRate].filter { $0 }.count
+        [showDashboard, showWorkouts, showProgress, showHabits, showWeight, showMacros, showDiary, showJournal, showHeartRate, showMeasurements].filter { $0 }.count
     }
 
     var body: some View {
@@ -53,6 +62,96 @@ struct SettingsView: View {
                         .foregroundColor(.slateText)
                 } footer: {
                     Text("Choose which features appear in the bottom tab bar. At least one must be enabled.")
+                        .foregroundColor(.slateText)
+                }
+
+                Section {
+                    Toggle(isOn: $restTimerEnabled) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "timer")
+                                .foregroundColor(.emerald)
+                                .frame(width: 24)
+                            Text("Rest Timer")
+                                .foregroundColor(.white)
+                        }
+                    }
+                    .tint(.emerald)
+                    .listRowBackground(Color.slateCard)
+
+                    if restTimerEnabled {
+                        Picker(selection: $restTimerSeconds) {
+                            Text("30s").tag(30)
+                            Text("45s").tag(45)
+                            Text("60s").tag(60)
+                            Text("90s").tag(90)
+                            Text("120s").tag(120)
+                            Text("180s").tag(180)
+                        } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: "clock")
+                                    .foregroundColor(.emerald)
+                                    .frame(width: 24)
+                                Text("Duration")
+                                    .foregroundColor(.white)
+                            }
+                        }
+                        .tint(.emerald)
+                        .listRowBackground(Color.slateCard)
+                    }
+                } header: {
+                    Text("Workout")
+                        .foregroundColor(.slateText)
+                }
+
+                Section {
+                    Picker(selection: $appTheme) {
+                        Text("System").tag("system")
+                        Text("Dark").tag("dark")
+                        Text("Light").tag("light")
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: appTheme == "dark" ? "moon.fill" : appTheme == "light" ? "sun.max.fill" : "circle.lefthalf.filled")
+                                .foregroundColor(.emerald)
+                                .frame(width: 24)
+                            Text("Theme")
+                                .foregroundColor(.white)
+                        }
+                    }
+                    .tint(.emerald)
+                    .listRowBackground(Color.slateCard)
+                } header: {
+                    Text("Appearance")
+                        .foregroundColor(.slateText)
+                }
+
+                Section {
+                    NavigationLink {
+                        NotificationSettingsView()
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "bell.fill")
+                                .foregroundColor(.emerald)
+                                .frame(width: 24)
+                            Text("Notifications")
+                                .foregroundColor(.white)
+                        }
+                    }
+                    .listRowBackground(Color.slateCard)
+
+                    NavigationLink {
+                        DataExportView()
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "square.and.arrow.up")
+                                .foregroundColor(.emerald)
+                                .frame(width: 24)
+                            Text("Export Data")
+                                .foregroundColor(.white)
+                        }
+                    }
+                    .listRowBackground(Color.slateCard)
+                } header: {
+                    Text("Data & Notifications")
                         .foregroundColor(.slateText)
                 }
 

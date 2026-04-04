@@ -3,6 +3,7 @@ import SwiftData
 
 struct WorkoutDetailView: View {
     let workout: Workout
+    @Query private var allSets: [WorkoutSet]
 
     private var displayName: String {
         workout.name.isEmpty ? "Workout" : workout.name
@@ -252,18 +253,36 @@ struct WorkoutDetailView: View {
                     .overlay(Color.slateBorder)
 
                 ForEach(group.sets, id: \.self) { workoutSet in
-                    HStack {
-                        Text("#\(workoutSet.setNumber)")
-                            .frame(width: 36, alignment: .leading)
-                        Text(workoutSet.reps != nil ? "\(workoutSet.reps!)" : "-")
-                            .frame(width: 50, alignment: .center)
-                        Text(workoutSet.weight != nil ? "\(workoutSet.weight!, specifier: "%.1f")" : "-")
-                            .frame(width: 70, alignment: .center)
-                        Text(workoutSet.rpe != nil ? "\(workoutSet.rpe!, specifier: "%.1f")" : "-")
-                            .frame(width: 40, alignment: .center)
+                    let prTypes = PRService.checkForPRs(
+                        exerciseName: group.exercise,
+                        reps: workoutSet.reps,
+                        weight: workoutSet.weight,
+                        allSets: allSets.filter { $0.workout?.date ?? Date() < workout.date }
+                    )
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack {
+                            Text("#\(workoutSet.setNumber)")
+                                .frame(width: 36, alignment: .leading)
+                            Text(workoutSet.reps != nil ? "\(workoutSet.reps!)" : "-")
+                                .frame(width: 50, alignment: .center)
+                            Text(workoutSet.weight != nil ? "\(workoutSet.weight!, specifier: "%.1f")" : "-")
+                                .frame(width: 70, alignment: .center)
+                            Text(workoutSet.rpe != nil ? "\(workoutSet.rpe!, specifier: "%.1f")" : "-")
+                                .frame(width: 40, alignment: .center)
+                            if !prTypes.isEmpty {
+                                PRBadgeView(prTypes: prTypes)
+                            }
+                        }
+                        .font(.subheadline)
+                        .foregroundStyle(.white)
+
+                        if !workoutSet.notes.isEmpty {
+                            Text(workoutSet.notes)
+                                .font(.caption)
+                                .foregroundStyle(Color.slateText)
+                                .padding(.leading, 36)
+                        }
                     }
-                    .font(.subheadline)
-                    .foregroundStyle(.white)
                     .padding(.horizontal, 4)
                     .padding(.vertical, 4)
                 }
