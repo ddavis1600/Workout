@@ -45,22 +45,23 @@ enum DataExportService {
         guard let workouts = try? context.fetch(descriptor) else { return [] }
 
         return workouts.map { w in
-            var dict: [String: Any] = [
-                "name": w.name,
-                "date": ISO8601DateFormatter().string(from: w.date),
-                "notes": w.notes,
-                "durationMinutes": w.durationMinutes as Any
-            ]
-            dict["sets"] = w.sets.sorted(by: { $0.setNumber < $1.setNumber }).map { s in
-                [
-                    "exercise": s.exercise?.name ?? "",
-                    "setNumber": s.setNumber,
-                    "reps": s.reps as Any,
-                    "weight": s.weight as Any,
-                    "rpe": s.rpe as Any,
-                    "notes": s.notes
-                ] as [String: Any]
+            var dict: [String: Any] = [:]
+            dict["name"] = w.name
+            dict["date"] = ISO8601DateFormatter().string(from: w.date)
+            dict["notes"] = w.notes
+            dict["durationMinutes"] = w.durationMinutes as Any
+
+            let setsArray: [[String: Any]] = w.sets.sorted(by: { $0.setNumber < $1.setNumber }).map { s in
+                var setDict: [String: Any] = [:]
+                setDict["exercise"] = s.exercise?.name ?? ""
+                setDict["setNumber"] = s.setNumber
+                setDict["reps"] = s.reps as Any
+                setDict["weight"] = s.weight as Any
+                setDict["rpe"] = s.rpe as Any
+                setDict["notes"] = s.notes
+                return setDict
             }
+            dict["sets"] = setsArray
             return dict
         }
     }
@@ -98,19 +99,19 @@ enum DataExportService {
         guard let measurements = try? context.fetch(descriptor) else { return [] }
 
         return measurements.map { m in
-            [
-                "date": ISO8601DateFormatter().string(from: m.date),
-                "chest": m.chest as Any,
-                "waist": m.waist as Any,
-                "hips": m.hips as Any,
-                "shoulders": m.shoulders as Any,
-                "neck": m.neck as Any,
-                "bicepLeft": m.bicepLeft as Any,
-                "bicepRight": m.bicepRight as Any,
-                "thighLeft": m.thighLeft as Any,
-                "thighRight": m.thighRight as Any,
-                "bodyFatPercent": m.bodyFatPercent as Any
-            ] as [String: Any]
+            var dict: [String: Any] = [:]
+            dict["date"] = ISO8601DateFormatter().string(from: m.date)
+            dict["chest"] = m.chest as Any
+            dict["waist"] = m.waist as Any
+            dict["hips"] = m.hips as Any
+            dict["shoulders"] = m.shoulders as Any
+            dict["neck"] = m.neck as Any
+            dict["bicepLeft"] = m.bicepLeft as Any
+            dict["bicepRight"] = m.bicepRight as Any
+            dict["thighLeft"] = m.thighLeft as Any
+            dict["thighRight"] = m.thighRight as Any
+            dict["bodyFatPercent"] = m.bodyFatPercent as Any
+            return dict
         }
     }
 
