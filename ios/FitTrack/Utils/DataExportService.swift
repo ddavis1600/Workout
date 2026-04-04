@@ -73,17 +73,15 @@ enum DataExportService {
         var csv = "Date,Workout Name,Exercise,Set,Reps,Weight,RPE,Notes\n"
         for w in workouts {
             for s in w.sets.sorted(by: { $0.setNumber < $1.setNumber }) {
-                let row = [
-                    w.date.formatted(as: "yyyy-MM-dd"),
-                    escapeCSV(w.name),
-                    escapeCSV(s.exercise?.name ?? ""),
-                    "\(s.setNumber)",
-                    s.reps.map(String.init) ?? "",
-                    s.weight.map { String(format: "%.1f", $0) } ?? "",
-                    s.rpe.map { String(format: "%.1f", $0) } ?? "",
-                    escapeCSV(s.notes)
-                ].joined(separator: ",")
-                csv += row + "\n"
+                let dateStr = w.date.formatted(as: "yyyy-MM-dd")
+                let nameStr = escapeCSV(w.name)
+                let exStr = escapeCSV(s.exercise?.name ?? "")
+                let setStr = "\(s.setNumber)"
+                let repsStr = s.reps != nil ? "\(s.reps!)" : ""
+                let weightStr = s.weight != nil ? String(format: "%.1f", s.weight!) : ""
+                let rpeStr = s.rpe != nil ? String(format: "%.1f", s.rpe!) : ""
+                let notesStr = escapeCSV(s.notes)
+                csv += "\(dateStr),\(nameStr),\(exStr),\(setStr),\(repsStr),\(weightStr),\(rpeStr),\(notesStr)\n"
             }
         }
 
@@ -121,20 +119,10 @@ enum DataExportService {
 
         var csv = "Date,Chest,Waist,Hips,Shoulders,Neck,Bicep L,Bicep R,Thigh L,Thigh R,Body Fat %\n"
         for m in measurements {
-            let row = [
-                m.date.formatted(as: "yyyy-MM-dd"),
-                m.chest.map { String(format: "%.1f", $0) } ?? "",
-                m.waist.map { String(format: "%.1f", $0) } ?? "",
-                m.hips.map { String(format: "%.1f", $0) } ?? "",
-                m.shoulders.map { String(format: "%.1f", $0) } ?? "",
-                m.neck.map { String(format: "%.1f", $0) } ?? "",
-                m.bicepLeft.map { String(format: "%.1f", $0) } ?? "",
-                m.bicepRight.map { String(format: "%.1f", $0) } ?? "",
-                m.thighLeft.map { String(format: "%.1f", $0) } ?? "",
-                m.thighRight.map { String(format: "%.1f", $0) } ?? "",
-                m.bodyFatPercent.map { String(format: "%.1f", $0) } ?? ""
-            ].joined(separator: ",")
-            csv += row + "\n"
+            let fmt = { (v: Double?) -> String in v != nil ? String(format: "%.1f", v!) : "" }
+            let dateStr = m.date.formatted(as: "yyyy-MM-dd")
+            let cols = [dateStr, fmt(m.chest), fmt(m.waist), fmt(m.hips), fmt(m.shoulders), fmt(m.neck), fmt(m.bicepLeft), fmt(m.bicepRight), fmt(m.thighLeft), fmt(m.thighRight), fmt(m.bodyFatPercent)]
+            csv += cols.joined(separator: ",") + "\n"
         }
 
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("measurements.csv")
@@ -149,13 +137,14 @@ enum DataExportService {
         guard let habits = try? context.fetch(descriptor) else { return [] }
 
         return habits.map { h in
-            [
-                "name": h.name,
-                "icon": h.icon,
-                "completions": h.completions.map { c in
-                    ["date": ISO8601DateFormatter().string(from: c.date)]
-                }
-            ] as [String: Any]
+            var dict: [String: Any] = [:]
+            dict["name"] = h.name
+            dict["icon"] = h.icon
+            let completionDates: [[String: String]] = h.completions.map { c in
+                ["date": ISO8601DateFormatter().string(from: c.date)]
+            }
+            dict["completions"] = completionDates
+            return dict
         }
     }
 
