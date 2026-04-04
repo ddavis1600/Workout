@@ -22,12 +22,7 @@ struct FitTrackApp: App {
             BodyMeasurement.self
         ])
 
-        // Use local storage in simulator; CloudKit on real devices
-        #if targetEnvironment(simulator)
         let config = ModelConfiguration(schema: schema, cloudKitDatabase: .none)
-        #else
-        let config = ModelConfiguration(schema: schema, cloudKitDatabase: .automatic)
-        #endif
 
         do {
             container = try ModelContainer(for: schema, configurations: config)
