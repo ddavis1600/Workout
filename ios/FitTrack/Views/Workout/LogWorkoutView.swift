@@ -75,6 +75,7 @@ struct LogWorkoutView: View {
                         }
                     }
                     .padding()
+                    .padding(.bottom, 40)
                 }
             }
             .navigationTitle("Log Workout")
