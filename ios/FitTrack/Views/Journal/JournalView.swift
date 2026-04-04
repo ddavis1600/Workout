@@ -676,7 +676,7 @@ struct JournalDetailView: View {
                 ]
                 let contentRect = CGRect(x: 40, y: yPos, width: 532, height: 400)
                 entry.content.draw(in: contentRect, withAttributes: contentAttr)
-                yPos += min(400, entry.content.boundingRect(with: CGSize(width: 532, height: .infinity), options: .usesLineFragmentOrigin, attributes: contentAttr, context: nil).height) + 20
+                yPos += min(400, entry.content.boundingRect(with: CGSize(width: 532, height: CGFloat.greatestFiniteMagnitude), options: .usesLineFragmentOrigin, attributes: contentAttr, context: nil).height) + 20
             }
 
             // Photo
