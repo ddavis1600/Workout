@@ -74,17 +74,39 @@ struct ContentView: View {
     }
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            ForEach(visibleTabs, id: \.self) { tab in
-                tabContent(for: tab)
-                    .tag(tab)
-                    .tabItem {
-                        Image(systemName: tab.icon)
-                        Text(tab.label)
+        VStack(spacing: 0) {
+            // Content area
+            tabContent(for: selectedTab)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            // Custom scrollable tab bar
+            Divider()
+                .overlay(Color.slateBorder)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 2) {
+                    ForEach(visibleTabs, id: \.self) { tab in
+                        Button {
+                            selectedTab = tab
+                        } label: {
+                            VStack(spacing: 4) {
+                                Image(systemName: tab.icon)
+                                    .font(.system(size: 18))
+                                Text(tab.label)
+                                    .font(.system(size: 10, weight: .medium))
+                            }
+                            .foregroundStyle(selectedTab == tab ? Color.emerald : Color.slateText)
+                            .frame(width: 64, height: 48)
+                        }
                     }
+                }
+                .padding(.horizontal, 8)
             }
+            .padding(.top, 6)
+            .padding(.bottom, 2)
+            .background(Color.slateCard)
         }
-        .tint(.emerald)
+        .ignoresSafeArea(.keyboard)
         .preferredColorScheme(appTheme == "system" ? nil : appTheme == "light" ? .light : .dark)
         .onChange(of: visibleTabs) { _, newTabs in
             if !newTabs.contains(selectedTab) {
