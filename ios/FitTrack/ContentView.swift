@@ -74,15 +74,19 @@ struct ContentView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            currentTabView
-                .padding(.bottom, 56)
-
-            customTabBar
+        TabView(selection: $selectedTab) {
+            ForEach(visibleTabs, id: \.self) { tab in
+                tabContent(for: tab)
+                    .tag(tab)
+                    .tabItem {
+                        Image(systemName: tab.icon)
+                        Text(tab.label)
+                    }
+            }
         }
+        .tint(.emerald)
         .preferredColorScheme(appTheme == "system" ? nil : appTheme == "light" ? .light : .dark)
         .onChange(of: visibleTabs) { _, newTabs in
-            // If current tab was hidden, switch to first visible
             if !newTabs.contains(selectedTab) {
                 selectedTab = newTabs.first ?? .settings
             }
@@ -90,8 +94,8 @@ struct ContentView: View {
     }
 
     @ViewBuilder
-    private var currentTabView: some View {
-        switch selectedTab {
+    private func tabContent(for tab: Tab) -> some View {
+        switch tab {
         case .dashboard: DashboardView()
         case .workouts:  WorkoutListView()
         case .progress:  ProgressChartView()
@@ -106,35 +110,6 @@ struct ContentView: View {
         }
     }
 
-    private var customTabBar: some View {
-        VStack(spacing: 0) {
-            Divider()
-                .overlay(Color.slateBorder)
-            HStack(spacing: 0) {
-                ForEach(visibleTabs, id: \.self) { tab in
-                    tabButton(tab)
-                }
-            }
-            .padding(.top, 8)
-            .padding(.bottom, 8)
-        }
-        .background(Color(red: 0.11, green: 0.13, blue: 0.17).ignoresSafeArea(edges: .bottom))
-    }
-
-    private func tabButton(_ tab: Tab) -> some View {
-        Button {
-            selectedTab = tab
-        } label: {
-            VStack(spacing: 2) {
-                Image(systemName: tab.icon)
-                    .font(.system(size: 15))
-                Text(tab.label)
-                    .font(.system(size: 8, weight: .medium))
-            }
-            .foregroundStyle(selectedTab == tab ? Color.emerald : Color.slateText)
-            .frame(maxWidth: .infinity)
-        }
-    }
 }
 
 #Preview {
