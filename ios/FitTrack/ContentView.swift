@@ -74,17 +74,19 @@ struct ContentView: View {
     }
 
     var body: some View {
-        currentTabView
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                customTabBar
+        ZStack(alignment: .bottom) {
+            currentTabView
+                .padding(.bottom, 56)
+
+            customTabBar
+        }
+        .preferredColorScheme(appTheme == "system" ? nil : appTheme == "light" ? .light : .dark)
+        .onChange(of: visibleTabs) { _, newTabs in
+            // If current tab was hidden, switch to first visible
+            if !newTabs.contains(selectedTab) {
+                selectedTab = newTabs.first ?? .settings
             }
-            .preferredColorScheme(appTheme == "system" ? nil : appTheme == "light" ? .light : .dark)
-            .onChange(of: visibleTabs) { _, newTabs in
-                // If current tab was hidden, switch to first visible
-                if !newTabs.contains(selectedTab) {
-                    selectedTab = newTabs.first ?? .settings
-                }
-            }
+        }
     }
 
     @ViewBuilder
