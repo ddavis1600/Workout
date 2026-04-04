@@ -113,10 +113,10 @@ struct ContentView: View {
                     tabButton(tab)
                 }
             }
-            .padding(.top, 6)
-            .padding(.bottom, 4)
+            .padding(.top, 8)
+            .padding(.bottom, 8)
         }
-        .background(Color(red: 0.11, green: 0.13, blue: 0.17))
+        .background(Color(red: 0.11, green: 0.13, blue: 0.17).ignoresSafeArea(edges: .bottom))
     }
 
     private func tabButton(_ tab: Tab) -> some View {
