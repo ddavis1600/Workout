@@ -9,7 +9,7 @@ struct WeightTrackingView: View {
     @Query private var profiles: [UserProfile]
 
     @State private var showingLogSheet = false
-    @AppStorage("healthSyncEnabled") private var healthSyncEnabled = false
+    @Binding var healthSyncEnabled: Bool
     @State private var timeRange: TimeRange = .thirtyDays
 
     enum TimeRange: String, CaseIterable {
@@ -224,6 +224,7 @@ struct WeightTrackingView: View {
             Toggle("", isOn: $healthSyncEnabled)
                 .tint(.emerald)
                 .onChange(of: healthSyncEnabled) { _, newValue in
+                    UserDefaults.standard.set(newValue, forKey: "healthSyncEnabled")
                     if newValue && HealthKitManager.shared.isAvailable {
                         Task {
                             let _ = await HealthKitManager.shared.requestAuthorization()
@@ -428,6 +429,6 @@ struct LogWeightSheet: View {
 }
 
 #Preview {
-    WeightTrackingView()
+    WeightTrackingView(healthSyncEnabled: .constant(false))
         .modelContainer(for: [WeightEntry.self, UserProfile.self], inMemory: true)
 }

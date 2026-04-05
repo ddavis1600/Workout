@@ -56,6 +56,7 @@ struct ContentView: View {
     @AppStorage("tab_journal") private var showJournal = true
     @AppStorage("tab_heartRate") private var showHeartRate = true
     @AppStorage("tab_measurements") private var showMeasurements = true
+    @State private var healthSyncEnabled = UserDefaults.standard.bool(forKey: "healthSyncEnabled")
 
     private var visibleTabs: [Tab] {
         var tabs: [Tab] = []
@@ -89,7 +90,7 @@ struct ContentView: View {
                 HabitsView()
                     .opacity(selectedTab == .habits ? 1 : 0)
                     .zIndex(selectedTab == .habits ? 1 : 0)
-                WeightTrackingView()
+                WeightTrackingView(healthSyncEnabled: $healthSyncEnabled)
                     .opacity(selectedTab == .weight ? 1 : 0)
                     .zIndex(selectedTab == .weight ? 1 : 0)
                 MacrosView()
