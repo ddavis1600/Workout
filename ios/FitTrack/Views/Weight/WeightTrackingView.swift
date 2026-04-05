@@ -101,7 +101,7 @@ struct WeightTrackingView: View {
                 }
             }
             .sheet(isPresented: $showingLogSheet) {
-                LogWeightSheet(unitSystem: unitSystem, healthSyncEnabled: healthSyncEnabled)
+                LogWeightSheet(unitSystem: unitSystem)
             }
         }
     }
@@ -227,7 +227,9 @@ struct WeightTrackingView: View {
                     if newValue {
                         Task {
                             let authorized = await HealthKitManager.shared.requestAuthorization()
-                            if !authorized {
+                            if authorized {
+                                await importFromHealthKit()
+                            } else {
                                 healthSyncEnabled = false
                             }
                         }
@@ -237,6 +239,30 @@ struct WeightTrackingView: View {
         .padding()
         .background(Color.slateCard)
         .cornerRadius(16)
+        .task {
+            if healthSyncEnabled {
+                await importFromHealthKit()
+            }
+        }
+    }
+
+    private func importFromHealthKit() async {
+        let startDate = Calendar.current.date(byAdding: .year, value: -2, to: .now)!
+        let hkWeights = await HealthKitManager.shared.fetchWeights(from: startDate, to: .now)
+
+        guard !hkWeights.isEmpty else { return }
+
+        let existingDates = Set(entries.map { Calendar.current.startOfDay(for: $0.date) })
+
+        for hkEntry in hkWeights {
+            let entryDay = Calendar.current.startOfDay(for: hkEntry.date)
+            if !existingDates.contains(entryDay) {
+                let entry = WeightEntry(date: hkEntry.date, weight: hkEntry.weight, note: "From Health")
+                modelContext.insert(entry)
+            }
+        }
+
+        try? modelContext.save()
     }
 
     private var recentEntriesSection: some View {
@@ -304,7 +330,7 @@ struct LogWeightSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     let unitSystem: String
-    let healthSyncEnabled: Bool
+    @AppStorage("healthSyncEnabled") private var healthSyncEnabled = false
 
     @State private var weightText = ""
     @State private var date = Date.now
