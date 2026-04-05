@@ -458,22 +458,31 @@ struct LogWorkoutView: View {
         modelContext.insert(workout)
 
         for group in exerciseGroups {
+            // Ensure exercise is in the context
+            let exercise = group.exercise
+            if exercise.modelContext == nil {
+                modelContext.insert(exercise)
+            }
+
             for (index, setEntry) in group.sets.enumerated() {
                 let workoutSet = WorkoutSet(
-                    exercise: group.exercise,
+                    exercise: exercise,
                     setNumber: index + 1,
                     reps: Int(setEntry.reps),
                     weight: Double(setEntry.weight),
                     rpe: Double(setEntry.rpe),
                     notes: setEntry.notes
                 )
-                workoutSet.workout = workout
                 workout.sets.append(workoutSet)
                 modelContext.insert(workoutSet)
             }
         }
 
-        try? modelContext.save()
+        do {
+            try modelContext.save()
+        } catch {
+            print("Failed to save workout: \(error)")
+        }
         viewModel.fetchWorkouts()
         dismiss()
     }

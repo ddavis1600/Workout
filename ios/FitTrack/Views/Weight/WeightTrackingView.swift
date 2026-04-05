@@ -9,7 +9,7 @@ struct WeightTrackingView: View {
     @Query private var profiles: [UserProfile]
 
     @State private var showingLogSheet = false
-    @State private var healthSyncEnabled = false
+    @AppStorage("healthSyncEnabled") private var healthSyncEnabled = false
     @State private var timeRange: TimeRange = .thirtyDays
 
     enum TimeRange: String, CaseIterable {
