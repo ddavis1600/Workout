@@ -224,7 +224,6 @@ struct WeightTrackingView: View {
             Toggle("", isOn: $healthSyncEnabled)
                 .tint(.emerald)
                 .onChange(of: healthSyncEnabled) { _, newValue in
-                    UserDefaults.standard.set(newValue, forKey: "healthSyncEnabled")
                     if newValue && HealthKitManager.shared.isAvailable {
                         Task {
                             let _ = await HealthKitManager.shared.requestAuthorization()

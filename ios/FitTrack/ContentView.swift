@@ -56,7 +56,7 @@ struct ContentView: View {
     @AppStorage("tab_journal") private var showJournal = true
     @AppStorage("tab_heartRate") private var showHeartRate = true
     @AppStorage("tab_measurements") private var showMeasurements = true
-    @State private var healthSyncEnabled = UserDefaults.standard.bool(forKey: "healthSyncEnabled")
+    @AppStorage("healthSyncEnabled") private var healthSyncEnabled = false
 
     private var visibleTabs: [Tab] {
         var tabs: [Tab] = []
