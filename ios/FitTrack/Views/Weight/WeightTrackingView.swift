@@ -223,42 +223,10 @@ struct WeightTrackingView: View {
 
             Toggle("", isOn: $healthSyncEnabled)
                 .tint(.emerald)
-                .onChange(of: healthSyncEnabled) { _, newValue in
-                    if newValue && HealthKitManager.shared.isAvailable {
-                        Task {
-                            let _ = await HealthKitManager.shared.requestAuthorization()
-                            await importFromHealthKit()
-                        }
-                    }
-                }
         }
         .padding()
         .background(Color.slateCard)
         .cornerRadius(16)
-        .task {
-            if healthSyncEnabled {
-                await importFromHealthKit()
-            }
-        }
-    }
-
-    private func importFromHealthKit() async {
-        let startDate = Calendar.current.date(byAdding: .year, value: -2, to: .now)!
-        let hkWeights = await HealthKitManager.shared.fetchWeights(from: startDate, to: .now)
-
-        guard !hkWeights.isEmpty else { return }
-
-        let existingDates = Set(entries.map { Calendar.current.startOfDay(for: $0.date) })
-
-        for hkEntry in hkWeights {
-            let entryDay = Calendar.current.startOfDay(for: hkEntry.date)
-            if !existingDates.contains(entryDay) {
-                let entry = WeightEntry(date: hkEntry.date, weight: hkEntry.weight, note: "From Health")
-                modelContext.insert(entry)
-            }
-        }
-
-        try? modelContext.save()
     }
 
     private var recentEntriesSection: some View {
