@@ -9,7 +9,7 @@ struct WeightTrackingView: View {
     @Query private var profiles: [UserProfile]
 
     @State private var showingLogSheet = false
-    @Binding var healthSyncEnabled: Bool
+    @AppStorage("healthSyncEnabled") private var healthSyncEnabled = false
     @State private var timeRange: TimeRange = .thirtyDays
 
     enum TimeRange: String, CaseIterable {
@@ -214,7 +214,7 @@ struct WeightTrackingView: View {
                 Text("Apple Health Sync")
                     .font(.body.weight(.medium))
                     .foregroundColor(.white)
-                Text("Read & write weight data")
+                Text(healthSyncEnabled ? "Syncing with Health" : "Tap to enable")
                     .font(.caption)
                     .foregroundColor(.slateText)
             }
@@ -396,6 +396,6 @@ struct LogWeightSheet: View {
 }
 
 #Preview {
-    WeightTrackingView(healthSyncEnabled: .constant(false))
+    WeightTrackingView()
         .modelContainer(for: [WeightEntry.self, UserProfile.self], inMemory: true)
 }

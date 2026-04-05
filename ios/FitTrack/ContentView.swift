@@ -56,8 +56,6 @@ struct ContentView: View {
     @AppStorage("tab_journal") private var showJournal = true
     @AppStorage("tab_heartRate") private var showHeartRate = true
     @AppStorage("tab_measurements") private var showMeasurements = true
-    @AppStorage("healthSyncEnabled") private var healthSyncEnabled = false
-
     private var visibleTabs: [Tab] {
         var tabs: [Tab] = []
         if showDashboard { tabs.append(.dashboard) }
@@ -76,43 +74,9 @@ struct ContentView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Content area - views stay alive via ZStack + opacity
-            ZStack {
-                DashboardView()
-                    .opacity(selectedTab == .dashboard ? 1 : 0)
-                    .zIndex(selectedTab == .dashboard ? 1 : 0)
-                WorkoutListView()
-                    .opacity(selectedTab == .workouts ? 1 : 0)
-                    .zIndex(selectedTab == .workouts ? 1 : 0)
-                ProgressChartView()
-                    .opacity(selectedTab == .progress ? 1 : 0)
-                    .zIndex(selectedTab == .progress ? 1 : 0)
-                HabitsView()
-                    .opacity(selectedTab == .habits ? 1 : 0)
-                    .zIndex(selectedTab == .habits ? 1 : 0)
-                WeightTrackingView(healthSyncEnabled: $healthSyncEnabled)
-                    .opacity(selectedTab == .weight ? 1 : 0)
-                    .zIndex(selectedTab == .weight ? 1 : 0)
-                MacrosView()
-                    .opacity(selectedTab == .macros ? 1 : 0)
-                    .zIndex(selectedTab == .macros ? 1 : 0)
-                DiaryView()
-                    .opacity(selectedTab == .diary ? 1 : 0)
-                    .zIndex(selectedTab == .diary ? 1 : 0)
-                JournalView()
-                    .opacity(selectedTab == .journal ? 1 : 0)
-                    .zIndex(selectedTab == .journal ? 1 : 0)
-                HeartRateView()
-                    .opacity(selectedTab == .heartRate ? 1 : 0)
-                    .zIndex(selectedTab == .heartRate ? 1 : 0)
-                BodyMeasurementsView()
-                    .opacity(selectedTab == .measurements ? 1 : 0)
-                    .zIndex(selectedTab == .measurements ? 1 : 0)
-                SettingsView()
-                    .opacity(selectedTab == .settings ? 1 : 0)
-                    .zIndex(selectedTab == .settings ? 1 : 0)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // Content area
+            tabContent(for: selectedTab)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             // Custom scrollable tab bar
             Divider()
@@ -147,6 +111,23 @@ struct ContentView: View {
             if !newTabs.contains(selectedTab) {
                 selectedTab = newTabs.first ?? .settings
             }
+        }
+    }
+
+    @ViewBuilder
+    private func tabContent(for tab: Tab) -> some View {
+        switch tab {
+        case .dashboard: DashboardView()
+        case .workouts:  WorkoutListView()
+        case .progress:  ProgressChartView()
+        case .habits:    HabitsView()
+        case .weight:    WeightTrackingView()
+        case .macros:    MacrosView()
+        case .diary:     DiaryView()
+        case .journal:   JournalView()
+        case .heartRate: HeartRateView()
+        case .measurements: BodyMeasurementsView()
+        case .settings:  SettingsView()
         }
     }
 
