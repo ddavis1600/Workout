@@ -224,14 +224,10 @@ struct WeightTrackingView: View {
             Toggle("", isOn: $healthSyncEnabled)
                 .tint(.emerald)
                 .onChange(of: healthSyncEnabled) { _, newValue in
-                    if newValue {
+                    if newValue && HealthKitManager.shared.isAvailable {
                         Task {
-                            let authorized = await HealthKitManager.shared.requestAuthorization()
-                            if authorized {
-                                await importFromHealthKit()
-                            } else {
-                                healthSyncEnabled = false
-                            }
+                            let _ = await HealthKitManager.shared.requestAuthorization()
+                            await importFromHealthKit()
                         }
                     }
                 }
