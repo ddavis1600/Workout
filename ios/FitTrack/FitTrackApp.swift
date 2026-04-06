@@ -22,7 +22,7 @@ struct FitTrackApp: App {
             BodyMeasurement.self
         ])
 
-        let config = ModelConfiguration(schema: schema, cloudKitDatabase: .automatic)
+        let config = ModelConfiguration(schema: schema, cloudKitDatabase: .none)
 
         do {
             container = try ModelContainer(for: schema, configurations: config)
