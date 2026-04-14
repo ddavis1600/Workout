@@ -174,6 +174,11 @@ struct DiaryView: View {
                 Button {
                     if waterGlasses > 0 {
                         waterGlasses -= 1
+                        if Calendar.current.isDateInToday(viewModel?.selectedDate ?? Date()) {
+                            Task {
+                                await HealthKitManager.shared.deleteLatestWater(date: Date())
+                            }
+                        }
                     }
                 } label: {
                     Image(systemName: "minus.circle.fill")

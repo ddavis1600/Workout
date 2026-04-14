@@ -96,6 +96,25 @@ class HealthKitManager {
         }
     }
 
+    func deleteLatestWater(date: Date) async {
+        guard isAvailable else { return }
+        let waterType = HKQuantityType(.dietaryWater)
+        let start = date.startOfDay
+        let end = Calendar.current.date(byAdding: .day, value: 1, to: start) ?? start
+        let predicate = HKQuery.predicateForSamples(withStart: start, end: end, options: .strictStartDate)
+        let descriptor = HKSampleQueryDescriptor(
+            predicates: [.quantitySample(type: waterType, predicate: predicate)],
+            sortDescriptors: [SortDescriptor(\.startDate, order: .reverse)]
+        )
+        do {
+            let samples = try await descriptor.result(for: healthStore)
+            guard let latest = samples.first else { return }
+            try await healthStore.delete(latest)
+        } catch {
+            print("Failed to delete water from HealthKit: \(error)")
+        }
+    }
+
     func fetchWaterToday() async -> Double {
         return await fetchDailySumQuantity(
             typeIdentifier: .dietaryWater,
