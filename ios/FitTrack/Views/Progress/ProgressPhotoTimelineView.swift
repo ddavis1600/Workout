@@ -8,7 +8,6 @@ struct ProgressPhotoTimelineView: View {
 
     @State private var showingAddSheet = false
     @State private var selectedPhoto: ProgressPhoto?
-    @State private var showFullscreen = false
 
     private let columns = [GridItem(.flexible()), GridItem(.flexible())]
 
@@ -45,13 +44,11 @@ struct ProgressPhotoTimelineView: View {
             .sheet(isPresented: $showingAddSheet) {
                 AddProgressPhotoSheet()
             }
-            .fullScreenCover(isPresented: $showFullscreen) {
-                if let photo = selectedPhoto {
-                    ProgressPhotoFullscreenView(photo: photo, onDelete: {
-                        deletePhoto(photo)
-                        showFullscreen = false
-                    })
-                }
+            .fullScreenCover(item: $selectedPhoto) { photo in
+                ProgressPhotoFullscreenView(photo: photo, onDelete: {
+                    deletePhoto(photo)
+                    selectedPhoto = nil
+                })
             }
         }
     }
@@ -61,7 +58,6 @@ struct ProgressPhotoTimelineView: View {
     private func photoTile(_ photo: ProgressPhoto) -> some View {
         Button {
             selectedPhoto = photo
-            showFullscreen = true
         } label: {
             ZStack(alignment: .bottomLeading) {
                 if let image = photo.loadImage() {
@@ -273,6 +269,16 @@ struct ProgressPhotoFullscreenView: View {
                     .resizable()
                     .scaledToFit()
                     .ignoresSafeArea()
+                    .onTapGesture { dismiss() }
+            } else {
+                VStack(spacing: 12) {
+                    Image(systemName: "photo.slash")
+                        .font(.system(size: 48))
+                        .foregroundStyle(.white.opacity(0.5))
+                    Text("Image unavailable")
+                        .font(.subheadline)
+                        .foregroundStyle(.white.opacity(0.5))
+                }
             }
 
             VStack {
