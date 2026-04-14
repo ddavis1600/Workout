@@ -16,6 +16,9 @@ struct MealSectionView: View {
     @State private var fullscreenPhoto: UIImage?
     @State private var showFullscreen = false
     @State private var showPhotoOptions = false
+    @State private var pendingPhotoAction: PendingPhotoAction = .none
+
+    private enum PendingPhotoAction { case none, library, camera }
 
     private var mealCalories: Double {
         entries.reduce(0) { $0 + $1.totalCalories }
@@ -55,8 +58,8 @@ struct MealSectionView: View {
                 }
                 .padding(.leading, 8)
                 .confirmationDialog("Meal Photo", isPresented: $showPhotoOptions) {
-                    Button("Choose from Library") { showingImagePicker = true }
-                    Button("Take Photo") { showingCamera = true }
+                    Button("Choose from Library") { pendingPhotoAction = .library }
+                    Button("Take Photo") { pendingPhotoAction = .camera }
                     if savedPhoto != nil {
                         Button("Remove Photo", role: .destructive) { deletePhoto() }
                     }
@@ -143,6 +146,16 @@ struct MealSectionView: View {
             RoundedRectangle(cornerRadius: 14)
                 .stroke(Color.slateBorder, lineWidth: 1)
         )
+        // Defer sheet presentation until after the confirmation dialog has dismissed
+        .onChange(of: showPhotoOptions) { _, isShowing in
+            guard !isShowing else { return }
+            switch pendingPhotoAction {
+            case .library: showingImagePicker = true
+            case .camera:  showingCamera = true
+            case .none:    break
+            }
+            pendingPhotoAction = .none
+        }
         // Photo library picker
         .photosPicker(isPresented: $showingImagePicker, selection: $photoPickerItem, matching: .images)
         .onChange(of: photoPickerItem) { _, newItem in
