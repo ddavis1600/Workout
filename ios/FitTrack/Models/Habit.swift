@@ -7,12 +7,19 @@ final class Habit {
     var icon: String = "checkmark.circle"
     var color: String = "emerald"
     var createdAt: Date = Date()
+    /// Optional HealthKit trigger identifier (e.g. "stepCount", "activeEnergyBurned", …)
+    var healthKitTrigger: String?
+    /// Daily threshold to satisfy the HealthKit trigger (steps, kcal, minutes, etc.)
+    var healthKitThreshold: Double = 0
     @Relationship(deleteRule: .cascade) var completions: [HabitCompletion]
 
-    init(name: String, icon: String = "checkmark.circle", color: String = "emerald") {
+    init(name: String, icon: String = "checkmark.circle", color: String = "emerald",
+         healthKitTrigger: String? = nil, healthKitThreshold: Double = 0) {
         self.name = name
         self.icon = icon
         self.color = color
+        self.healthKitTrigger = healthKitTrigger
+        self.healthKitThreshold = healthKitThreshold
         self.createdAt = .now
         self.completions = []
     }
@@ -33,7 +40,7 @@ final class Habit {
         try? context.save()
     }
 
-    // Streak: count consecutive days completed ending at today
+    // Current streak: consecutive days completed ending today
     func currentStreak() -> Int {
         var streak = 0
         var date = Date.now.startOfDay
@@ -46,5 +53,23 @@ final class Habit {
             }
         }
         return streak
+    }
+
+    // Longest streak ever
+    func longestStreak() -> Int {
+        let sortedDates = completions.map { $0.date.startOfDay }.sorted()
+        guard !sortedDates.isEmpty else { return 0 }
+        var longest = 1
+        var current = 1
+        for i in 1..<sortedDates.count {
+            let diff = Calendar.current.dateComponents([.day], from: sortedDates[i - 1], to: sortedDates[i]).day ?? 0
+            if diff == 1 {
+                current += 1
+                longest = max(longest, current)
+            } else if diff > 1 {
+                current = 1
+            }
+        }
+        return longest
     }
 }

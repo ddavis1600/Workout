@@ -25,6 +25,14 @@ final class DiaryEntry {
         (food?.fat ?? 0) * servings
     }
 
+    var totalFiber: Double {
+        (food?.fiber ?? 0) * servings
+    }
+
+    var totalNetCarbs: Double {
+        max(0, totalCarbs - totalFiber)
+    }
+
     init(date: Date = .now, mealType: String, food: Food? = nil, servings: Double = 1.0) {
         self.date = date
         self.mealType = mealType

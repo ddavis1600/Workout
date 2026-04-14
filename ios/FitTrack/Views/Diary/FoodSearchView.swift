@@ -10,6 +10,7 @@ struct FoodSearchView: View {
 
     @State private var searchText = ""
     @State private var foods: [Food] = []
+    @State private var favorites: [FoodFavorite] = []
     @State private var selectedFood: Food?
     @State private var servings: Double = 1.0
 
@@ -26,6 +27,7 @@ struct FoodSearchView: View {
 
     enum SearchTab: String, CaseIterable {
         case myFoods = "My Foods"
+        case favorites = "Favorites"
         case searchOnline = "Search Online"
     }
 
@@ -47,6 +49,8 @@ struct FoodSearchView: View {
 
                     if searchTab == .myFoods {
                         localFoodsList
+                    } else if searchTab == .favorites {
+                        favoritesList
                     } else {
                         onlineFoodsList
                     }
@@ -112,6 +116,7 @@ struct FoodSearchView: View {
             }
             .onAppear {
                 fetchAllFoods()
+                fetchFavorites()
             }
         }
     }
@@ -123,6 +128,50 @@ struct FoodSearchView: View {
             ForEach(filteredFoods, id: \.self) { food in
                 foodRow(food)
                     .listRowBackground(Color.slateCard)
+            }
+        }
+        .listStyle(.grouped)
+        .scrollContentBackground(.hidden)
+    }
+
+    // MARK: - Favorites List
+
+    private var favoritesList: some View {
+        List {
+            if favorites.isEmpty {
+                HStack {
+                    Spacer()
+                    VStack(spacing: 8) {
+                        Image(systemName: "star.slash")
+                            .font(.largeTitle)
+                            .foregroundStyle(Color.slateText)
+                        Text("No favorites yet")
+                            .foregroundStyle(Color.slateText)
+                        Text("Long-press a food to save it as a favorite")
+                            .font(.caption)
+                            .foregroundStyle(Color.slateText)
+                            .multilineTextAlignment(.center)
+                    }
+                    Spacer()
+                }
+                .listRowBackground(Color.slateBackground)
+                .padding(.vertical, 40)
+            } else {
+                ForEach(favorites, id: \.self) { fav in
+                    if let food = fav.food {
+                        foodRow(food)
+                            .listRowBackground(Color.slateCard)
+                            .swipeActions(edge: .trailing) {
+                                Button(role: .destructive) {
+                                    modelContext.delete(fav)
+                                    try? modelContext.save()
+                                    fetchFavorites()
+                                } label: {
+                                    Label("Unfavorite", systemImage: "star.slash")
+                                }
+                            }
+                    }
+                }
             }
         }
         .listStyle(.grouped)
@@ -219,6 +268,19 @@ struct FoodSearchView: View {
 
             if selectedFood === food {
                 expandedDetails(food)
+            }
+        }
+        .contextMenu {
+            let isFav = isFavorite(food)
+            Button {
+                if isFav {
+                    removeFavorite(food)
+                } else {
+                    addFavorite(food)
+                }
+            } label: {
+                Label(isFav ? "Remove Favorite" : "Save as Favorite",
+                      systemImage: isFav ? "star.slash" : "star.fill")
             }
         }
     }
@@ -434,6 +496,31 @@ struct FoodSearchView: View {
         foods = (try? modelContext.fetch(descriptor)) ?? []
     }
 
+    private func fetchFavorites() {
+        let descriptor = FetchDescriptor<FoodFavorite>(sortBy: [SortDescriptor(\.createdAt, order: .reverse)])
+        favorites = (try? modelContext.fetch(descriptor)) ?? []
+    }
+
+    private func isFavorite(_ food: Food) -> Bool {
+        favorites.contains { $0.food === food }
+    }
+
+    private func addFavorite(_ food: Food) {
+        guard !isFavorite(food) else { return }
+        let fav = FoodFavorite(food: food)
+        modelContext.insert(fav)
+        try? modelContext.save()
+        fetchFavorites()
+    }
+
+    private func removeFavorite(_ food: Food) {
+        if let fav = favorites.first(where: { $0.food === food }) {
+            modelContext.delete(fav)
+            try? modelContext.save()
+            fetchFavorites()
+        }
+    }
+
     // MARK: - Online Search
 
     private func debounceOnlineSearch(query: String) {
@@ -468,6 +555,7 @@ struct FoodSearchView: View {
             protein: result.protein,
             carbs: result.carbs,
             fat: result.fat,
+            fiber: result.fiber,
             brand: result.brand,
             isCustom: false
         )

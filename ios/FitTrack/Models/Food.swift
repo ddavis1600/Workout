@@ -11,6 +11,7 @@ final class Food {
     var protein: Double = 0
     var carbs: Double = 0
     var fat: Double = 0
+    var fiber: Double = 0
     var isCustom: Bool = false
 
     init(
@@ -21,6 +22,7 @@ final class Food {
         protein: Double,
         carbs: Double,
         fat: Double,
+        fiber: Double = 0,
         brand: String? = nil,
         isCustom: Bool = false
     ) {
@@ -31,6 +33,7 @@ final class Food {
         self.protein = protein
         self.carbs = carbs
         self.fat = fat
+        self.fiber = fiber
         self.brand = brand
         self.isCustom = isCustom
     }

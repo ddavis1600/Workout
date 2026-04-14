@@ -7,6 +7,8 @@ struct HabitsView: View {
     @State private var showingAddSheet = false
     @State private var selectedDate: Date = Date().startOfDay
     @State private var displayedMonth: Date = Date()
+    /// HealthKit daily values keyed by habit.healthKitTrigger
+    @State private var hkValues: [String: Double] = [:]
 
     private var calendar: Calendar { Calendar.current }
 
@@ -41,7 +43,6 @@ struct HabitsView: View {
                 days.append(date)
             }
         }
-        // Pad to complete the last week
         while days.count % 7 != 0 {
             days.append(nil)
         }
@@ -66,13 +67,11 @@ struct HabitsView: View {
     var body: some View {
         NavigationStack {
             List {
-                // Calendar
                 calendarSection
                     .listRowBackground(Color.slateBackground)
                     .listRowSeparator(.hidden)
                     .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
 
-                // Selected date header
                 Section {
                     Text(selectedDateString)
                         .font(.headline)
@@ -82,7 +81,6 @@ struct HabitsView: View {
                         .listRowSeparator(.hidden)
                 }
 
-                // Habits list
                 if habits.isEmpty {
                     emptyState
                         .listRowBackground(Color.slateBackground)
@@ -114,6 +112,35 @@ struct HabitsView: View {
             .sheet(isPresented: $showingAddSheet) {
                 AddHabitSheet()
             }
+            .task(id: selectedDate) {
+                await refreshHKValues()
+            }
+        }
+    }
+
+    // MARK: - HealthKit refresh
+
+    private func refreshHKValues() async {
+        guard HealthKitManager.shared.isAvailable else { return }
+        var result: [String: Double] = [:]
+        for habit in habits {
+            guard let trigger = habit.healthKitTrigger else { continue }
+            let value = await HealthKitManager.shared.fetchDailyValue(for: trigger, on: selectedDate)
+            result[trigger] = value
+        }
+        hkValues = result
+
+        // Auto-complete HealthKit habits that hit their threshold today
+        guard calendar.isDateInToday(selectedDate) else { return }
+        for habit in habits {
+            guard let trigger = habit.healthKitTrigger,
+                  habit.healthKitThreshold > 0 else { continue }
+            let value = result[trigger] ?? 0
+            let alreadyComplete = habit.isCompleted(on: selectedDate)
+            let meetsThreshold = value >= habit.healthKitThreshold
+            if meetsThreshold && !alreadyComplete {
+                habit.toggle(on: selectedDate, context: modelContext)
+            }
         }
     }
 
@@ -121,7 +148,6 @@ struct HabitsView: View {
 
     private var calendarSection: some View {
         VStack(spacing: 12) {
-            // Month navigation
             HStack {
                 Button {
                     displayedMonth = calendar.date(byAdding: .month, value: -1, to: displayedMonth) ?? displayedMonth
@@ -152,7 +178,6 @@ struct HabitsView: View {
                 .buttonStyle(.plain)
             }
 
-            // Day-of-week headers
             let dayLabels = ["M", "T", "W", "T", "F", "S", "S"]
             HStack(spacing: 0) {
                 ForEach(dayLabels.indices, id: \.self) { i in
@@ -163,7 +188,6 @@ struct HabitsView: View {
                 }
             }
 
-            // Day grid
             let days = monthDays
             let weeks = stride(from: 0, to: days.count, by: 7).map { Array(days[$0..<min($0 + 7, days.count)]) }
 
@@ -198,14 +222,11 @@ struct HabitsView: View {
         } label: {
             ZStack {
                 if isSelected {
-                    Circle()
-                        .fill(Color.emerald)
+                    Circle().fill(Color.emerald)
                 } else if ratio >= 1.0 {
-                    Circle()
-                        .fill(Color.emerald.opacity(0.3))
+                    Circle().fill(Color.emerald.opacity(0.3))
                 } else if ratio > 0 {
-                    Circle()
-                        .fill(Color.emerald.opacity(0.12))
+                    Circle().fill(Color.emerald.opacity(0.12))
                 }
 
                 Text("\(calendar.component(.day, from: date))")
@@ -253,6 +274,9 @@ struct HabitsView: View {
 
     private func habitRow(_ habit: Habit) -> some View {
         let isCompleted = habit.isCompleted(on: selectedDate)
+        let isHKHabit = habit.healthKitTrigger != nil
+        let hkValue = hkValues[habit.healthKitTrigger ?? ""] ?? 0
+        let triggerInfo = HKHabitTrigger.all.first { $0.id == habit.healthKitTrigger }
 
         return VStack(spacing: 10) {
             HStack(spacing: 14) {
@@ -262,20 +286,41 @@ struct HabitsView: View {
                     .frame(width: 36, height: 36)
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(habit.name)
-                        .font(.body.weight(.medium))
-                        .foregroundColor(.white)
+                    HStack(spacing: 6) {
+                        Text(habit.name)
+                            .font(.body.weight(.medium))
+                            .foregroundColor(.white)
+                        if isHKHabit {
+                            Image(systemName: "heart.fill")
+                                .font(.caption2)
+                                .foregroundColor(.pink)
+                        }
+                    }
 
                     HStack(spacing: 8) {
                         let streak = habit.currentStreak()
+                        let longest = habit.longestStreak()
                         if streak > 0 {
-                            Text("\u{1F525} \(streak) day streak")
+                            Text("\u{1F525} \(streak)")
+                                .font(.caption)
+                                .foregroundColor(.orange)
+                        }
+                        if longest > streak {
+                            Text("Best: \(longest)")
                                 .font(.caption)
                                 .foregroundColor(.slateText)
                         }
-                        Text("\(completionPercentage(for: habit))% completed")
+                        Text("\(completionPercentage(for: habit))%")
                             .font(.caption)
                             .foregroundColor(.slateText)
+                    }
+
+                    // HealthKit progress line
+                    if isHKHabit, let info = triggerInfo, info.defaultThreshold > 0 {
+                        let threshold = habit.healthKitThreshold > 0 ? habit.healthKitThreshold : info.defaultThreshold
+                        Text("\(Int(hkValue)) / \(Int(threshold)) \(info.unit)")
+                            .font(.caption)
+                            .foregroundColor(hkValue >= threshold ? .emerald : .slateText)
                     }
                 }
 
@@ -290,9 +335,9 @@ struct HabitsView: View {
                         .contentShape(Circle())
                 }
                 .buttonStyle(.plain)
+                .disabled(isHKHabit && calendar.isDateInToday(selectedDate))
             }
 
-            // Completion progress bar
             let pct = Double(completionPercentage(for: habit)) / 100.0
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
@@ -329,6 +374,9 @@ struct AddHabitSheet: View {
     @State private var name = ""
     @State private var selectedIcon = "checkmark.circle"
     @State private var selectedColor = "emerald"
+    @State private var selectedTrigger: HKHabitTrigger?
+    @State private var thresholdText = ""
+    @State private var showingHKPicker = false
 
     private let icons = [
         "checkmark.circle", "drop.fill", "bed.double.fill",
@@ -338,11 +386,7 @@ struct AddHabitSheet: View {
     ]
 
     private let colors: [(name: String, color: Color)] = [
-        ("emerald", .emerald),
-        ("blue", .blue),
-        ("orange", .orange),
-        ("pink", .pink),
-        ("purple", .purple)
+        ("emerald", .emerald), ("blue", .blue), ("orange", .orange), ("pink", .pink), ("purple", .purple)
     ]
 
     var body: some View {
@@ -357,13 +401,62 @@ struct AddHabitSheet: View {
                             Text("Habit Name")
                                 .font(.subheadline.weight(.medium))
                                 .foregroundColor(.slateText)
-
                             TextField("e.g. Drink water", text: $name)
                                 .textFieldStyle(.plain)
                                 .padding()
                                 .background(Color.slateCard)
                                 .cornerRadius(12)
                                 .foregroundColor(.white)
+                        }
+
+                        // HealthKit trigger
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("HealthKit Trigger (optional)")
+                                .font(.subheadline.weight(.medium))
+                                .foregroundColor(.slateText)
+
+                            Button {
+                                showingHKPicker = true
+                            } label: {
+                                HStack {
+                                    Image(systemName: selectedTrigger == nil ? "heart.slash" : (selectedTrigger?.icon ?? "heart.fill"))
+                                        .foregroundColor(selectedTrigger == nil ? .slateText : .pink)
+                                    Text(selectedTrigger?.displayName ?? "None — mark manually")
+                                        .foregroundColor(selectedTrigger == nil ? .slateText : .white)
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption)
+                                        .foregroundColor(.slateText)
+                                }
+                                .padding()
+                                .background(Color.slateCard)
+                                .cornerRadius(12)
+                            }
+
+                            if let trigger = selectedTrigger {
+                                HStack {
+                                    Text("Daily goal (\(trigger.unit))")
+                                        .font(.caption)
+                                        .foregroundColor(.slateText)
+                                    Spacer()
+                                    TextField("e.g. \(Int(trigger.defaultThreshold))", text: $thresholdText)
+                                        .keyboardType(.decimalPad)
+                                        .textFieldStyle(.plain)
+                                        .multilineTextAlignment(.trailing)
+                                        .foregroundColor(.white)
+                                        .frame(width: 100)
+                                        .padding(8)
+                                        .background(Color.slateCard)
+                                        .cornerRadius(8)
+                                }
+                                .padding()
+                                .background(Color.slateBackground)
+                                .cornerRadius(12)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.slateBorder, lineWidth: 1)
+                                )
+                            }
                         }
 
                         // Icon picker
@@ -406,15 +499,10 @@ struct AddHabitSheet: View {
                                         Circle()
                                             .fill(item.color)
                                             .frame(width: 40, height: 40)
-                                            .overlay(
-                                                Circle()
-                                                    .stroke(Color.white, lineWidth: selectedColor == item.name ? 3 : 0)
-                                            )
+                                            .overlay(Circle().stroke(Color.white, lineWidth: selectedColor == item.name ? 3 : 0))
                                             .overlay {
                                                 if selectedColor == item.name {
-                                                    Image(systemName: "checkmark")
-                                                        .font(.caption.bold())
-                                                        .foregroundColor(.white)
+                                                    Image(systemName: "checkmark").font(.caption.bold()).foregroundColor(.white)
                                                 }
                                             }
                                     }
@@ -429,18 +517,101 @@ struct AddHabitSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                        .foregroundColor(.slateText)
+                    Button("Cancel") { dismiss() }.foregroundColor(.slateText)
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        let habit = Habit(name: name, icon: selectedIcon, color: selectedColor)
+                        let threshold = Double(thresholdText) ?? selectedTrigger?.defaultThreshold ?? 0
+                        let habit = Habit(
+                            name: name,
+                            icon: selectedIcon,
+                            color: selectedColor,
+                            healthKitTrigger: selectedTrigger?.id,
+                            healthKitThreshold: threshold
+                        )
                         modelContext.insert(habit)
                         try? modelContext.save()
                         dismiss()
                     }
                     .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
                     .foregroundColor(.emerald)
+                }
+            }
+            .sheet(isPresented: $showingHKPicker) {
+                HKTriggerPickerSheet(selected: $selectedTrigger, thresholdText: $thresholdText)
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+}
+
+// MARK: - HK Trigger Picker
+
+struct HKTriggerPickerSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var selected: HKHabitTrigger?
+    @Binding var thresholdText: String
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.slateBackground.ignoresSafeArea()
+                List {
+                    Button {
+                        selected = nil
+                        thresholdText = ""
+                        dismiss()
+                    } label: {
+                        HStack {
+                            Image(systemName: "hand.raised.slash")
+                                .frame(width: 28)
+                                .foregroundColor(.slateText)
+                            Text("None — mark manually")
+                                .foregroundColor(.white)
+                            Spacer()
+                            if selected == nil {
+                                Image(systemName: "checkmark").foregroundColor(.emerald)
+                            }
+                        }
+                    }
+                    .listRowBackground(Color.slateCard)
+
+                    ForEach(HKHabitTrigger.all) { trigger in
+                        Button {
+                            selected = trigger
+                            if thresholdText.isEmpty {
+                                thresholdText = "\(Int(trigger.defaultThreshold))"
+                            }
+                            dismiss()
+                        } label: {
+                            HStack {
+                                Image(systemName: trigger.icon)
+                                    .frame(width: 28)
+                                    .foregroundColor(.pink)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(trigger.displayName)
+                                        .foregroundColor(.white)
+                                    Text("Default: \(Int(trigger.defaultThreshold)) \(trigger.unit)")
+                                        .font(.caption)
+                                        .foregroundColor(.slateText)
+                                }
+                                Spacer()
+                                if selected?.id == trigger.id {
+                                    Image(systemName: "checkmark").foregroundColor(.emerald)
+                                }
+                            }
+                        }
+                        .listRowBackground(Color.slateCard)
+                    }
+                }
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+            }
+            .navigationTitle("HealthKit Trigger")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { dismiss() }.foregroundColor(.emerald)
                 }
             }
         }

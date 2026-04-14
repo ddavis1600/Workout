@@ -8,6 +8,9 @@ struct SettingsView: View {
     @AppStorage("restTimerEnabled") private var restTimerEnabled = true
     @AppStorage("restTimerSeconds") private var restTimerSeconds = 60
 
+    // Diary
+    @AppStorage("showNetCarbs") private var showNetCarbs = false
+
     // Tab visibility — stored in UserDefaults
     @AppStorage("tab_dashboard") private var showDashboard = true
     @AppStorage("tab_workouts") private var showWorkouts = true
@@ -19,6 +22,7 @@ struct SettingsView: View {
     @AppStorage("tab_journal") private var showJournal = true
     @AppStorage("tab_heartRate") private var showHeartRate = true
     @AppStorage("tab_measurements") private var showMeasurements = true
+    @AppStorage("tab_photos") private var showPhotos = true
 
     private var tabToggles: [(key: String, label: String, icon: String, binding: Binding<Bool>)] {
         [
@@ -32,11 +36,12 @@ struct SettingsView: View {
             ("journal", "Journal", "book.closed.fill", $showJournal),
             ("heartRate", "Heart Rate", "heart.fill", $showHeartRate),
             ("measurements", "Measurements", "ruler", $showMeasurements),
+            ("photos", "Progress Photos", "photo.on.rectangle.angled", $showPhotos),
         ]
     }
 
     private var enabledCount: Int {
-        [showDashboard, showWorkouts, showProgress, showHabits, showWeight, showMacros, showDiary, showJournal, showHeartRate, showMeasurements].filter { $0 }.count
+        [showDashboard, showWorkouts, showProgress, showHabits, showWeight, showMacros, showDiary, showJournal, showHeartRate, showMeasurements, showPhotos].filter { $0 }.count
     }
 
     var body: some View {
@@ -100,6 +105,28 @@ struct SettingsView: View {
                     }
                 } header: {
                     Text("Workout")
+                        .foregroundColor(.slateText)
+                }
+
+                Section {
+                    Toggle(isOn: $showNetCarbs) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "minus.circle")
+                                .foregroundColor(.emerald)
+                                .frame(width: 24)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Show Net Carbs")
+                                    .foregroundColor(.white)
+                                Text("Subtracts fiber from carbs in all displays")
+                                    .font(.caption)
+                                    .foregroundColor(.slateText)
+                            }
+                        }
+                    }
+                    .tint(.emerald)
+                    .listRowBackground(Color.slateCard)
+                } header: {
+                    Text("Diary")
                         .foregroundColor(.slateText)
                 }
 

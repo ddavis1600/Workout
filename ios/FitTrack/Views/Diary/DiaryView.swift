@@ -6,6 +6,14 @@ struct DiaryView: View {
     @Query private var profiles: [UserProfile]
     @State private var viewModel: DiaryViewModel?
 
+    // Water logging
+    @State private var waterGlasses: Int = 0
+    @State private var isLoadingWater = false
+    private let mlPerGlass: Double = 250
+
+    // Net carbs toggle
+    @AppStorage("showNetCarbs") private var showNetCarbs = false
+
     private var profile: UserProfile? {
         profiles.first
     }
@@ -19,6 +27,9 @@ struct DiaryView: View {
                     .listRowBackground(Color.slateBackground)
                     .listRowSeparator(.hidden)
                 summarySection
+                    .listRowBackground(Color.slateBackground)
+                    .listRowSeparator(.hidden)
+                waterSection
                     .listRowBackground(Color.slateBackground)
                     .listRowSeparator(.hidden)
                 mealSections
@@ -36,6 +47,7 @@ struct DiaryView: View {
                 } else {
                     viewModel?.fetchEntries()
                 }
+                await fetchWaterCount()
             }
         }
     }
@@ -62,6 +74,7 @@ struct DiaryView: View {
                         set: { newDate in
                             vm.selectedDate = newDate.startOfDay
                             vm.fetchEntries()
+                            Task { await fetchWaterCount() }
                         }
                     ),
                     displayedComponents: .date
@@ -106,8 +119,90 @@ struct DiaryView: View {
 
                 MacroProgressBar(label: "Calories", current: vm.totalCalories, target: calorieTarget, unit: "kcal", color: .emerald)
                 MacroProgressBar(label: "Protein", current: vm.totalProtein, target: proteinTarget, unit: "g", color: .blue)
-                MacroProgressBar(label: "Carbs", current: vm.totalCarbs, target: carbTarget, unit: "g", color: .orange)
+                MacroProgressBar(
+                    label: showNetCarbs ? "Net Carbs" : "Carbs",
+                    current: showNetCarbs ? vm.totalNetCarbs : vm.totalCarbs,
+                    target: carbTarget,
+                    unit: "g",
+                    color: .orange
+                )
                 MacroProgressBar(label: "Fat", current: vm.totalFat, target: fatTarget, unit: "g", color: .pink)
+            }
+        }
+        .padding()
+        .background(Color.slateCard)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(Color.slateBorder, lineWidth: 1)
+        )
+    }
+
+    // MARK: - Water Section
+
+    private var waterSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Image(systemName: "drop.fill")
+                    .foregroundStyle(Color.blue)
+                Text("Water")
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                Spacer()
+                Text("\(Int(Double(waterGlasses) * mlPerGlass)) mL")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(Color.blue)
+            }
+
+            HStack(spacing: 12) {
+                // Glass icons
+                let maxDisplay = 8
+                ForEach(0..<maxDisplay, id: \.self) { i in
+                    Image(systemName: i < waterGlasses ? "drop.fill" : "drop")
+                        .font(.title3)
+                        .foregroundStyle(i < waterGlasses ? Color.blue : Color.slateBorder)
+                }
+                if waterGlasses > maxDisplay {
+                    Text("+\(waterGlasses - maxDisplay)")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Color.blue)
+                }
+                Spacer()
+            }
+
+            HStack(spacing: 12) {
+                Button {
+                    if waterGlasses > 0 {
+                        waterGlasses -= 1
+                    }
+                } label: {
+                    Image(systemName: "minus.circle.fill")
+                        .font(.title2)
+                        .foregroundStyle(waterGlasses > 0 ? Color.slateText : Color.slateBorder)
+                }
+                .disabled(waterGlasses == 0)
+
+                Text("\(waterGlasses) glass\(waterGlasses == 1 ? "" : "es")")
+                    .font(.subheadline)
+                    .foregroundStyle(.white)
+                    .frame(minWidth: 80)
+
+                Button {
+                    waterGlasses += 1
+                    if Calendar.current.isDateInToday(viewModel?.selectedDate ?? Date()) {
+                        Task {
+                            await HealthKitManager.shared.saveWater(ml: mlPerGlass, date: Date())
+                        }
+                    }
+                } label: {
+                    Label("+1 glass", systemImage: "plus.circle.fill")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(Color.blue)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
             }
         }
         .padding()
@@ -128,6 +223,7 @@ struct DiaryView: View {
                 MealSectionView(
                     mealType: mealType,
                     entries: mealEntries,
+                    date: vm.selectedDate,
                     onAdd: { food, servings in
                         vm.addEntry(food: food, mealType: mealType, servings: servings)
                     },
@@ -146,6 +242,12 @@ struct DiaryView: View {
         if let newDate = Calendar.current.date(byAdding: .day, value: days, to: vm.selectedDate) {
             vm.selectedDate = newDate.startOfDay
             vm.fetchEntries()
+            Task { await fetchWaterCount() }
         }
+    }
+
+    private func fetchWaterCount() async {
+        let totalML = await HealthKitManager.shared.fetchWaterToday()
+        waterGlasses = Int(totalML / mlPerGlass)
     }
 }

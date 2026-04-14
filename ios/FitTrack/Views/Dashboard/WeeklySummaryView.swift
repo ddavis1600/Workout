@@ -3,6 +3,9 @@ import SwiftData
 
 struct WeeklySummaryView: View {
     @Query private var allWorkouts: [Workout]
+    @Query private var allDiaryEntries: [DiaryEntry]
+    @Query private var allHabits: [Habit]
+    @Query private var allWeightEntries: [WeightEntry]
 
     private var calendar: Calendar { Calendar.current }
 
@@ -22,14 +25,6 @@ struct WeeklySummaryView: View {
         allWorkouts.filter { $0.date >= lastWeekStart && $0.date < thisWeekStart }
     }
 
-    private var thisWeekVolume: Double {
-        totalVolume(for: thisWeekWorkouts)
-    }
-
-    private var lastWeekVolume: Double {
-        totalVolume(for: lastWeekWorkouts)
-    }
-
     private var thisWeekDuration: Int {
         thisWeekWorkouts.compactMap(\.durationMinutes).reduce(0, +)
     }
@@ -37,6 +32,46 @@ struct WeeklySummaryView: View {
     private var lastWeekDuration: Int {
         lastWeekWorkouts.compactMap(\.durationMinutes).reduce(0, +)
     }
+
+    // MARK: - Calories
+
+    private var thisWeekDiaryEntries: [DiaryEntry] {
+        allDiaryEntries.filter { $0.date >= thisWeekStart }
+    }
+
+    private var avgDailyCalories: Int {
+        let days = max(1, calendar.dateComponents([.day], from: thisWeekStart, to: Date()).day ?? 1)
+        let total = thisWeekDiaryEntries.reduce(0.0) { $0 + $1.totalCalories }
+        return Int(total / Double(days))
+    }
+
+    // MARK: - Weight change
+
+    private var thisWeekWeightEntries: [WeightEntry] {
+        allWeightEntries.filter { $0.date >= thisWeekStart }.sorted { $0.date < $1.date }
+    }
+
+    private var weightChange: Double? {
+        guard thisWeekWeightEntries.count >= 2 else { return nil }
+        let first = thisWeekWeightEntries.first!.weight
+        let last = thisWeekWeightEntries.last!.weight
+        return last - first
+    }
+
+    // MARK: - Habits
+
+    private var habitCompletionRate: Int {
+        guard !allHabits.isEmpty else { return 0 }
+        let days = max(1, calendar.dateComponents([.day], from: thisWeekStart, to: Date()).day ?? 1)
+        let totalPossible = allHabits.count * days
+        let completed = allHabits.reduce(0) { count, habit in
+            let weekCompletions = habit.completions.filter { $0.date >= thisWeekStart }.count
+            return count + weekCompletions
+        }
+        return Int(round(Double(completed) / Double(totalPossible) * 100))
+    }
+
+    // MARK: - Streak
 
     private var streak: Int {
         let sorted = allWorkouts.sorted { $0.date > $1.date }
@@ -51,9 +86,7 @@ struct WeeklySummaryView: View {
                 count += 1
                 checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate) ?? checkDate
             } else if workoutDay < checkDate {
-                // Check if we just need to skip ahead (no workout on checkDate)
                 if count == 0 {
-                    // First workout isn't today, check if it was yesterday
                     let yesterday = calendar.date(byAdding: .day, value: -1, to: calendar.startOfDay(for: Date())) ?? Date()
                     if workoutDay == yesterday {
                         count = 1
@@ -77,33 +110,53 @@ struct WeeklySummaryView: View {
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                 summaryCard(
-                    icon: "flame.fill",
+                    icon: "dumbbell.fill",
                     label: "Workouts",
                     value: "\(thisWeekWorkouts.count)",
                     comparison: thisWeekWorkouts.count - lastWeekWorkouts.count,
                     color: .orange
                 )
                 summaryCard(
-                    icon: "clock.fill",
-                    label: "Duration",
-                    value: "\(thisWeekDuration) min",
-                    comparison: thisWeekDuration - lastWeekDuration,
-                    color: .blue
-                )
-                summaryCard(
-                    icon: "scalemass.fill",
-                    label: "Volume",
-                    value: formatVolume(thisWeekVolume),
-                    comparison: Int(thisWeekVolume - lastWeekVolume),
-                    color: .emerald
-                )
-                summaryCard(
-                    icon: "bolt.fill",
-                    label: "Streak",
-                    value: "\(streak) days",
+                    icon: "flame.fill",
+                    label: "Avg Calories",
+                    value: "\(avgDailyCalories) kcal",
                     comparison: nil,
-                    color: .yellow
+                    color: .red
                 )
+                if let change = weightChange {
+                    summaryCard(
+                        icon: "scalemass.fill",
+                        label: "Weight Change",
+                        value: String(format: "%+.1f kg", change),
+                        comparison: nil,
+                        color: change <= 0 ? .emerald : .orange
+                    )
+                } else {
+                    summaryCard(
+                        icon: "clock.fill",
+                        label: "Duration",
+                        value: "\(thisWeekDuration) min",
+                        comparison: thisWeekDuration - lastWeekDuration,
+                        color: .blue
+                    )
+                }
+                if !allHabits.isEmpty {
+                    summaryCard(
+                        icon: "checkmark.circle.fill",
+                        label: "Habits Done",
+                        value: "\(habitCompletionRate)%",
+                        comparison: nil,
+                        color: .emerald
+                    )
+                } else {
+                    summaryCard(
+                        icon: "bolt.fill",
+                        label: "Streak",
+                        value: "\(streak) days",
+                        comparison: nil,
+                        color: .yellow
+                    )
+                }
             }
         }
         .padding()
@@ -144,19 +197,5 @@ struct WeeklySummaryView: View {
         .padding(12)
         .background(Color.slateBackground)
         .clipShape(RoundedRectangle(cornerRadius: 10))
-    }
-
-    private func totalVolume(for workouts: [Workout]) -> Double {
-        workouts.flatMap(\.sets).compactMap { set -> Double? in
-            guard let w = set.weight, let r = set.reps else { return nil }
-            return w * Double(r)
-        }.reduce(0, +)
-    }
-
-    private func formatVolume(_ v: Double) -> String {
-        if v >= 1000 {
-            return "\(Int(v / 1000))k lbs"
-        }
-        return "\(Int(v)) lbs"
     }
 }

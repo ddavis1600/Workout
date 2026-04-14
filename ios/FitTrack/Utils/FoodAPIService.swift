@@ -10,6 +10,7 @@ struct FoodAPIResult: Identifiable {
     let protein: Double
     let carbs: Double
     let fat: Double
+    var fiber: Double = 0
 }
 
 actor FoodAPIService {
@@ -42,12 +43,14 @@ actor FoodAPIService {
         let proteins100g: Double?
         let carbohydrates100g: Double?
         let fat100g: Double?
+        let fiber100g: Double?
 
         enum CodingKeys: String, CodingKey {
             case energyKcal100g = "energy-kcal_100g"
             case proteins100g = "proteins_100g"
             case carbohydrates100g = "carbohydrates_100g"
             case fat100g = "fat_100g"
+            case fiber100g = "fiber_100g"
         }
     }
 
@@ -94,10 +97,10 @@ actor FoodAPIService {
                     return nil
                 }
 
-                // Determine serving size: use product's serving quantity, or default to 100g
                 let servingQty = product.servingQuantity ?? 100.0
                 let servingUnit = parseServingUnit(from: product.servingSize)
                 let factor = servingQty / 100.0
+                let fiberVal = nutriments.fiber100g.map { round($0 * factor * 10) / 10 } ?? 0
 
                 return FoodAPIResult(
                     name: name,
@@ -107,7 +110,8 @@ actor FoodAPIService {
                     calories: round(kcal100g * factor * 10) / 10,
                     protein: round(protein100g * factor * 10) / 10,
                     carbs: round(carbs100g * factor * 10) / 10,
-                    fat: round(fat100g * factor * 10) / 10
+                    fat: round(fat100g * factor * 10) / 10,
+                    fiber: fiberVal
                 )
             }
         } catch {
@@ -155,6 +159,7 @@ actor FoodAPIService {
             let servingQty = product.servingQuantity ?? 100.0
             let servingUnit = parseServingUnit(from: product.servingSize)
             let factor = servingQty / 100.0
+            let fiberVal = nutriments.fiber100g.map { round($0 * factor * 10) / 10 } ?? 0
 
             return FoodAPIResult(
                 name: name,
@@ -164,7 +169,8 @@ actor FoodAPIService {
                 calories: round(kcal100g * factor * 10) / 10,
                 protein: round(protein100g * factor * 10) / 10,
                 carbs: round(carbs100g * factor * 10) / 10,
-                fat: round(fat100g * factor * 10) / 10
+                fat: round(fat100g * factor * 10) / 10,
+                fiber: fiberVal
             )
         } catch {
             return nil

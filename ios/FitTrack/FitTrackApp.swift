@@ -19,7 +19,9 @@ struct FitTrackApp: App {
             JournalEntry.self,
             WorkoutTemplate.self,
             TemplateExercise.self,
-            BodyMeasurement.self
+            BodyMeasurement.self,
+            FoodFavorite.self,
+            ProgressPhoto.self,
         ])
 
         let config = ModelConfiguration(schema: schema, cloudKitDatabase: .none)

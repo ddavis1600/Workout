@@ -37,6 +37,11 @@ final class DiaryViewModel {
         entries.reduce(0) { $0 + $1.totalFat }
     }
 
+    /// Carbs minus fiber across all entries today
+    var totalNetCarbs: Double {
+        entries.reduce(0) { $0 + $1.totalNetCarbs }
+    }
+
     // MARK: - Fetching
 
     func fetchEntries() {

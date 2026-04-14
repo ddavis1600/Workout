@@ -6,6 +6,7 @@ struct WorkoutListView: View {
     @State private var viewModel: WorkoutViewModel?
     @State private var showingLogWorkout = false
     @State private var showingTemplates = false
+    @State private var showingPRHistory = false
     @State private var selectedTemplate: WorkoutTemplate?
 
     var body: some View {
@@ -27,11 +28,19 @@ struct WorkoutListView: View {
             .navigationTitle("Workouts")
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        showingTemplates = true
-                    } label: {
-                        Image(systemName: "doc.on.doc")
-                            .foregroundStyle(Color.emerald)
+                    HStack(spacing: 16) {
+                        Button {
+                            showingTemplates = true
+                        } label: {
+                            Image(systemName: "doc.on.doc")
+                                .foregroundStyle(Color.emerald)
+                        }
+                        Button {
+                            showingPRHistory = true
+                        } label: {
+                            Image(systemName: "trophy.fill")
+                                .foregroundStyle(.yellow)
+                        }
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
@@ -55,6 +64,17 @@ struct WorkoutListView: View {
                 TemplateListView { template in
                     selectedTemplate = template
                     showingLogWorkout = true
+                }
+            }
+            .sheet(isPresented: $showingPRHistory) {
+                NavigationStack {
+                    PRHistoryView()
+                        .toolbar {
+                            ToolbarItem(placement: .topBarTrailing) {
+                                Button("Done") { showingPRHistory = false }
+                                    .foregroundStyle(Color.emerald)
+                            }
+                        }
                 }
             }
             .task {

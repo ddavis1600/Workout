@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		D00000000000000000000001 /* FoodAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D10000000000000000000001 /* FoodAPIService.swift */; };
 		A10000000000000000000001 /* FitTrackApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* FitTrackApp.swift */; };
 		A10000000000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* ContentView.swift */; };
 		A10000000000000000000003 /* DataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* DataController.swift */; };
@@ -48,6 +47,7 @@
 		C10000000000000000000004 /* HabitsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000000000000000000004 /* HabitsView.swift */; };
 		C10000000000000000000005 /* WeightTrackingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000000000000000000005 /* WeightTrackingView.swift */; };
 		C10000000000000000000006 /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000000000000000000006 /* HealthKitManager.swift */; };
+		D00000000000000000000001 /* FoodAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D10000000000000000000001 /* FoodAPIService.swift */; };
 		E10000000000000000000001 /* HeartRateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000000000000000000001 /* HeartRateView.swift */; };
 		F10000000000000000000001 /* HeartRateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000001 /* HeartRateService.swift */; };
 		F10000000000000000000002 /* WorkoutHeartRateCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000002 /* WorkoutHeartRateCard.swift */; };
@@ -69,6 +69,10 @@
 		H10000000000000000000013 /* BarcodeScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = H20000000000000000000013 /* BarcodeScannerView.swift */; };
 		H10000000000000000000014 /* DataExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = H20000000000000000000014 /* DataExportService.swift */; };
 		H10000000000000000000015 /* DataExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = H20000000000000000000015 /* DataExportView.swift */; };
+		I10000000000000000000001 /* FoodFavorite.swift in Sources */ = {isa = PBXBuildFile; fileRef = I20000000000000000000001 /* FoodFavorite.swift */; };
+		I10000000000000000000002 /* ProgressPhoto.swift in Sources */ = {isa = PBXBuildFile; fileRef = I20000000000000000000002 /* ProgressPhoto.swift */; };
+		I10000000000000000000003 /* ProgressPhotoTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = I20000000000000000000003 /* ProgressPhotoTimelineView.swift */; };
+		I10000000000000000000004 /* PRHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = I20000000000000000000004 /* PRHistoryView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -82,7 +86,6 @@
 		A20000000000000000000008 /* Workout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Workout.swift; sourceTree = "<group>"; };
 		A20000000000000000000009 /* WorkoutSet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutSet.swift; sourceTree = "<group>"; };
 		A2000000000000000000000A /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
-		D10000000000000000000001 /* FoodAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodAPIService.swift; sourceTree = "<group>"; };
 		A2000000000000000000000B /* MacroCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroCalculator.swift; sourceTree = "<group>"; };
 		A2000000000000000000000C /* SeedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeedData.swift; sourceTree = "<group>"; };
 		A2000000000000000000000D /* DashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
@@ -114,6 +117,7 @@
 		C20000000000000000000004 /* HabitsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HabitsView.swift; sourceTree = "<group>"; };
 		C20000000000000000000005 /* WeightTrackingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightTrackingView.swift; sourceTree = "<group>"; };
 		C20000000000000000000006 /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManager.swift; sourceTree = "<group>"; };
+		D10000000000000000000001 /* FoodAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodAPIService.swift; sourceTree = "<group>"; };
 		E20000000000000000000001 /* HeartRateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartRateView.swift; sourceTree = "<group>"; };
 		F20000000000000000000001 /* HeartRateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartRateService.swift; sourceTree = "<group>"; };
 		F20000000000000000000002 /* WorkoutHeartRateCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutHeartRateCard.swift; sourceTree = "<group>"; };
@@ -135,6 +139,10 @@
 		H20000000000000000000013 /* BarcodeScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerView.swift; sourceTree = "<group>"; };
 		H20000000000000000000014 /* DataExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataExportService.swift; sourceTree = "<group>"; };
 		H20000000000000000000015 /* DataExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataExportView.swift; sourceTree = "<group>"; };
+		I20000000000000000000001 /* FoodFavorite.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodFavorite.swift; sourceTree = "<group>"; };
+		I20000000000000000000002 /* ProgressPhoto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressPhoto.swift; sourceTree = "<group>"; };
+		I20000000000000000000003 /* ProgressPhotoTimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressPhotoTimelineView.swift; sourceTree = "<group>"; };
+		I20000000000000000000004 /* PRHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PRHistoryView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -148,7 +156,7 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		A40000000000000000000001 /* = root group = */ = {
+		A40000000000000000000001 = {
 			isa = PBXGroup;
 			children = (
 				A40000000000000000000002 /* FitTrack */,
@@ -185,6 +193,7 @@
 				A20000000000000000000004 /* DiaryEntry.swift */,
 				A20000000000000000000005 /* Exercise.swift */,
 				A20000000000000000000006 /* Food.swift */,
+				I20000000000000000000001 /* FoodFavorite.swift */,
 				C20000000000000000000001 /* Habit.swift */,
 				C20000000000000000000002 /* HabitCompletion.swift */,
 				G20000000000000000000001 /* JournalEntry.swift */,
@@ -194,6 +203,7 @@
 				A20000000000000000000008 /* Workout.swift */,
 				A20000000000000000000009 /* WorkoutSet.swift */,
 				H20000000000000000000002 /* WorkoutTemplate.swift */,
+				I20000000000000000000002 /* ProgressPhoto.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -236,11 +246,89 @@
 				G40000000000000000000001 /* Journal */,
 				A4000000000000000000000B /* Macros */,
 				H40000000000000000000002 /* Measurements */,
+				I40000000000000000000001 /* Progress */,
 				G40000000000000000000002 /* Settings */,
 				C4000000000000000000000E /* Weight */,
 				A4000000000000000000000C /* Workout */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		I40000000000000000000001 /* Progress */ = {
+			isa = PBXGroup;
+			children = (
+				I20000000000000000000003 /* ProgressPhotoTimelineView.swift */,
+			);
+			path = Progress;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000008 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000011 /* MacroProgressBar.swift */,
+				A20000000000000000000012 /* MacroRing.swift */,
+				A20000000000000000000013 /* StatCard.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000009 /* Dashboard */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000014 /* DashboardView.swift */,
+				A20000000000000000000015 /* RecentWorkoutsCard.swift */,
+				H20000000000000000000010 /* WeeklySummaryView.swift */,
+			);
+			path = Dashboard;
+			sourceTree = "<group>";
+		};
+		A4000000000000000000000A /* Diary */ = {
+			isa = PBXGroup;
+			children = (
+				H20000000000000000000013 /* BarcodeScannerView.swift */,
+				A20000000000000000000016 /* DiaryView.swift */,
+				A20000000000000000000017 /* FoodSearchView.swift */,
+				A20000000000000000000018 /* MealSectionView.swift */,
+			);
+			path = Diary;
+			sourceTree = "<group>";
+		};
+		A4000000000000000000000B /* Macros */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000019 /* BodyStatsForm.swift */,
+				A2000000000000000000001A /* GoalSelectorView.swift */,
+				A2000000000000000000001B /* MacroTargetsView.swift */,
+				A2000000000000000000001C /* MacrosView.swift */,
+			);
+			path = Macros;
+			sourceTree = "<group>";
+		};
+		A4000000000000000000000C /* Workout */ = {
+			isa = PBXGroup;
+			children = (
+				A2000000000000000000001D /* ExercisePickerView.swift */,
+				A2000000000000000000001E /* LogWorkoutView.swift */,
+				H20000000000000000000007 /* PRBadgeView.swift */,
+				I20000000000000000000004 /* PRHistoryView.swift */,
+				A2000000000000000000001F /* ProgressChartView.swift */,
+				H20000000000000000000001 /* RestTimerView.swift */,
+				H20000000000000000000005 /* SaveTemplateSheet.swift */,
+				A20000000000000000000020 /* SetRowView.swift */,
+				H20000000000000000000004 /* TemplateListView.swift */,
+				A20000000000000000000021 /* WorkoutDetailView.swift */,
+				F20000000000000000000002 /* WorkoutHeartRateCard.swift */,
+				A20000000000000000000022 /* WorkoutListView.swift */,
+			);
+			path = Workout;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000010 /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000003 /* DataController.swift */,
+			);
+			path = Data;
 			sourceTree = "<group>";
 		};
 		C4000000000000000000000D /* Habits */ = {
@@ -293,74 +381,6 @@
 			path = Measurements;
 			sourceTree = "<group>";
 		};
-		A40000000000000000000008 /* Components */ = {
-			isa = PBXGroup;
-			children = (
-				A20000000000000000000011 /* MacroProgressBar.swift */,
-				A20000000000000000000012 /* MacroRing.swift */,
-				A20000000000000000000013 /* StatCard.swift */,
-			);
-			path = Components;
-			sourceTree = "<group>";
-		};
-		A40000000000000000000009 /* Dashboard */ = {
-			isa = PBXGroup;
-			children = (
-				A20000000000000000000014 /* DashboardView.swift */,
-				A20000000000000000000015 /* RecentWorkoutsCard.swift */,
-				H20000000000000000000010 /* WeeklySummaryView.swift */,
-			);
-			path = Dashboard;
-			sourceTree = "<group>";
-		};
-		A4000000000000000000000A /* Diary */ = {
-			isa = PBXGroup;
-			children = (
-				H20000000000000000000013 /* BarcodeScannerView.swift */,
-				A20000000000000000000016 /* DiaryView.swift */,
-				A20000000000000000000017 /* FoodSearchView.swift */,
-				A20000000000000000000018 /* MealSectionView.swift */,
-			);
-			path = Diary;
-			sourceTree = "<group>";
-		};
-		A4000000000000000000000B /* Macros */ = {
-			isa = PBXGroup;
-			children = (
-				A20000000000000000000019 /* BodyStatsForm.swift */,
-				A2000000000000000000001A /* GoalSelectorView.swift */,
-				A2000000000000000000001B /* MacroTargetsView.swift */,
-				A2000000000000000000001C /* MacrosView.swift */,
-			);
-			path = Macros;
-			sourceTree = "<group>";
-		};
-		A4000000000000000000000C /* Workout */ = {
-			isa = PBXGroup;
-			children = (
-				A2000000000000000000001D /* ExercisePickerView.swift */,
-				A2000000000000000000001E /* LogWorkoutView.swift */,
-				H20000000000000000000007 /* PRBadgeView.swift */,
-				A2000000000000000000001F /* ProgressChartView.swift */,
-				H20000000000000000000001 /* RestTimerView.swift */,
-				H20000000000000000000005 /* SaveTemplateSheet.swift */,
-				A20000000000000000000020 /* SetRowView.swift */,
-				H20000000000000000000004 /* TemplateListView.swift */,
-				A20000000000000000000021 /* WorkoutDetailView.swift */,
-				F20000000000000000000002 /* WorkoutHeartRateCard.swift */,
-				A20000000000000000000022 /* WorkoutListView.swift */,
-			);
-			path = Workout;
-			sourceTree = "<group>";
-		};
-		A40000000000000000000010 /* Data */ = {
-			isa = PBXGroup;
-			children = (
-				A20000000000000000000003 /* DataController.swift */,
-			);
-			path = Data;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -388,7 +408,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1500;
-				LastUpgradeCheck = 1500;
+				LastUpgradeCheck = 2640;
 				TargetAttributes = {
 					A50000000000000000000001 = {
 						CreatedOnToolsVersion = 15.0;
@@ -480,6 +500,10 @@
 				H10000000000000000000013 /* BarcodeScannerView.swift in Sources */,
 				H10000000000000000000014 /* DataExportService.swift in Sources */,
 				H10000000000000000000015 /* DataExportView.swift in Sources */,
+				I10000000000000000000001 /* FoodFavorite.swift in Sources */,
+				I10000000000000000000002 /* ProgressPhoto.swift in Sources */,
+				I10000000000000000000003 /* ProgressPhotoTimelineView.swift in Sources */,
+				I10000000000000000000004 /* PRHistoryView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -521,6 +545,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 95BHKMD86H;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -544,6 +569,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -584,6 +610,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 95BHKMD86H;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -600,6 +627,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -614,11 +642,12 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSCameraUsageDescription = "FitTrack uses your camera to scan food barcodes.";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "FitTrack reads your weight and heart rate data from Apple Health to display your progress.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "FitTrack reads your health data from Apple Health including steps, energy, workouts, sleep, mindfulness, water, and nutrition to power habit tracking and progress features.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "FitTrack saves meal photos and progress photos to your photo library.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "FitTrack saves your weight entries to Apple Health to keep your data in sync.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "FitTrack uses the microphone to record voice notes in your journal.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -651,11 +680,12 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSCameraUsageDescription = "FitTrack uses your camera to scan food barcodes.";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "FitTrack reads your weight and heart rate data from Apple Health to display your progress.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "FitTrack reads your health data from Apple Health including steps, energy, workouts, sleep, mindfulness, water, and nutrition to power habit tracking and progress features.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "FitTrack saves meal photos and progress photos to your photo library.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "FitTrack saves your weight entries to Apple Health to keep your data in sync.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "FitTrack uses the microphone to record voice notes in your journal.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

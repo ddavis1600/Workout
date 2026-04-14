@@ -5,7 +5,7 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
 
     enum Tab: String, CaseIterable {
-        case dashboard, workouts, progress, habits, weight, macros, diary, journal, heartRate, measurements, settings
+        case dashboard, workouts, progress, habits, weight, macros, diary, journal, heartRate, measurements, photos, settings
 
         var icon: String {
             switch self {
@@ -19,6 +19,7 @@ struct ContentView: View {
             case .journal: return "book.closed.fill"
             case .heartRate: return "heart.fill"
             case .measurements: return "ruler"
+            case .photos: return "photo.on.rectangle.angled"
             case .settings: return "gearshape.fill"
             }
         }
@@ -35,6 +36,7 @@ struct ContentView: View {
             case .journal: return "Journal"
             case .heartRate: return "Heart"
             case .measurements: return "Measure"
+            case .photos: return "Photos"
             case .settings: return "Settings"
             }
         }
@@ -56,6 +58,7 @@ struct ContentView: View {
     @AppStorage("tab_journal") private var showJournal = true
     @AppStorage("tab_heartRate") private var showHeartRate = true
     @AppStorage("tab_measurements") private var showMeasurements = true
+    @AppStorage("tab_photos") private var showPhotos = true
     private var visibleTabs: [Tab] {
         var tabs: [Tab] = []
         if showDashboard { tabs.append(.dashboard) }
@@ -68,6 +71,7 @@ struct ContentView: View {
         if showJournal { tabs.append(.journal) }
         if showHeartRate { tabs.append(.heartRate) }
         if showMeasurements { tabs.append(.measurements) }
+        if showPhotos { tabs.append(.photos) }
         tabs.append(.settings) // Settings always visible
         return tabs
     }
@@ -127,6 +131,7 @@ struct ContentView: View {
         case .journal:   JournalView()
         case .heartRate: HeartRateView()
         case .measurements: BodyMeasurementsView()
+        case .photos:    ProgressPhotoTimelineView()
         case .settings:  SettingsView()
         }
     }
@@ -148,6 +153,8 @@ struct ContentView: View {
             JournalEntry.self,
             WorkoutTemplate.self,
             TemplateExercise.self,
-            BodyMeasurement.self
+            BodyMeasurement.self,
+            FoodFavorite.self,
+            ProgressPhoto.self,
         ], inMemory: true)
 }
