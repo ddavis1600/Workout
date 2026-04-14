@@ -93,7 +93,6 @@ struct LogWorkoutView: View {
                     }
                     .foregroundStyle(Color.emerald)
                     .fontWeight(.semibold)
-                    .disabled(exerciseGroups.isEmpty)
                 }
             }
             .sheet(isPresented: $showingExercisePicker) {
