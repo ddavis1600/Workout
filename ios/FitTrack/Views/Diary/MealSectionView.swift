@@ -9,16 +9,21 @@ struct MealSectionView: View {
     var onAdd: (Food, Double) -> Void
     var onDelete: (DiaryEntry) -> Void
 
-    @State private var showingFoodSearch = false
+    // Single enum drives ALL sheet presentations — avoids multiple-sheet conflicts
+    private enum ActiveSheet: Identifiable {
+        case foodSearch, camera
+        var id: Self { self }
+    }
+
+    private enum PendingPhotoAction { case none, library, camera }
+
+    @State private var activeSheet: ActiveSheet?
     @State private var showingImagePicker = false
-    @State private var showingCamera = false
     @State private var photoPickerItem: PhotosPickerItem?
     @State private var fullscreenPhoto: UIImage?
     @State private var showFullscreen = false
     @State private var showPhotoOptions = false
     @State private var pendingPhotoAction: PendingPhotoAction = .none
-
-    private enum PendingPhotoAction { case none, library, camera }
 
     private var mealCalories: Double {
         entries.reduce(0) { $0 + $1.totalCalories }
@@ -126,17 +131,13 @@ struct MealSectionView: View {
 
             Divider().overlay(Color.slateBorder)
 
+            // Add Food button — does NOT attach its own .sheet; activeSheet drives everything
             Button {
-                showingFoodSearch = true
+                activeSheet = .foodSearch
             } label: {
                 Label("Add Food", systemImage: "plus")
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(Color.emerald)
-            }
-            .sheet(isPresented: $showingFoodSearch) {
-                FoodSearchView { food, servings in
-                    onAdd(food, servings)
-                }
             }
         }
         .padding()
@@ -146,17 +147,29 @@ struct MealSectionView: View {
             RoundedRectangle(cornerRadius: 14)
                 .stroke(Color.slateBorder, lineWidth: 1)
         )
-        // Defer sheet presentation until after the confirmation dialog has dismissed
+        // Wait for the confirmationDialog dismiss animation to finish (~300ms) before
+        // presenting the next sheet/picker. Without this delay SwiftUI silently drops
+        // the presentation because two transitions are in flight at once.
         .onChange(of: showPhotoOptions) { _, isShowing in
             guard !isShowing else { return }
-            switch pendingPhotoAction {
-            case .library: showingImagePicker = true
-            case .camera:  showingCamera = true
-            case .none:    break
-            }
+            let action = pendingPhotoAction
             pendingPhotoAction = .none
+            switch action {
+            case .none:
+                break
+            case .library:
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(700))
+                    showingImagePicker = true
+                }
+            case .camera:
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(700))
+                    activeSheet = .camera
+                }
+            }
         }
-        // Photo library picker
+        // Photo library picker (PHPicker — separate from .sheet, no conflict)
         .photosPicker(isPresented: $showingImagePicker, selection: $photoPickerItem, matching: .images)
         .onChange(of: photoPickerItem) { _, newItem in
             Task {
@@ -167,11 +180,20 @@ struct MealSectionView: View {
                 }
             }
         }
-        // Camera
-        .sheet(isPresented: $showingCamera) {
-            MealCameraView { image in
-                if let jpeg = image.jpegData(compressionQuality: 0.75) {
-                    savePhoto(jpeg)
+        // ONE sheet modifier handles both food search and camera.
+        // Previously two separate .sheet modifiers shared the same presentation
+        // context, causing SwiftUI to silently drop one of them.
+        .sheet(item: $activeSheet) { sheet in
+            switch sheet {
+            case .foodSearch:
+                FoodSearchView { food, servings in
+                    onAdd(food, servings)
+                }
+            case .camera:
+                MealCameraView { image in
+                    if let jpeg = image.jpegData(compressionQuality: 0.75) {
+                        savePhoto(jpeg)
+                    }
                 }
             }
         }
