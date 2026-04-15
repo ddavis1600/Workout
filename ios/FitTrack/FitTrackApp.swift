@@ -29,12 +29,11 @@ struct FitTrackApp: App {
         do {
             container = try ModelContainer(for: schema, configurations: config)
         } catch {
-            // If schema changed, delete old store and retry
+            // Schema changed — delete old store and companion WAL/SHM files, then retry
             let url = config.url
             try? FileManager.default.removeItem(at: url)
-            // Also remove WAL/SHM files
-            try? FileManager.default.removeItem(at: url.deletingPathExtension().appendingPathExtension("sqlite-wal"))
-            try? FileManager.default.removeItem(at: url.deletingPathExtension().appendingPathExtension("sqlite-shm"))
+            try? FileManager.default.removeItem(at: URL(fileURLWithPath: url.path + "-wal"))
+            try? FileManager.default.removeItem(at: URL(fileURLWithPath: url.path + "-shm"))
             do {
                 container = try ModelContainer(for: schema, configurations: config)
             } catch {
