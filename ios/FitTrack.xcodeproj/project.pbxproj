@@ -660,6 +660,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleIconName = AppIcon;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSCameraUsageDescription = "FitTrack uses your camera to scan food barcodes.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "FitTrack reads your health data from Apple Health including steps, energy, workouts, sleep, mindfulness, water, and nutrition to power habit tracking and progress features.";
@@ -699,6 +700,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleIconName = AppIcon;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSCameraUsageDescription = "FitTrack uses your camera to scan food barcodes.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "FitTrack reads your health data from Apple Health including steps, energy, workouts, sleep, mindfulness, water, and nutrition to power habit tracking and progress features.";
