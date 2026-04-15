@@ -9,16 +9,23 @@ struct MealSectionView: View {
     var onAdd: (Food, Double) -> Void
     var onDelete: (DiaryEntry) -> Void
 
-    @State private var showingFoodSearch = false
+    // Single enum covers all sheet destinations — avoids multiple .sheet modifiers conflicting
+    private enum ActiveSheet: Identifiable {
+        case foodSearch, camera
+        var id: String {
+            switch self {
+            case .foodSearch: return "foodSearch"
+            case .camera: return "camera"
+            }
+        }
+    }
+
+    @State private var activeSheet: ActiveSheet?
     @State private var showingImagePicker = false
-    @State private var showingCamera = false
     @State private var photoPickerItem: PhotosPickerItem?
     @State private var fullscreenPhoto: UIImage?
     @State private var showFullscreen = false
     @State private var showPhotoOptions = false
-    @State private var pendingPhotoAction: PendingPhotoAction = .none
-
-    private enum PendingPhotoAction { case none, library, camera }
 
     private var mealCalories: Double {
         entries.reduce(0) { $0 + $1.totalCalories }
@@ -58,8 +65,18 @@ struct MealSectionView: View {
                 }
                 .padding(.leading, 8)
                 .confirmationDialog("Meal Photo", isPresented: $showPhotoOptions) {
-                    Button("Choose from Library") { pendingPhotoAction = .library }
-                    Button("Take Photo") { pendingPhotoAction = .camera }
+                    // Use asyncAfter to let the dialog fully dismiss before presenting a new
+                    // sheet — avoids silent failures from overlapping UIKit presentations.
+                    Button("Choose from Library") {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                            showingImagePicker = true
+                        }
+                    }
+                    Button("Take Photo") {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                            activeSheet = .camera
+                        }
+                    }
                     if savedPhoto != nil {
                         Button("Remove Photo", role: .destructive) { deletePhoto() }
                     }
@@ -127,16 +144,11 @@ struct MealSectionView: View {
             Divider().overlay(Color.slateBorder)
 
             Button {
-                showingFoodSearch = true
+                activeSheet = .foodSearch
             } label: {
                 Label("Add Food", systemImage: "plus")
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(Color.emerald)
-            }
-            .sheet(isPresented: $showingFoodSearch) {
-                FoodSearchView { food, servings in
-                    onAdd(food, servings)
-                }
             }
         }
         .padding()
@@ -146,17 +158,24 @@ struct MealSectionView: View {
             RoundedRectangle(cornerRadius: 14)
                 .stroke(Color.slateBorder, lineWidth: 1)
         )
-        // Defer sheet presentation until after the confirmation dialog has dismissed
-        .onChange(of: showPhotoOptions) { _, isShowing in
-            guard !isShowing else { return }
-            switch pendingPhotoAction {
-            case .library: showingImagePicker = true
-            case .camera:  showingCamera = true
-            case .none:    break
+        // Single sheet modifier handles both food search and camera — avoids the SwiftUI
+        // limitation where multiple .sheet modifiers on the same view chain cause only the
+        // last one to work (which was why Add Food did nothing).
+        .sheet(item: $activeSheet) { sheet in
+            switch sheet {
+            case .foodSearch:
+                FoodSearchView { food, servings in
+                    onAdd(food, servings)
+                }
+            case .camera:
+                MealCameraView { image in
+                    if let jpeg = image.jpegData(compressionQuality: 0.75) {
+                        savePhoto(jpeg)
+                    }
+                }
             }
-            pendingPhotoAction = .none
         }
-        // Photo library picker
+        // Photo library picker — a system overlay, not a sheet, so it coexists fine
         .photosPicker(isPresented: $showingImagePicker, selection: $photoPickerItem, matching: .images)
         .onChange(of: photoPickerItem) { _, newItem in
             Task {
@@ -167,15 +186,7 @@ struct MealSectionView: View {
                 }
             }
         }
-        // Camera
-        .sheet(isPresented: $showingCamera) {
-            MealCameraView { image in
-                if let jpeg = image.jpegData(compressionQuality: 0.75) {
-                    savePhoto(jpeg)
-                }
-            }
-        }
-        // Fullscreen viewer
+        // Fullscreen viewer — fullScreenCover is a distinct presentation type from .sheet
         .fullScreenCover(isPresented: $showFullscreen) {
             if let photo = fullscreenPhoto {
                 MealPhotoFullscreenView(image: photo)
