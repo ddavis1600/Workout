@@ -29,6 +29,10 @@ struct MacrosView: View {
     @State private var showingSaved = false
     @State private var savedSummary: (calories: Int, protein: Int, carbs: Int, fat: Int)?
 
+    @State private var proteinPct: Double = 0.30
+    @State private var carbsPct: Double = 0.40
+    @State private var fatPct: Double = 0.30
+
     var body: some View {
         NavigationStack {
             List {
@@ -55,6 +59,9 @@ struct MacrosView: View {
                         .listRowSeparator(.hidden)
                     if hasCalculated, previewTargets != nil {
                         resultsSection
+                            .listRowBackground(Color.slateBackground)
+                            .listRowSeparator(.hidden)
+                        sliderSection
                             .listRowBackground(Color.slateBackground)
                             .listRowSeparator(.hidden)
                     }
@@ -216,6 +223,12 @@ struct MacrosView: View {
 
     private var resultsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
+            Button(action: { hasCalculated = false }) {
+                Label("Edit Profile", systemImage: "pencil")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+
             // TDEE
             VStack(spacing: 4) {
                 Text("Your TDEE")
@@ -266,6 +279,97 @@ struct MacrosView: View {
                     fat: targets.fat
                 )
             }
+        }
+    }
+
+    // MARK: - Slider Section
+
+    private var sliderSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Adjust Macro Split")
+                .font(.headline)
+                .foregroundStyle(.white)
+
+            if let targets = previewTargets {
+                let cal = targets.calories
+
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text("Protein")
+                            .foregroundStyle(.white)
+                        Spacer()
+                        Text("\(Int(cal * proteinPct / 4))g (\(Int(proteinPct * 100))%)")
+                            .foregroundStyle(.blue)
+                    }
+                    Slider(value: $proteinPct, in: 0.05...0.60, step: 0.01)
+                        .tint(.blue)
+                        .onChange(of: proteinPct) { _, newVal in
+                            redistribute(changed: "protein", to: newVal)
+                        }
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text("Carbs")
+                            .foregroundStyle(.white)
+                        Spacer()
+                        Text("\(Int(cal * carbsPct / 4))g (\(Int(carbsPct * 100))%)")
+                            .foregroundStyle(.orange)
+                    }
+                    Slider(value: $carbsPct, in: 0.05...0.70, step: 0.01)
+                        .tint(.orange)
+                        .onChange(of: carbsPct) { _, newVal in
+                            redistribute(changed: "carbs", to: newVal)
+                        }
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text("Fat")
+                            .foregroundStyle(.white)
+                        Spacer()
+                        Text("\(Int(cal * fatPct / 9))g (\(Int(fatPct * 100))%)")
+                            .foregroundStyle(.pink)
+                    }
+                    Slider(value: $fatPct, in: 0.05...0.60, step: 0.01)
+                        .tint(.pink)
+                        .onChange(of: fatPct) { _, newVal in
+                            redistribute(changed: "fat", to: newVal)
+                        }
+                }
+            }
+        }
+        .padding()
+        .background(Color.slateCard)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(Color.slateBorder, lineWidth: 1)
+        )
+    }
+
+    private func redistribute(changed: String, to newVal: Double) {
+        let remaining = max(0, 1.0 - newVal)
+        switch changed {
+        case "protein":
+            let total = carbsPct + fatPct
+            if total > 0 {
+                carbsPct = remaining * (carbsPct / total)
+                fatPct   = remaining * (fatPct / total)
+            }
+        case "carbs":
+            let total = proteinPct + fatPct
+            if total > 0 {
+                proteinPct = remaining * (proteinPct / total)
+                fatPct     = remaining * (fatPct / total)
+            }
+        case "fat":
+            let total = proteinPct + carbsPct
+            if total > 0 {
+                proteinPct = remaining * (proteinPct / total)
+                carbsPct   = remaining * (carbsPct / total)
+            }
+        default: break
         }
     }
 
@@ -420,6 +524,13 @@ struct MacrosView: View {
             goal: selectedGoal,
             unitSystem: unitSystem
         )
+
+        if let t = previewTargets, t.calories > 0 {
+            let cal = t.calories
+            proteinPct = (t.protein * 4) / cal
+            carbsPct   = (t.carbs * 4) / cal
+            fatPct     = (t.fat * 9) / cal
+        }
     }
 
     private func saveProfile() {
@@ -439,12 +550,16 @@ struct MacrosView: View {
         )
 
         if let targets = previewTargets {
-            savedSummary = (
-                calories: Int(targets.calories),
-                protein: Int(targets.protein),
-                carbs: Int(targets.carbs),
-                fat: Int(targets.fat)
-            )
+            let cal = targets.calories
+            let adjProtein = Int(cal * proteinPct / 4)
+            let adjCarbs   = Int(cal * carbsPct / 4)
+            let adjFat     = Int(cal * fatPct / 9)
+            vm.profile.calorieTarget = cal
+            vm.profile.proteinTarget = Double(adjProtein)
+            vm.profile.carbTarget    = Double(adjCarbs)
+            vm.profile.fatTarget     = Double(adjFat)
+            try? modelContext.save()
+            savedSummary = (calories: Int(cal), protein: adjProtein, carbs: adjCarbs, fat: adjFat)
         }
         showSavedToast()
     }

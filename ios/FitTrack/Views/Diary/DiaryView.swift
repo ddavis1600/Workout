@@ -221,12 +221,10 @@ struct DiaryView: View {
 
     // MARK: - Water Section
 
-    /// UserDefaults key for the water count on the currently viewed date.
-    /// UserDefaults is the source of truth so counts persist across navigation;
-    /// HealthKit is synced as a bonus when the user is on today's date.
-    private var waterDefaultsKey: String {
-        let date = viewModel?.selectedDate ?? Date()
-        return "water_glasses_\(date.formatted(as: "yyyy-MM-dd"))"
+    private func waterKey(for date: Date) -> String {
+        let fmt = DateFormatter()
+        fmt.dateFormat = "yyyy-MM-dd"
+        return "water_glasses_\(fmt.string(from: date))"
     }
 
     private var waterSection: some View {
@@ -263,7 +261,7 @@ struct DiaryView: View {
                 Button {
                     guard waterGlasses > 0 else { return }
                     waterGlasses -= 1
-                    UserDefaults.standard.set(waterGlasses, forKey: waterDefaultsKey)
+                    UserDefaults.standard.set(waterGlasses, forKey: waterKey(for: viewModel?.selectedDate ?? Date()))
                     let selectedDate = viewModel?.selectedDate ?? Date()
                     if Calendar.current.isDateInToday(selectedDate) {
                         Task {
@@ -284,7 +282,7 @@ struct DiaryView: View {
 
                 Button {
                     waterGlasses += 1
-                    UserDefaults.standard.set(waterGlasses, forKey: waterDefaultsKey)
+                    UserDefaults.standard.set(waterGlasses, forKey: waterKey(for: viewModel?.selectedDate ?? Date()))
                     let selectedDate = viewModel?.selectedDate ?? Date()
                     if Calendar.current.isDateInToday(selectedDate) {
                         Task {
@@ -364,7 +362,7 @@ struct DiaryView: View {
 
     private func fetchWaterCount() async {
         // Load from UserDefaults immediately — works for any date, no async wait.
-        let local = UserDefaults.standard.integer(forKey: waterDefaultsKey)
+        let local = UserDefaults.standard.integer(forKey: waterKey(for: viewModel?.selectedDate ?? Date()))
         waterGlasses = local
 
         // For today only, try to reconcile with HealthKit (in case another app logged water).
@@ -375,7 +373,7 @@ struct DiaryView: View {
         let hkGlasses = Int(totalML / mlPerGlass)
         if hkGlasses > 0 && hkGlasses != local {
             waterGlasses = hkGlasses
-            UserDefaults.standard.set(hkGlasses, forKey: waterDefaultsKey)
+            UserDefaults.standard.set(hkGlasses, forKey: waterKey(for: viewModel?.selectedDate ?? Date()))
         }
     }
 }

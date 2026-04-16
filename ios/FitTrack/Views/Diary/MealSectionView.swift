@@ -53,21 +53,7 @@ struct MealSectionView: View {
                         .foregroundStyle(mealPhoto != nil ? Color.emerald : Color.slateText)
                 }
                 .padding(.leading, 8)
-                .confirmationDialog("Meal Photo", isPresented: $showPhotoOptions) {
-                    Button("Choose from Library") {
-                        onLibraryTapped()
-                    }
-                    Button("Take Photo") {
-                        onCameraTapped()
-                    }
-                    if mealPhoto != nil {
-                        Button("Remove Photo", role: .destructive) {
-                            onDeletePhoto()
-                            mealPhoto = nil
-                        }
-                    }
-                    Button("Cancel", role: .cancel) {}
-                }
+                .buttonStyle(.plain)
             }
 
             // Photo thumbnail
@@ -137,6 +123,7 @@ struct MealSectionView: View {
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(Color.emerald)
             }
+            .buttonStyle(.plain)
         }
         .padding()
         .background(Color.slateCard)
@@ -145,6 +132,21 @@ struct MealSectionView: View {
             RoundedRectangle(cornerRadius: 14)
                 .stroke(Color.slateBorder, lineWidth: 1)
         )
+        .confirmationDialog("Meal Photo", isPresented: $showPhotoOptions) {
+            Button("Choose from Library") {
+                onLibraryTapped()
+            }
+            Button("Take Photo") {
+                onCameraTapped()
+            }
+            if mealPhoto != nil {
+                Button("Remove Photo", role: .destructive) {
+                    onDeletePhoto()
+                    mealPhoto = nil
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
         // Fullscreen viewer is its own presentation type — no conflict with parent's .sheet
         .fullScreenCover(isPresented: $showFullscreen) {
             if let photo = fullscreenPhoto {
