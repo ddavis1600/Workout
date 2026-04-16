@@ -10,6 +10,7 @@
 		1A414DF587780BA6BB19E93E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA52A9A6B0240B6859F49AEC /* Foundation.framework */; };
 		3DA3E8459EE68339AF3F2A63 /* FitTrackWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40F0807AFAE78D702353BD1B /* FitTrackWatchApp.swift */; };
 		5E496BA42E9AB4B2ECD88484 /* WatchHeartRateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94CAD621080897A232B7230 /* WatchHeartRateService.swift */; };
+		69B448E53E2E01493B6767E7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3C946087B78751B8870890B4 /* Assets.xcassets */; };
 		7836344C2451134116929FF4 /* FitTrack Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = FFA64365D10993F43A4738C5 /* FitTrack Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		A10000000000000000000001 /* FitTrackApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* FitTrackApp.swift */; };
 		A10000000000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* ContentView.swift */; };
@@ -97,6 +98,7 @@
 
 /* Begin PBXFileReference section */
 		386ACDE9B9AE78D3BE830989 /* WatchContentView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatchContentView.swift; sourceTree = "<group>"; };
+		3C946087B78751B8870890B4 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		40F0807AFAE78D702353BD1B /* FitTrackWatchApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FitTrackWatchApp.swift; sourceTree = "<group>"; };
 		47883AB36CFCAEA904FA873E /* FitTrack Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "FitTrack Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		82FC10748D15A43C3CCAE52C /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -379,6 +381,7 @@
 				386ACDE9B9AE78D3BE830989 /* WatchContentView.swift */,
 				40F0807AFAE78D702353BD1B /* FitTrackWatchApp.swift */,
 				82FC10748D15A43C3CCAE52C /* Info.plist */,
+				3C946087B78751B8870890B4 /* Assets.xcassets */,
 			);
 			name = FitTrackWatch;
 			path = FitTrackWatch;
@@ -537,6 +540,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				69B448E53E2E01493B6767E7 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -646,7 +650,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = 95BHKMD86H;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = FitTrackWatch/Info.plist;
@@ -676,7 +680,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = 95BHKMD86H;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = FitTrackWatch/Info.plist;
@@ -832,7 +836,7 @@
 				CODE_SIGN_ENTITLEMENTS = FitTrack/FitTrack.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleIconName = AppIcon;
@@ -872,7 +876,7 @@
 				CODE_SIGN_ENTITLEMENTS = FitTrack/FitTrack.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleIconName = AppIcon;
