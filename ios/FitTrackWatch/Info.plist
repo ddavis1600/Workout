@@ -22,6 +22,10 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>FitTrack reads your heart rate to display real-time data on your Apple Watch.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>FitTrack saves workout and health data to Apple Health.</string>
 	<key>WKApplication</key>
 	<true/>
 	<key>WKCompanionAppBundleIdentifier</key>
