@@ -32,7 +32,6 @@ struct MacrosView: View {
     @State private var proteinPct: Double = 0.30
     @State private var carbsPct: Double = 0.40
     @State private var fatPct: Double = 0.30
-    @State private var isRedistributing = false
 
     var body: some View {
         NavigationStack {
@@ -302,11 +301,8 @@ struct MacrosView: View {
                         Text("\(Int(cal * proteinPct / 4))g (\(Int(proteinPct * 100))%)")
                             .foregroundStyle(.blue)
                     }
-                    Slider(value: $proteinPct, in: 0.05...0.60, step: 0.01)
+                    Slider(value: proteinBinding, in: 0.05...0.60, step: 0.01)
                         .tint(.blue)
-                        .onChange(of: proteinPct) { _, newVal in
-                            redistribute(changed: "protein", to: newVal)
-                        }
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
@@ -317,11 +313,8 @@ struct MacrosView: View {
                         Text("\(Int(cal * carbsPct / 4))g (\(Int(carbsPct * 100))%)")
                             .foregroundStyle(.orange)
                     }
-                    Slider(value: $carbsPct, in: 0.05...0.70, step: 0.01)
+                    Slider(value: carbsBinding, in: 0.05...0.70, step: 0.01)
                         .tint(.orange)
-                        .onChange(of: carbsPct) { _, newVal in
-                            redistribute(changed: "carbs", to: newVal)
-                        }
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
@@ -332,11 +325,8 @@ struct MacrosView: View {
                         Text("\(Int(cal * fatPct / 9))g (\(Int(fatPct * 100))%)")
                             .foregroundStyle(.pink)
                     }
-                    Slider(value: $fatPct, in: 0.05...0.60, step: 0.01)
+                    Slider(value: fatBinding, in: 0.05...0.60, step: 0.01)
                         .tint(.pink)
-                        .onChange(of: fatPct) { _, newVal in
-                            redistribute(changed: "fat", to: newVal)
-                        }
                 }
             }
         }
@@ -349,41 +339,58 @@ struct MacrosView: View {
         )
     }
 
-    private func redistribute(changed: String, to newVal: Double) {
-        guard !isRedistributing else { return }
-        isRedistributing = true
-        let remaining = max(0, 1.0 - newVal)
-        switch changed {
-        case "protein":
-            let total = carbsPct + fatPct
-            if total > 0 {
-                carbsPct = remaining * (carbsPct / total)
-                fatPct   = remaining * (fatPct / total)
-            } else {
-                carbsPct = remaining / 2
-                fatPct   = remaining / 2
+    private var proteinBinding: Binding<Double> {
+        Binding(
+            get: { proteinPct },
+            set: { newVal in
+                proteinPct = newVal
+                let remaining = max(0, 1.0 - newVal)
+                let total = carbsPct + fatPct
+                if total > 0 {
+                    carbsPct = remaining * (carbsPct / total)
+                    fatPct   = remaining * (fatPct / total)
+                } else {
+                    carbsPct = remaining / 2
+                    fatPct   = remaining / 2
+                }
             }
-        case "carbs":
-            let total = proteinPct + fatPct
-            if total > 0 {
-                proteinPct = remaining * (proteinPct / total)
-                fatPct     = remaining * (fatPct / total)
-            } else {
-                proteinPct = remaining / 2
-                fatPct     = remaining / 2
+        )
+    }
+
+    private var carbsBinding: Binding<Double> {
+        Binding(
+            get: { carbsPct },
+            set: { newVal in
+                carbsPct = newVal
+                let remaining = max(0, 1.0 - newVal)
+                let total = proteinPct + fatPct
+                if total > 0 {
+                    proteinPct = remaining * (proteinPct / total)
+                    fatPct     = remaining * (fatPct / total)
+                } else {
+                    proteinPct = remaining / 2
+                    fatPct     = remaining / 2
+                }
             }
-        case "fat":
-            let total = proteinPct + carbsPct
-            if total > 0 {
-                proteinPct = remaining * (proteinPct / total)
-                carbsPct   = remaining * (carbsPct / total)
-            } else {
-                proteinPct = remaining / 2
-                carbsPct   = remaining / 2
+        )
+    }
+
+    private var fatBinding: Binding<Double> {
+        Binding(
+            get: { fatPct },
+            set: { newVal in
+                fatPct = newVal
+                let remaining = max(0, 1.0 - newVal)
+                let total = proteinPct + carbsPct
+                if total > 0 {
+                    proteinPct = remaining * (proteinPct / total)
+                    carbsPct   = remaining * (carbsPct / total)
+                } else {
+                    proteinPct = remaining / 2
+                    carbsPct   = remaining / 2
+                }
             }
-        default: break
-        }
-        isRedistributing = false
+        )
     }
 
     // MARK: - Save Button
