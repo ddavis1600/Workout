@@ -1,6 +1,5 @@
 import SwiftUI
 import SwiftData
-import PhotosUI
 
 struct MealSectionView: View {
     let mealType: String
@@ -9,20 +8,18 @@ struct MealSectionView: View {
     var onAdd: (Food, Double) -> Void
     var onDelete: (DiaryEntry) -> Void
 
-    // Single enum covers all sheet destinations — avoids multiple .sheet modifiers conflicting
-    private enum ActiveSheet: Identifiable {
-        case foodSearch, camera
-        var id: String {
-            switch self {
-            case .foodSearch: return "foodSearch"
-            case .camera: return "camera"
-            }
-        }
-    }
+    // Callbacks so the parent (DiaryView) owns all sheet/picker presentation.
+    // Having multiple .sheet modifiers on sibling List rows causes SwiftUI presentation
+    // conflicts — the reliable fix is a single sheet at the NavigationStack level.
+    var onAddFoodTapped: () -> Void
+    var onCameraTapped: () -> Void
+    var onLibraryTapped: () -> Void
+    var onDeletePhoto: () -> Void
 
-    @State private var activeSheet: ActiveSheet?
-    @State private var showingImagePicker = false
-    @State private var photoPickerItem: PhotosPickerItem?
+    // Incremented by DiaryView after saving/deleting a photo so this view reloads from disk.
+    var photoLoadToken: UUID
+
+    @State private var mealPhoto: UIImage? = nil
     @State private var fullscreenPhoto: UIImage?
     @State private var showFullscreen = false
     @State private var showPhotoOptions = false
@@ -31,16 +28,9 @@ struct MealSectionView: View {
         entries.reduce(0) { $0 + $1.totalCalories }
     }
 
-    // FileManager key for this meal's photo
     private var photoKey: String {
         let dateStr = date.formatted(as: "yyyy-MM-dd")
         return "meal_photo_\(mealType)_\(dateStr).jpg"
-    }
-
-    private var savedPhoto: UIImage? {
-        let url = photoURL(for: photoKey)
-        guard let data = try? Data(contentsOf: url) else { return nil }
-        return UIImage(data: data)
     }
 
     var body: some View {
@@ -55,37 +45,33 @@ struct MealSectionView: View {
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(Color.emerald)
 
-                // Camera icon
                 Button {
                     showPhotoOptions = true
                 } label: {
-                    Image(systemName: savedPhoto != nil ? "camera.fill" : "camera")
+                    Image(systemName: mealPhoto != nil ? "camera.fill" : "camera")
                         .font(.subheadline)
-                        .foregroundStyle(savedPhoto != nil ? Color.emerald : Color.slateText)
+                        .foregroundStyle(mealPhoto != nil ? Color.emerald : Color.slateText)
                 }
                 .padding(.leading, 8)
                 .confirmationDialog("Meal Photo", isPresented: $showPhotoOptions) {
-                    // Use asyncAfter to let the dialog fully dismiss before presenting a new
-                    // sheet — avoids silent failures from overlapping UIKit presentations.
                     Button("Choose from Library") {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                            showingImagePicker = true
-                        }
+                        onLibraryTapped()
                     }
                     Button("Take Photo") {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                            activeSheet = .camera
-                        }
+                        onCameraTapped()
                     }
-                    if savedPhoto != nil {
-                        Button("Remove Photo", role: .destructive) { deletePhoto() }
+                    if mealPhoto != nil {
+                        Button("Remove Photo", role: .destructive) {
+                            onDeletePhoto()
+                            mealPhoto = nil
+                        }
                     }
                     Button("Cancel", role: .cancel) {}
                 }
             }
 
             // Photo thumbnail
-            if let photo = savedPhoto {
+            if let photo = mealPhoto {
                 Button {
                     fullscreenPhoto = photo
                     showFullscreen = true
@@ -97,7 +83,8 @@ struct MealSectionView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 10))
                         .overlay(alignment: .topTrailing) {
                             Button {
-                                deletePhoto()
+                                onDeletePhoto()
+                                mealPhoto = nil
                             } label: {
                                 Image(systemName: "xmark.circle.fill")
                                     .font(.title3)
@@ -144,7 +131,7 @@ struct MealSectionView: View {
             Divider().overlay(Color.slateBorder)
 
             Button {
-                activeSheet = .foodSearch
+                onAddFoodTapped()
             } label: {
                 Label("Add Food", systemImage: "plus")
                     .font(.subheadline.weight(.medium))
@@ -158,61 +145,32 @@ struct MealSectionView: View {
             RoundedRectangle(cornerRadius: 14)
                 .stroke(Color.slateBorder, lineWidth: 1)
         )
-        // Single sheet modifier handles both food search and camera — avoids the SwiftUI
-        // limitation where multiple .sheet modifiers on the same view chain cause only the
-        // last one to work (which was why Add Food did nothing).
-        .sheet(item: $activeSheet) { sheet in
-            switch sheet {
-            case .foodSearch:
-                FoodSearchView { food, servings in
-                    onAdd(food, servings)
-                }
-            case .camera:
-                MealCameraView { image in
-                    if let jpeg = image.jpegData(compressionQuality: 0.75) {
-                        savePhoto(jpeg)
-                    }
-                }
-            }
-        }
-        // Photo library picker — a system overlay, not a sheet, so it coexists fine
-        .photosPicker(isPresented: $showingImagePicker, selection: $photoPickerItem, matching: .images)
-        .onChange(of: photoPickerItem) { _, newItem in
-            Task {
-                if let data = try? await newItem?.loadTransferable(type: Data.self),
-                   let uiImage = UIImage(data: data),
-                   let jpeg = uiImage.jpegData(compressionQuality: 0.75) {
-                    savePhoto(jpeg)
-                }
-            }
-        }
-        // Fullscreen viewer — fullScreenCover is a distinct presentation type from .sheet
+        // Fullscreen viewer is its own presentation type — no conflict with parent's .sheet
         .fullScreenCover(isPresented: $showFullscreen) {
             if let photo = fullscreenPhoto {
                 MealPhotoFullscreenView(image: photo)
             }
         }
+        .onAppear { loadPhoto() }
+        .onChange(of: photoLoadToken) { _, _ in loadPhoto() }
     }
 
-    // MARK: - Photo persistence
+    // MARK: - Photo persistence (read only — parent owns writes)
+
+    private func loadPhoto() {
+        let url = photoURL(for: photoKey)
+        if let data = try? Data(contentsOf: url),
+           let image = UIImage(data: data) {
+            mealPhoto = image
+        } else {
+            mealPhoto = nil
+        }
+    }
 
     private func photoURL(for filename: String) -> URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("MealPhotos", isDirectory: true)
             .appendingPathComponent(filename)
-    }
-
-    private func savePhoto(_ data: Data) {
-        let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("MealPhotos", isDirectory: true)
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        let url = dir.appendingPathComponent(photoKey)
-        try? data.write(to: url)
-    }
-
-    private func deletePhoto() {
-        let url = photoURL(for: photoKey)
-        try? FileManager.default.removeItem(at: url)
     }
 }
 

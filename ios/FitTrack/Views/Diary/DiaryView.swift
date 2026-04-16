@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import PhotosUI
 
 struct DiaryView: View {
     @Environment(\.modelContext) private var modelContext
@@ -13,6 +14,25 @@ struct DiaryView: View {
 
     // Net carbs toggle
     @AppStorage("showNetCarbs") private var showNetCarbs = false
+
+    // MARK: - Meal sheet / picker state (owned here so a single .sheet drives all meal rows)
+
+    private enum MealSheet: Identifiable {
+        case foodSearch(String)   // meal type
+        case camera(String)       // meal type
+        var id: String {
+            switch self {
+            case .foodSearch(let m): return "food_\(m)"
+            case .camera(let m):    return "cam_\(m)"
+            }
+        }
+    }
+
+    @State private var mealSheet: MealSheet? = nil
+    @State private var libraryPickerMeal: String? = nil
+    @State private var libraryPickerItem: PhotosPickerItem? = nil
+    // Token per meal: MealSectionView reloads its photo whenever this UUID changes
+    @State private var mealPhotoTokens: [String: UUID] = [:]
 
     private var profile: UserProfile? {
         profiles.first
@@ -49,7 +69,68 @@ struct DiaryView: View {
                 }
                 await fetchWaterCount()
             }
+            // Single sheet at NavigationStack level — avoids conflicts from multiple
+            // .sheet modifiers on sibling List rows (which only the last one would fire).
+            .sheet(item: $mealSheet) { sheet in
+                switch sheet {
+                case .foodSearch(let mealType):
+                    if let vm = viewModel {
+                        FoodSearchView { food, servings in
+                            vm.addEntry(food: food, mealType: mealType, servings: servings)
+                        }
+                    }
+                case .camera(let mealType):
+                    MealCameraView { image in
+                        saveMealPhoto(mealType: mealType, image: image)
+                    }
+                }
+            }
+            .photosPicker(
+                isPresented: Binding(
+                    get: { libraryPickerMeal != nil },
+                    set: { if !$0 { libraryPickerMeal = nil } }
+                ),
+                selection: $libraryPickerItem,
+                matching: .images
+            )
+            .onChange(of: libraryPickerItem) { _, newItem in
+                Task {
+                    guard let meal = libraryPickerMeal,
+                          let data = try? await newItem?.loadTransferable(type: Data.self),
+                          let uiImage = UIImage(data: data) else { return }
+                    saveMealPhoto(mealType: meal, image: uiImage)
+                    libraryPickerItem = nil
+                    libraryPickerMeal = nil
+                }
+            }
         }
+    }
+
+    // MARK: - Meal photo helpers
+
+    private func mealPhotoKey(mealType: String) -> String {
+        let date = viewModel?.selectedDate ?? Date()
+        return "meal_photo_\(mealType)_\(date.formatted(as: "yyyy-MM-dd")).jpg"
+    }
+
+    private func saveMealPhoto(mealType: String, image: UIImage) {
+        let key = mealPhotoKey(mealType: mealType)
+        let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("MealPhotos", isDirectory: true)
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        if let jpeg = image.jpegData(compressionQuality: 0.75) {
+            try? jpeg.write(to: dir.appendingPathComponent(key))
+        }
+        mealPhotoTokens[mealType] = UUID()
+    }
+
+    private func deleteMealPhoto(mealType: String) {
+        let key = mealPhotoKey(mealType: mealType)
+        let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("MealPhotos")
+            .appendingPathComponent(key)
+        try? FileManager.default.removeItem(at: url)
+        mealPhotoTokens[mealType] = UUID()
     }
 
     // MARK: - Date Picker
@@ -140,6 +221,14 @@ struct DiaryView: View {
 
     // MARK: - Water Section
 
+    /// UserDefaults key for the water count on the currently viewed date.
+    /// UserDefaults is the source of truth so counts persist across navigation;
+    /// HealthKit is synced as a bonus when the user is on today's date.
+    private var waterDefaultsKey: String {
+        let date = viewModel?.selectedDate ?? Date()
+        return "water_glasses_\(date.formatted(as: "yyyy-MM-dd"))"
+    }
+
     private var waterSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
@@ -172,12 +261,13 @@ struct DiaryView: View {
 
             HStack(spacing: 12) {
                 Button {
-                    if waterGlasses > 0 {
-                        waterGlasses -= 1
-                        if Calendar.current.isDateInToday(viewModel?.selectedDate ?? Date()) {
-                            Task {
-                                await HealthKitManager.shared.deleteLatestWater(date: Date())
-                            }
+                    guard waterGlasses > 0 else { return }
+                    waterGlasses -= 1
+                    UserDefaults.standard.set(waterGlasses, forKey: waterDefaultsKey)
+                    let selectedDate = viewModel?.selectedDate ?? Date()
+                    if Calendar.current.isDateInToday(selectedDate) {
+                        Task {
+                            await HealthKitManager.shared.deleteLatestWater(date: Date())
                         }
                     }
                 } label: {
@@ -194,7 +284,9 @@ struct DiaryView: View {
 
                 Button {
                     waterGlasses += 1
-                    if Calendar.current.isDateInToday(viewModel?.selectedDate ?? Date()) {
+                    UserDefaults.standard.set(waterGlasses, forKey: waterDefaultsKey)
+                    let selectedDate = viewModel?.selectedDate ?? Date()
+                    if Calendar.current.isDateInToday(selectedDate) {
                         Task {
                             await HealthKitManager.shared.saveWater(ml: mlPerGlass, date: Date())
                         }
@@ -234,7 +326,26 @@ struct DiaryView: View {
                     },
                     onDelete: { entry in
                         vm.deleteEntry(entry)
-                    }
+                    },
+                    onAddFoodTapped: {
+                        mealSheet = .foodSearch(mealType)
+                    },
+                    onCameraTapped: {
+                        // Small delay lets the confirmationDialog finish dismissing
+                        // before the camera sheet presents from the NavigationStack level.
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            mealSheet = .camera(mealType)
+                        }
+                    },
+                    onLibraryTapped: {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            libraryPickerMeal = mealType
+                        }
+                    },
+                    onDeletePhoto: {
+                        deleteMealPhoto(mealType: mealType)
+                    },
+                    photoLoadToken: mealPhotoTokens[mealType] ?? UUID()
                 )
             }
         }
@@ -252,7 +363,19 @@ struct DiaryView: View {
     }
 
     private func fetchWaterCount() async {
+        // Load from UserDefaults immediately — works for any date, no async wait.
+        let local = UserDefaults.standard.integer(forKey: waterDefaultsKey)
+        waterGlasses = local
+
+        // For today only, try to reconcile with HealthKit (in case another app logged water).
+        let selectedDate = viewModel?.selectedDate ?? Date()
+        guard Calendar.current.isDateInToday(selectedDate) else { return }
+
         let totalML = await HealthKitManager.shared.fetchWaterToday()
-        waterGlasses = Int(totalML / mlPerGlass)
+        let hkGlasses = Int(totalML / mlPerGlass)
+        if hkGlasses > 0 && hkGlasses != local {
+            waterGlasses = hkGlasses
+            UserDefaults.standard.set(hkGlasses, forKey: waterDefaultsKey)
+        }
     }
 }
