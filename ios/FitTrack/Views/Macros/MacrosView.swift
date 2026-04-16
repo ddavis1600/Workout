@@ -32,6 +32,7 @@ struct MacrosView: View {
     @State private var proteinPct: Double = 0.30
     @State private var carbsPct: Double = 0.40
     @State private var fatPct: Double = 0.30
+    @State private var isRedistributing = false
 
     var body: some View {
         NavigationStack {
@@ -349,6 +350,8 @@ struct MacrosView: View {
     }
 
     private func redistribute(changed: String, to newVal: Double) {
+        guard !isRedistributing else { return }
+        isRedistributing = true
         let remaining = max(0, 1.0 - newVal)
         switch changed {
         case "protein":
@@ -356,21 +359,31 @@ struct MacrosView: View {
             if total > 0 {
                 carbsPct = remaining * (carbsPct / total)
                 fatPct   = remaining * (fatPct / total)
+            } else {
+                carbsPct = remaining / 2
+                fatPct   = remaining / 2
             }
         case "carbs":
             let total = proteinPct + fatPct
             if total > 0 {
                 proteinPct = remaining * (proteinPct / total)
                 fatPct     = remaining * (fatPct / total)
+            } else {
+                proteinPct = remaining / 2
+                fatPct     = remaining / 2
             }
         case "fat":
             let total = proteinPct + carbsPct
             if total > 0 {
                 proteinPct = remaining * (proteinPct / total)
                 carbsPct   = remaining * (carbsPct / total)
+            } else {
+                proteinPct = remaining / 2
+                carbsPct   = remaining / 2
             }
         default: break
         }
+        isRedistributing = false
     }
 
     // MARK: - Save Button

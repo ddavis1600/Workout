@@ -16,6 +16,7 @@ class HealthKitManager {
         var types: Set<HKObjectType> = [
             HKQuantityType(.bodyMass),
             HKQuantityType(.heartRate),
+            HKQuantityType(.restingHeartRate),
             HKQuantityType(.stepCount),
             HKQuantityType(.activeEnergyBurned),
             HKQuantityType(.appleExerciseTime),
@@ -121,6 +122,43 @@ class HealthKitManager {
             unit: .literUnit(with: .milli),
             date: Date()
         )
+    }
+
+    // MARK: - Heart Rate Stats
+
+    func fetchRestingHeartRateStats(from start: Date, to end: Date) async -> (avg: Int, min: Int, max: Int)? {
+        guard isAvailable else { return nil }
+        let type = HKQuantityType(.restingHeartRate)
+        let predicate = HKQuery.predicateForSamples(withStart: start, end: end, options: .strictStartDate)
+        let descriptor = HKSampleQueryDescriptor(
+            predicates: [.quantitySample(type: type, predicate: predicate)],
+            sortDescriptors: [SortDescriptor(\.startDate, order: .forward)]
+        )
+        do {
+            let results = try await descriptor.result(for: healthStore)
+            let bpms = results.map { Int($0.quantity.doubleValue(for: HKUnit.count().unitDivided(by: .minute()))) }
+            guard !bpms.isEmpty else { return nil }
+            let avg = bpms.reduce(0, +) / bpms.count
+            return (avg: avg, min: bpms.min()!, max: bpms.max()!)
+        } catch {
+            return nil
+        }
+    }
+
+    func fetchHeartRateSamples(from start: Date, to end: Date) async -> [(Date, Int)] {
+        guard isAvailable else { return [] }
+        let type = HKQuantityType(.heartRate)
+        let predicate = HKQuery.predicateForSamples(withStart: start, end: end, options: .strictStartDate)
+        let descriptor = HKSampleQueryDescriptor(
+            predicates: [.quantitySample(type: type, predicate: predicate)],
+            sortDescriptors: [SortDescriptor(\.startDate, order: .forward)]
+        )
+        do {
+            let results = try await descriptor.result(for: healthStore)
+            return results.map { ($0.startDate, Int($0.quantity.doubleValue(for: HKUnit.count().unitDivided(by: .minute())))) }
+        } catch {
+            return []
+        }
     }
 
     // MARK: - HealthKit Habit Trigger Fetch

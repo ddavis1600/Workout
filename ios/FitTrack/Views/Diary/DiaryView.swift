@@ -361,19 +361,28 @@ struct DiaryView: View {
     }
 
     private func fetchWaterCount() async {
-        // Load from UserDefaults immediately — works for any date, no async wait.
-        let local = UserDefaults.standard.integer(forKey: waterKey(for: viewModel?.selectedDate ?? Date()))
-        waterGlasses = local
+        let key = waterKey(for: viewModel?.selectedDate ?? Date())
+        let defaults = UserDefaults.standard
 
-        // For today only, try to reconcile with HealthKit (in case another app logged water).
+        // If we have local data, always prefer it — avoids HealthKit race condition
+        // where an async fetch returns after a button tap and overrides the tapped value.
+        if defaults.object(forKey: key) != nil {
+            waterGlasses = defaults.integer(forKey: key)
+            return
+        }
+
+        // No local data yet — bootstrap from HealthKit for today only.
         let selectedDate = viewModel?.selectedDate ?? Date()
-        guard Calendar.current.isDateInToday(selectedDate) else { return }
+        guard Calendar.current.isDateInToday(selectedDate) else {
+            waterGlasses = 0
+            return
+        }
 
         let totalML = await HealthKitManager.shared.fetchWaterToday()
         let hkGlasses = Int(totalML / mlPerGlass)
-        if hkGlasses > 0 && hkGlasses != local {
-            waterGlasses = hkGlasses
-            UserDefaults.standard.set(hkGlasses, forKey: waterKey(for: viewModel?.selectedDate ?? Date()))
+        waterGlasses = hkGlasses
+        if hkGlasses > 0 {
+            defaults.set(hkGlasses, forKey: key)
         }
     }
 }
