@@ -361,36 +361,10 @@ struct DiaryView: View {
     }
 
     private func fetchWaterCount() async {
+        // Purely UserDefaults-driven — never read from HealthKit.
+        // HealthKit reads (even with an await guard) can race with button taps
+        // and silently overwrite the user's count with stale HK data.
         let key = waterKey(for: viewModel?.selectedDate ?? Date())
-        let defaults = UserDefaults.standard
-
-        // If we have local data, always prefer it — avoids HealthKit race condition
-        // where an async fetch returns after a button tap and overrides the tapped value.
-        if defaults.object(forKey: key) != nil {
-            waterGlasses = defaults.integer(forKey: key)
-            return
-        }
-
-        // No local data yet — bootstrap from HealthKit for today only.
-        let selectedDate = viewModel?.selectedDate ?? Date()
-        guard Calendar.current.isDateInToday(selectedDate) else {
-            waterGlasses = 0
-            return
-        }
-
-        let totalML = await HealthKitManager.shared.fetchWaterToday()
-
-        // Re-check after the await — user may have tapped while HK was fetching.
-        // If so, their tap already saved to UserDefaults; don't overwrite it.
-        if defaults.object(forKey: key) != nil {
-            waterGlasses = defaults.integer(forKey: key)
-            return
-        }
-
-        let hkGlasses = Int(totalML / mlPerGlass)
-        waterGlasses = hkGlasses
-        if hkGlasses > 0 {
-            defaults.set(hkGlasses, forKey: key)
-        }
+        waterGlasses = UserDefaults.standard.integer(forKey: key)
     }
 }
