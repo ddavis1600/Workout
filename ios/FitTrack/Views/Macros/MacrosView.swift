@@ -27,6 +27,7 @@ struct MacrosView: View {
     @State private var manualFat = ""
 
     @State private var showingSaved = false
+    @State private var savedSummary: (calories: Int, protein: Int, carbs: Int, fat: Int)?
 
     var body: some View {
         NavigationStack {
@@ -60,6 +61,10 @@ struct MacrosView: View {
                 }
 
                 saveButton
+                    .listRowBackground(Color.slateBackground)
+                    .listRowSeparator(.hidden)
+
+                savedTargetsCard
                     .listRowBackground(Color.slateBackground)
                     .listRowSeparator(.hidden)
             }
@@ -286,6 +291,53 @@ struct MacrosView: View {
         .opacity((manualMode ? isManualValid : (isFormValid && hasCalculated)) ? 1.0 : 0.5)
     }
 
+    // MARK: - Saved Targets Card
+
+    @ViewBuilder
+    private var savedTargetsCard: some View {
+        if let s = savedSummary {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(Color.emerald)
+                    Text("Saved Targets")
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                }
+
+                HStack(spacing: 0) {
+                    savedMacroPill(label: "Carbs", value: s.carbs, unit: "g", color: .orange)
+                    savedMacroPill(label: "Fat", value: s.fat, unit: "g", color: .pink)
+                    savedMacroPill(label: "Protein", value: s.protein, unit: "g", color: .blue)
+                }
+
+                Text("\(s.calories) kcal / day")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color.emerald)
+                    .frame(maxWidth: .infinity, alignment: .center)
+            }
+            .padding()
+            .background(Color.slateCard)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(Color.emerald.opacity(0.4), lineWidth: 1)
+            )
+        }
+    }
+
+    private func savedMacroPill(label: String, value: Int, unit: String, color: Color) -> some View {
+        VStack(spacing: 2) {
+            Text("\(value)\(unit)")
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(color)
+            Text(label)
+                .font(.caption2)
+                .foregroundStyle(Color.slateText)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
     // MARK: - Saved Toast
 
     private var savedToast: some View {
@@ -335,6 +387,12 @@ struct MacrosView: View {
             manualProtein = String(format: "%.0f", profile.proteinTarget)
             manualCarbs = String(format: "%.0f", profile.carbTarget)
             manualFat = String(format: "%.0f", profile.fatTarget)
+            savedSummary = (
+                calories: Int(profile.calorieTarget),
+                protein: Int(profile.proteinTarget),
+                carbs: Int(profile.carbTarget),
+                fat: Int(profile.fatTarget)
+            )
         }
     }
 
@@ -380,6 +438,14 @@ struct MacrosView: View {
             unitSystem: unitSystem
         )
 
+        if let targets = previewTargets {
+            savedSummary = (
+                calories: Int(targets.calories),
+                protein: Int(targets.protein),
+                carbs: Int(targets.carbs),
+                fat: Int(targets.fat)
+            )
+        }
         showSavedToast()
     }
 
@@ -398,6 +464,12 @@ struct MacrosView: View {
         vm.profile.updatedAt = .now
 
         try? modelContext.save()
+        savedSummary = (
+            calories: Int(cal),
+            protein: Int(pro),
+            carbs: Int(carb),
+            fat: Int(fat)
+        )
         showSavedToast()
     }
 

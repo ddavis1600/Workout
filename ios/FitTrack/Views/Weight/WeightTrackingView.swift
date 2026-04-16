@@ -54,6 +54,19 @@ struct WeightTrackingView: View {
         return diff
     }
 
+    private var twelveMonthEntries: [WeightEntry] {
+        let cutoff = Calendar.current.date(byAdding: .year, value: -1, to: .now)!
+        return entries.filter { $0.date >= cutoff }
+    }
+
+    private var twelveMonthHigh: Double? {
+        twelveMonthEntries.map { $0.displayWeight(unitSystem: unitSystem) }.max()
+    }
+
+    private var twelveMonthLow: Double? {
+        twelveMonthEntries.map { $0.displayWeight(unitSystem: unitSystem) }.min()
+    }
+
     var body: some View {
         NavigationStack {
             List {
@@ -106,6 +119,21 @@ struct WeightTrackingView: View {
         }
     }
 
+    private func weightDiffPill(label: String, diff: Double, unit: String) -> some View {
+        VStack(spacing: 2) {
+            Text(label)
+                .font(.caption2)
+                .foregroundColor(.slateText)
+            Text("\(diff >= 0 ? "+" : "")\(diff, specifier: "%.1f") \(unit)")
+                .font(.caption.bold())
+                .foregroundColor(diff <= 0 ? .emerald : .orange)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(Color.slateBackground)
+        .cornerRadius(8)
+    }
+
     private var currentWeightCard: some View {
         VStack(spacing: 8) {
             Text("Current Weight")
@@ -125,6 +153,16 @@ struct WeightTrackingView: View {
                             .font(.caption)
                     }
                     .foregroundColor(trend >= 0 ? .orange : .emerald)
+                }
+
+                let currentDisplay = latest.displayWeight(unitSystem: unitSystem)
+                if let high = twelveMonthHigh, let low = twelveMonthLow,
+                   twelveMonthEntries.count > 1 {
+                    HStack(spacing: 12) {
+                        weightDiffPill(label: "From High", diff: currentDisplay - high, unit: unitLabel)
+                        weightDiffPill(label: "From Low", diff: currentDisplay - low, unit: unitLabel)
+                    }
+                    .padding(.top, 4)
                 }
             } else {
                 Text("-- \(unitLabel)")
