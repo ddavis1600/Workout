@@ -379,6 +379,14 @@ struct DiaryView: View {
         }
 
         let totalML = await HealthKitManager.shared.fetchWaterToday()
+
+        // Re-check after the await — user may have tapped while HK was fetching.
+        // If so, their tap already saved to UserDefaults; don't overwrite it.
+        if defaults.object(forKey: key) != nil {
+            waterGlasses = defaults.integer(forKey: key)
+            return
+        }
+
         let hkGlasses = Int(totalML / mlPerGlass)
         waterGlasses = hkGlasses
         if hkGlasses > 0 {
