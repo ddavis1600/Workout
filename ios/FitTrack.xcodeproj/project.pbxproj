@@ -58,6 +58,7 @@
 		E10000000000000000000001 /* HeartRateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000000000000000000001 /* HeartRateView.swift */; };
 		F10000000000000000000001 /* HeartRateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000001 /* HeartRateService.swift */; };
 		F10000000000000000000002 /* WorkoutHeartRateCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000002 /* WorkoutHeartRateCard.swift */; };
+		W10000000000000000000001 /* WatchConnectivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = W20000000000000000000001 /* WatchConnectivityManager.swift */; };
 		G10000000000000000000001 /* JournalEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = G20000000000000000000001 /* JournalEntry.swift */; };
 		G10000000000000000000002 /* JournalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = G20000000000000000000002 /* JournalView.swift */; };
 		G10000000000000000000003 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = G20000000000000000000003 /* SettingsView.swift */; };
@@ -150,6 +151,7 @@
 		E20000000000000000000001 /* HeartRateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartRateView.swift; sourceTree = "<group>"; };
 		F20000000000000000000001 /* HeartRateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartRateService.swift; sourceTree = "<group>"; };
 		F20000000000000000000002 /* WorkoutHeartRateCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutHeartRateCard.swift; sourceTree = "<group>"; };
+		W20000000000000000000001 /* WatchConnectivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConnectivityManager.swift; sourceTree = "<group>"; };
 		FFA64365D10993F43A4738C5 /* FitTrack Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "FitTrack Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		G20000000000000000000001 /* JournalEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntry.swift; sourceTree = "<group>"; };
 		G20000000000000000000002 /* JournalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalView.swift; sourceTree = "<group>"; };
@@ -267,6 +269,7 @@
 				D10000000000000000000001 /* FoodAPIService.swift */,
 				C20000000000000000000006 /* HealthKitManager.swift */,
 				F20000000000000000000001 /* HeartRateService.swift */,
+				W20000000000000000000001 /* WatchConnectivityManager.swift */,
 				A2000000000000000000000B /* MacroCalculator.swift */,
 				H20000000000000000000011 /* NotificationService.swift */,
 				H20000000000000000000006 /* PRService.swift */,
@@ -605,6 +608,7 @@
 				E10000000000000000000001 /* HeartRateView.swift in Sources */,
 				F10000000000000000000001 /* HeartRateService.swift in Sources */,
 				F10000000000000000000002 /* WorkoutHeartRateCard.swift in Sources */,
+				W10000000000000000000001 /* WatchConnectivityManager.swift in Sources */,
 				G10000000000000000000001 /* JournalEntry.swift in Sources */,
 				G10000000000000000000002 /* JournalView.swift in Sources */,
 				G10000000000000000000003 /* SettingsView.swift in Sources */,
@@ -651,7 +655,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = FitTrackWatch/FitTrackWatch.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_TEAM = 95BHKMD86H;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = FitTrackWatch/Info.plist;
@@ -682,7 +686,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = FitTrackWatch/FitTrackWatch.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_TEAM = 95BHKMD86H;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = FitTrackWatch/Info.plist;
@@ -838,7 +842,7 @@
 				CODE_SIGN_ENTITLEMENTS = FitTrack/FitTrack.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 17;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleIconName = AppIcon;
@@ -878,7 +882,7 @@
 				CODE_SIGN_ENTITLEMENTS = FitTrack/FitTrack.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 17;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleIconName = AppIcon;

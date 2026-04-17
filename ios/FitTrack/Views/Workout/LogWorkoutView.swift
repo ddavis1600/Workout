@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 import Combine
 import PhotosUI
+import WatchConnectivity
 
 struct LogWorkoutView: View {
     @Environment(\.dismiss) private var dismiss
@@ -22,9 +23,12 @@ struct LogWorkoutView: View {
     @State private var selectedPhotoData: Data?
 
     // Timer state
-    @State private var elapsedSeconds: Int = 0
+    @State private var workoutStartTime: Date = Date()
+    @State private var elapsedTime: TimeInterval = 0
+    @State private var accumulatedTime: TimeInterval = 0
     @State private var timerIsRunning = true
     @State private var timerSubscription: AnyCancellable?
+    @Environment(\.scenePhase) private var scenePhase
 
     // Rest timer
     @AppStorage("restTimerSeconds") private var restTimerDuration = 60
@@ -33,6 +37,7 @@ struct LogWorkoutView: View {
 
     // Heart rate
     @State private var heartRateService = HeartRateService()
+    @ObservedObject private var watchManager = WatchConnectivityManager.shared
     private var userAge: Int {
         let age = UserDefaults.standard.integer(forKey: "heartRateUserAge")
         return age > 0 ? age : 25
@@ -64,6 +69,9 @@ struct LogWorkoutView: View {
                             RestTimerView(duration: restTimerDuration) {
                                 withAnimation { showRestTimer = false }
                             }
+                        }
+                        if let watchBPM = watchManager.liveHeartRate {
+                            watchHeartRateRow(bpm: watchBPM)
                         }
                         WorkoutHeartRateCard(service: heartRateService, userAge: userAge)
                         workoutInfoSection
@@ -123,7 +131,41 @@ struct LogWorkoutView: View {
                 stopTimer()
                 heartRateService.stopMonitoring()
             }
+            .onChange(of: scenePhase) { _, newPhase in
+                if newPhase == .active && timerIsRunning {
+                    elapsedTime = accumulatedTime + Date().timeIntervalSince(workoutStartTime)
+                }
+            }
         }
+    }
+
+    // MARK: - Watch Heart Rate
+
+    private func watchHeartRateRow(bpm: Double) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: "applewatch")
+                .font(.title3)
+                .foregroundStyle(Color.emerald)
+            Text("Watch")
+                .font(.subheadline)
+                .foregroundStyle(Color.slateText)
+            Spacer()
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text("\(Int(bpm))")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
+                Text("BPM")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(Color.slateText)
+            }
+        }
+        .padding()
+        .background(Color.slateCard)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(Color.slateBorder, lineWidth: 1)
+        )
     }
 
     // MARK: - Timer
@@ -152,7 +194,8 @@ struct LogWorkoutView: View {
 
                 Button {
                     stopTimer()
-                    elapsedSeconds = 0
+                    elapsedTime = 0
+                    accumulatedTime = 0
                     timerIsRunning = false
                 } label: {
                     Label("Reset", systemImage: "arrow.counterclockwise")
@@ -173,21 +216,21 @@ struct LogWorkoutView: View {
     }
 
     private var formattedElapsedTime: String {
-        let hours = elapsedSeconds / 3600
-        let minutes = (elapsedSeconds % 3600) / 60
-        let seconds = elapsedSeconds % 60
-        return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+        let t = Int(elapsedTime)
+        return String(format: "%02d:%02d:%02d", t / 3600, (t % 3600) / 60, t % 60)
     }
 
     private func startTimer() {
+        workoutStartTime = Date()
         timerSubscription = Timer.publish(every: 1, on: .main, in: .common)
             .autoconnect()
             .sink { _ in
-                elapsedSeconds += 1
+                elapsedTime = accumulatedTime + Date().timeIntervalSince(workoutStartTime)
             }
     }
 
     private func stopTimer() {
+        accumulatedTime = elapsedTime
         timerSubscription?.cancel()
         timerSubscription = nil
     }
@@ -431,12 +474,12 @@ struct LogWorkoutView: View {
         stopTimer()
         heartRateService.stopMonitoring()
 
-        let durationMin = max(1, Int(round(Double(elapsedSeconds) / 60.0)))
+        let durationMin = max(1, Int(round(elapsedTime / 60.0)))
         let workout = Workout(
             name: workoutName,
             date: workoutDate,
             notes: workoutNotes,
-            durationMinutes: elapsedSeconds > 0 ? durationMin : nil,
+            durationMinutes: elapsedTime > 0 ? durationMin : nil,
             photoData: selectedPhotoData
         )
 

@@ -44,6 +44,8 @@ struct FitTrackApp: App {
         // Seed data on first launch
         let context = ModelContext(container)
         DataController.seedDataIfNeeded(context: context)
+
+        WatchConnectivityManager.shared.activate()
     }
 
     var body: some Scene {
