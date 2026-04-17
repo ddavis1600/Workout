@@ -1,5 +1,6 @@
 import Foundation
 import HealthKit
+import WatchConnectivity
 
 class WatchHeartRateService: ObservableObject {
     @Published var currentBPM: Int = 0
@@ -71,6 +72,7 @@ class WatchHeartRateService: ObservableObject {
         DispatchQueue.main.async {
             self.currentBPM = bpm
             self.lastUpdated = latest.startDate
+            WatchSessionManager.shared.sendMessage(["heartRate": Double(bpm)])
         }
     }
 }

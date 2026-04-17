@@ -4,6 +4,10 @@ import SwiftUI
 struct FitTrackWatchApp: App {
     @StateObject private var heartRateService = WatchHeartRateService()
 
+    init() {
+        WatchSessionManager.shared.activate()
+    }
+
     var body: some Scene {
         WindowGroup {
             WatchContentView()

@@ -1,4 +1,5 @@
 import SwiftUI
+import WatchConnectivity
 
 struct WatchContentView: View {
     @EnvironmentObject var service: WatchHeartRateService
@@ -36,6 +37,7 @@ struct WatchContentView: View {
                         service.stopMonitoring()
                     } else {
                         service.startMonitoring()
+                        WatchSessionManager.shared.sendMessage(["action": "startWorkout", "type": "Workout"])
                     }
                 } label: {
                     Label(

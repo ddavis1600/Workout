@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 import Combine
 import PhotosUI
+import WatchConnectivity
 
 struct LogWorkoutView: View {
     @Environment(\.dismiss) private var dismiss
@@ -33,6 +34,7 @@ struct LogWorkoutView: View {
 
     // Heart rate
     @State private var heartRateService = HeartRateService()
+    @ObservedObject private var watchManager = WatchConnectivityManager.shared
     private var userAge: Int {
         let age = UserDefaults.standard.integer(forKey: "heartRateUserAge")
         return age > 0 ? age : 25
@@ -64,6 +66,9 @@ struct LogWorkoutView: View {
                             RestTimerView(duration: restTimerDuration) {
                                 withAnimation { showRestTimer = false }
                             }
+                        }
+                        if let watchBPM = watchManager.liveHeartRate {
+                            watchHeartRateRow(bpm: watchBPM)
                         }
                         WorkoutHeartRateCard(service: heartRateService, userAge: userAge)
                         workoutInfoSection
@@ -124,6 +129,35 @@ struct LogWorkoutView: View {
                 heartRateService.stopMonitoring()
             }
         }
+    }
+
+    // MARK: - Watch Heart Rate
+
+    private func watchHeartRateRow(bpm: Double) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: "applewatch")
+                .font(.title3)
+                .foregroundStyle(Color.emerald)
+            Text("Watch")
+                .font(.subheadline)
+                .foregroundStyle(Color.slateText)
+            Spacer()
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text("\(Int(bpm))")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
+                Text("BPM")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(Color.slateText)
+            }
+        }
+        .padding()
+        .background(Color.slateCard)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(Color.slateBorder, lineWidth: 1)
+        )
     }
 
     // MARK: - Timer

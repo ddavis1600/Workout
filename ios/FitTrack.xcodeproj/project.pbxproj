@@ -51,7 +51,9 @@
 		C10000000000000000000001 /* Habit.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000000000000000000001 /* Habit.swift */; };
 		C10000000000000000000002 /* HabitCompletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000000000000000000002 /* HabitCompletion.swift */; };
 		C10000000000000000000003 /* WeightEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000000000000000000003 /* WeightEntry.swift */; };
-		C10000000000000000000004 /* HabitsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000000000000000000004 /* HabitsView.swift */; };
+		DD000000000000A2 /* HabitDetailView.swift in Sources */,
+				C10000000000000000000004 /* HabitsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000000000000000000004 /* HabitsView.swift */; };
+		DD000000000000A2 /* HabitDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD000000000000A1 /* HabitDetailView.swift */; };
 		C10000000000000000000005 /* WeightTrackingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000000000000000000005 /* WeightTrackingView.swift */; };
 		C10000000000000000000006 /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000000000000000000006 /* HealthKitManager.swift */; };
 		D00000000000000000000001 /* FoodAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D10000000000000000000001 /* FoodAPIService.swift */; };
@@ -80,6 +82,8 @@
 		I10000000000000000000002 /* ProgressPhoto.swift in Sources */ = {isa = PBXBuildFile; fileRef = I20000000000000000000002 /* ProgressPhoto.swift */; };
 		I10000000000000000000003 /* ProgressPhotoTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = I20000000000000000000003 /* ProgressPhotoTimelineView.swift */; };
 		I10000000000000000000004 /* PRHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = I20000000000000000000004 /* PRHistoryView.swift */; };
+		J10000000000000000000001 /* WatchConnectivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000000000000000000001 /* WatchConnectivityManager.swift */; };
+		J10000000000000000000002 /* WatchSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000000000000000000002 /* WatchSessionManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -144,6 +148,7 @@
 		C20000000000000000000002 /* HabitCompletion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HabitCompletion.swift; sourceTree = "<group>"; };
 		C20000000000000000000003 /* WeightEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightEntry.swift; sourceTree = "<group>"; };
 		C20000000000000000000004 /* HabitsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HabitsView.swift; sourceTree = "<group>"; };
+		DD000000000000A1 /* HabitDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HabitDetailView.swift; sourceTree = "<group>"; };
 		C20000000000000000000005 /* WeightTrackingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightTrackingView.swift; sourceTree = "<group>"; };
 		C20000000000000000000006 /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManager.swift; sourceTree = "<group>"; };
 		D10000000000000000000001 /* FoodAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodAPIService.swift; sourceTree = "<group>"; };
@@ -173,6 +178,8 @@
 		I20000000000000000000002 /* ProgressPhoto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressPhoto.swift; sourceTree = "<group>"; };
 		I20000000000000000000003 /* ProgressPhotoTimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressPhotoTimelineView.swift; sourceTree = "<group>"; };
 		I20000000000000000000004 /* PRHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PRHistoryView.swift; sourceTree = "<group>"; };
+		J20000000000000000000001 /* WatchConnectivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConnectivityManager.swift; sourceTree = "<group>"; };
+		J20000000000000000000002 /* WatchSessionManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatchSessionManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -271,6 +278,7 @@
 				H20000000000000000000011 /* NotificationService.swift */,
 				H20000000000000000000006 /* PRService.swift */,
 				A2000000000000000000000C /* SeedData.swift */,
+				J20000000000000000000001 /* WatchConnectivityManager.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -380,6 +388,7 @@
 				B94CAD621080897A232B7230 /* WatchHeartRateService.swift */,
 				386ACDE9B9AE78D3BE830989 /* WatchContentView.swift */,
 				40F0807AFAE78D702353BD1B /* FitTrackWatchApp.swift */,
+				J20000000000000000000002 /* WatchSessionManager.swift */,
 				82FC10748D15A43C3CCAE52C /* Info.plist */,
 				3C946087B78751B8870890B4 /* Assets.xcassets */,
 			);
@@ -390,6 +399,7 @@
 		C4000000000000000000000D /* Habits */ = {
 			isa = PBXGroup;
 			children = (
+				DD000000000000A1 /* HabitDetailView.swift */,
 				C20000000000000000000004 /* HabitsView.swift */,
 			);
 			path = Habits;
@@ -554,6 +564,7 @@
 				5E496BA42E9AB4B2ECD88484 /* WatchHeartRateService.swift in Sources */,
 				B267CBA7DAFCBFFA4641AFB5 /* WatchContentView.swift in Sources */,
 				3DA3E8459EE68339AF3F2A63 /* FitTrackWatchApp.swift in Sources */,
+				J10000000000000000000002 /* WatchSessionManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -627,6 +638,7 @@
 				I10000000000000000000002 /* ProgressPhoto.swift in Sources */,
 				I10000000000000000000003 /* ProgressPhotoTimelineView.swift in Sources */,
 				I10000000000000000000004 /* PRHistoryView.swift in Sources */,
+				J10000000000000000000001 /* WatchConnectivityManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -651,7 +663,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = FitTrackWatch/FitTrackWatch.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 18;
 				DEVELOPMENT_TEAM = 95BHKMD86H;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = FitTrackWatch/Info.plist;
@@ -682,7 +694,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = FitTrackWatch/FitTrackWatch.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 18;
 				DEVELOPMENT_TEAM = 95BHKMD86H;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = FitTrackWatch/Info.plist;
@@ -838,7 +850,7 @@
 				CODE_SIGN_ENTITLEMENTS = FitTrack/FitTrack.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 18;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleIconName = AppIcon;
@@ -878,7 +890,7 @@
 				CODE_SIGN_ENTITLEMENTS = FitTrack/FitTrack.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 18;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleIconName = AppIcon;
