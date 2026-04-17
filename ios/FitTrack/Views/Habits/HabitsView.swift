@@ -294,15 +294,16 @@ struct HabitsView: View {
                                 .listRowSeparator(.hidden)
                                 .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
                                 .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                                    let isDone = habit.isCompleted(on: selectedDate)
                                     Button {
                                         completeHabit(habit, on: selectedDate)
                                     } label: {
                                         Label(
-                                            habit.isCompleted(on: selectedDate) ? "Undo" : "Done",
-                                            systemImage: habit.isCompleted(on: selectedDate) ? "arrow.uturn.backward" : "checkmark"
+                                            isDone ? "Undo" : "Done",
+                                            systemImage: isDone ? "arrow.uturn.backward" : "checkmark"
                                         )
                                     }
-                                    .tint(habit.isCompleted(on: selectedDate) ? .orange : .emerald)
+                                    .tint(isDone ? .orange : .emerald)
                                 }
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                     Button(role: .destructive) {
