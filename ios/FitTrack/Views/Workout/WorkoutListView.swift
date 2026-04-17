@@ -1,10 +1,12 @@
 import SwiftUI
 import SwiftData
+import WatchConnectivity
 
 struct WorkoutListView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var viewModel: WorkoutViewModel?
     @State private var showingLogWorkout = false
+    @ObservedObject private var watchManager = WatchConnectivityManager.shared
     @State private var showingTemplates = false
     @State private var showingPRHistory = false
     @State private var selectedTemplate: WorkoutTemplate?
@@ -82,6 +84,13 @@ struct WorkoutListView: View {
                     viewModel = WorkoutViewModel(modelContext: modelContext)
                 }
                 viewModel?.fetchWorkouts()
+            }
+            .onChange(of: watchManager.pendingWorkoutStart) { _, newValue in
+                if newValue && viewModel != nil {
+                    selectedTemplate = nil
+                    showingLogWorkout = true
+                    watchManager.pendingWorkoutStart = false
+                }
             }
         }
     }

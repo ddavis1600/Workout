@@ -7,11 +7,6 @@ struct DiaryView: View {
     @Query private var profiles: [UserProfile]
     @State private var viewModel: DiaryViewModel?
 
-    // Water logging
-    @State private var waterGlasses: Int = 0
-    @State private var isLoadingWater = false
-    private let mlPerGlass: Double = 250
-
     // Net carbs toggle
     @AppStorage("showNetCarbs") private var showNetCarbs = false
 
@@ -49,9 +44,6 @@ struct DiaryView: View {
                 summarySection
                     .listRowBackground(Color.slateBackground)
                     .listRowSeparator(.hidden)
-                waterSection
-                    .listRowBackground(Color.slateBackground)
-                    .listRowSeparator(.hidden)
                 mealSections
                     .listRowBackground(Color.slateBackground)
                     .listRowSeparator(.hidden)
@@ -67,7 +59,6 @@ struct DiaryView: View {
                 } else {
                     viewModel?.fetchEntries()
                 }
-                await fetchWaterCount()
             }
             // Single sheet at NavigationStack level — avoids conflicts from multiple
             // .sheet modifiers on sibling List rows (which only the last one would fire).
@@ -155,7 +146,6 @@ struct DiaryView: View {
                         set: { newDate in
                             vm.selectedDate = newDate.startOfDay
                             vm.fetchEntries()
-                            Task { await fetchWaterCount() }
                         }
                     ),
                     displayedComponents: .date
@@ -219,96 +209,6 @@ struct DiaryView: View {
         )
     }
 
-    // MARK: - Water Section
-
-    private func waterKey(for date: Date) -> String {
-        let fmt = DateFormatter()
-        fmt.dateFormat = "yyyy-MM-dd"
-        return "water_glasses_\(fmt.string(from: date))"
-    }
-
-    private var waterSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Image(systemName: "drop.fill")
-                    .foregroundStyle(Color.blue)
-                Text("Water")
-                    .font(.headline)
-                    .foregroundStyle(.white)
-                Spacer()
-                Text("\(Int(Double(waterGlasses) * mlPerGlass)) mL")
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(Color.blue)
-            }
-
-            HStack(spacing: 12) {
-                // Glass icons
-                let maxDisplay = 8
-                ForEach(0..<maxDisplay, id: \.self) { i in
-                    Image(systemName: i < waterGlasses ? "drop.fill" : "drop")
-                        .font(.title3)
-                        .foregroundStyle(i < waterGlasses ? Color.blue : Color.slateBorder)
-                }
-                if waterGlasses > maxDisplay {
-                    Text("+\(waterGlasses - maxDisplay)")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(Color.blue)
-                }
-                Spacer()
-            }
-
-            HStack(spacing: 12) {
-                Button {
-                    guard waterGlasses > 0 else { return }
-                    waterGlasses -= 1
-                    UserDefaults.standard.set(waterGlasses, forKey: waterKey(for: viewModel?.selectedDate ?? Date()))
-                    let selectedDate = viewModel?.selectedDate ?? Date()
-                    if Calendar.current.isDateInToday(selectedDate) {
-                        Task {
-                            await HealthKitManager.shared.deleteLatestWater(date: Date())
-                        }
-                    }
-                } label: {
-                    Image(systemName: "minus.circle.fill")
-                        .font(.title2)
-                        .foregroundStyle(waterGlasses > 0 ? Color.slateText : Color.slateBorder)
-                }
-                .disabled(waterGlasses == 0)
-
-                Text("\(waterGlasses) glass\(waterGlasses == 1 ? "" : "es")")
-                    .font(.subheadline)
-                    .foregroundStyle(.white)
-                    .frame(minWidth: 80)
-
-                Button {
-                    waterGlasses += 1
-                    UserDefaults.standard.set(waterGlasses, forKey: waterKey(for: viewModel?.selectedDate ?? Date()))
-                    let selectedDate = viewModel?.selectedDate ?? Date()
-                    if Calendar.current.isDateInToday(selectedDate) {
-                        Task {
-                            await HealthKitManager.shared.saveWater(ml: mlPerGlass, date: Date())
-                        }
-                    }
-                } label: {
-                    Label("+1 glass", systemImage: "plus.circle.fill")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .background(Color.blue)
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                }
-            }
-        }
-        .padding()
-        .background(Color.slateCard)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-        .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .stroke(Color.slateBorder, lineWidth: 1)
-        )
-    }
-
     // MARK: - Meal Sections
 
     private var mealSections: some View {
@@ -356,15 +256,6 @@ struct DiaryView: View {
         if let newDate = Calendar.current.date(byAdding: .day, value: days, to: vm.selectedDate) {
             vm.selectedDate = newDate.startOfDay
             vm.fetchEntries()
-            Task { await fetchWaterCount() }
         }
-    }
-
-    private func fetchWaterCount() async {
-        // Purely UserDefaults-driven — never read from HealthKit.
-        // HealthKit reads (even with an await guard) can race with button taps
-        // and silently overwrite the user's count with stale HK data.
-        let key = waterKey(for: viewModel?.selectedDate ?? Date())
-        waterGlasses = UserDefaults.standard.integer(forKey: key)
     }
 }

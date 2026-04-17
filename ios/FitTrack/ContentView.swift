@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import WatchConnectivity
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
@@ -46,6 +47,7 @@ struct ContentView: View {
 
     @State private var selectedTab: Tab = .dashboard
     @AppStorage("appTheme") private var appTheme = "dark"
+    @ObservedObject private var watchManager = WatchConnectivityManager.shared
 
     // Tab visibility from UserDefaults
     @AppStorage("tab_dashboard") private var showDashboard = true
@@ -114,6 +116,12 @@ struct ContentView: View {
         .onChange(of: visibleTabs) { _, newTabs in
             if !newTabs.contains(selectedTab) {
                 selectedTab = newTabs.first ?? .settings
+            }
+        }
+        .onChange(of: watchManager.pendingWorkoutStart) { _, newValue in
+            if newValue {
+                selectedTab = .workouts
+                watchManager.pendingWorkoutStart = false
             }
         }
     }

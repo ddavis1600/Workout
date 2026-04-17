@@ -287,6 +287,7 @@ struct HeartRateView: View {
                     let color = zoneColors[zone] ?? .gray
                     let name  = zoneNames[zone]  ?? "Zone \(zone)"
                     let bpmLabel = zoneBPMLabel(zone: zone, boundaries: boundaries)
+                    let minutes = viewModel.historicalZoneMinutes[zone] ?? 0
 
                     VStack(spacing: 4) {
                         HStack {
@@ -300,10 +301,10 @@ struct HeartRateView: View {
                             Text(bpmLabel)
                                 .font(.caption2)
                                 .foregroundColor(.slateText)
-                            Text("\(Int(fraction * 100))%")
+                            Text("\(minutes) min · \(Int(fraction * 100))%")
                                 .font(.caption.weight(.semibold))
                                 .foregroundColor(color)
-                                .frame(minWidth: 36, alignment: .trailing)
+                                .frame(minWidth: 80, alignment: .trailing)
                         }
 
                         GeometryReader { geo in
@@ -443,6 +444,7 @@ class HeartRateViewModel: ObservableObject {
     @Published var selectedPeriod: HeartRatePeriod = .weekly
     @Published var restingStats: (avg: Int, min: Int, max: Int)? = nil
     @Published var historicalZoneFractions: [Int: Double] = [:]
+    @Published var historicalZoneMinutes: [Int: Int] = [:]
 
     @Published var userAge: Int = 25 {
         didSet {
@@ -508,6 +510,27 @@ class HeartRateViewModel: ObservableObject {
         let (restingResult, samplesResult) = await (resting, samples)
         restingStats = restingResult
         historicalZoneFractions = computeZoneFractions(samples: samplesResult)
+        historicalZoneMinutes = computeZoneMinutes(samples: samplesResult)
+    }
+
+    private func computeZoneMinutes(samples: [(Date, Int)]) -> [Int: Int] {
+        guard samples.count > 1 else { return [:] }
+        let sorted = samples.sorted { $0.0 < $1.0 }
+        let boundaries = zoneBoundaries
+        var seconds: [Int: Double] = [1: 0, 2: 0, 3: 0, 4: 0, 5: 0]
+        for i in 0..<sorted.count - 1 {
+            let (t1, bpm) = sorted[i]
+            let t2 = sorted[i + 1].0
+            let interval = min(t2.timeIntervalSince(t1), 300)
+            let zone: Int
+            if bpm < boundaries[0]      { zone = 1 }
+            else if bpm < boundaries[1] { zone = 2 }
+            else if bpm < boundaries[2] { zone = 3 }
+            else if bpm < boundaries[3] { zone = 4 }
+            else                        { zone = 5 }
+            seconds[zone, default: 0] += interval
+        }
+        return seconds.mapValues { Int($0 / 60) }
     }
 
     private func computeZoneFractions(samples: [(Date, Int)]) -> [Int: Double] {

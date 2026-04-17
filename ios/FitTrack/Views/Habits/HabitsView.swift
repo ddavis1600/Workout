@@ -5,6 +5,7 @@ struct HabitsView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Habit.createdAt) private var habits: [Habit]
     @State private var showingAddSheet = false
+    @State private var habitToEdit: Habit? = nil
     @State private var selectedDate: Date = Date().startOfDay
     @State private var displayedMonth: Date = Date()
     /// HealthKit daily values keyed by habit.healthKitTrigger
@@ -111,6 +112,9 @@ struct HabitsView: View {
             }
             .sheet(isPresented: $showingAddSheet) {
                 AddHabitSheet()
+            }
+            .sheet(item: $habitToEdit) { habit in
+                EditHabitSheet(habit: habit)
             }
             .task(id: selectedDate) {
                 await refreshHKValues()
@@ -355,6 +359,27 @@ struct HabitsView: View {
         .background(Color.slateCard)
         .cornerRadius(12)
         .contextMenu {
+            Button {
+                habitToEdit = habit
+            } label: {
+                Label("Edit", systemImage: "pencil")
+            }
+            Button(role: .destructive) {
+                modelContext.delete(habit)
+                try? modelContext.save()
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
+        .swipeActions(edge: .leading, allowsFullSwipe: false) {
+            Button {
+                habitToEdit = habit
+            } label: {
+                Label("Edit", systemImage: "pencil")
+            }
+            .tint(.blue)
+        }
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button(role: .destructive) {
                 modelContext.delete(habit)
                 try? modelContext.save()
@@ -542,6 +567,193 @@ struct AddHabitSheet: View {
             }
         }
         .presentationDetents([.medium, .large])
+    }
+}
+
+// MARK: - Edit Habit Sheet
+
+struct EditHabitSheet: View {
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+
+    let habit: Habit
+
+    @State private var name = ""
+    @State private var selectedIcon = "checkmark.circle"
+    @State private var selectedColor = "emerald"
+    @State private var selectedTrigger: HKHabitTrigger?
+    @State private var thresholdText = ""
+    @State private var showingHKPicker = false
+
+    private let icons = [
+        "checkmark.circle", "drop.fill", "bed.double.fill",
+        "figure.walk", "pill.fill", "book.fill",
+        "heart.fill", "moon.fill", "leaf.fill",
+        "dumbbell.fill", "cup.and.saucer.fill", "brain"
+    ]
+
+    private let colors: [(name: String, color: Color)] = [
+        ("emerald", .emerald), ("blue", .blue), ("orange", .orange), ("pink", .pink), ("purple", .purple)
+    ]
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.slateBackground.ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // Name
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Habit Name")
+                                .font(.subheadline.weight(.medium))
+                                .foregroundColor(.slateText)
+                            TextField("e.g. Drink water", text: $name)
+                                .textFieldStyle(.plain)
+                                .padding()
+                                .background(Color.slateCard)
+                                .cornerRadius(12)
+                                .foregroundColor(.white)
+                        }
+
+                        // HealthKit trigger
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("HealthKit Trigger (optional)")
+                                .font(.subheadline.weight(.medium))
+                                .foregroundColor(.slateText)
+
+                            Button {
+                                showingHKPicker = true
+                            } label: {
+                                HStack {
+                                    Image(systemName: selectedTrigger == nil ? "heart.slash" : (selectedTrigger?.icon ?? "heart.fill"))
+                                        .foregroundColor(selectedTrigger == nil ? .slateText : .pink)
+                                    Text(selectedTrigger?.displayName ?? "None — mark manually")
+                                        .foregroundColor(selectedTrigger == nil ? .slateText : .white)
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption)
+                                        .foregroundColor(.slateText)
+                                }
+                                .padding()
+                                .background(Color.slateCard)
+                                .cornerRadius(12)
+                            }
+
+                            if let trigger = selectedTrigger {
+                                HStack {
+                                    Text("Daily goal (\(trigger.unit))")
+                                        .font(.caption)
+                                        .foregroundColor(.slateText)
+                                    Spacer()
+                                    TextField("e.g. \(Int(trigger.defaultThreshold))", text: $thresholdText)
+                                        .keyboardType(.decimalPad)
+                                        .textFieldStyle(.plain)
+                                        .multilineTextAlignment(.trailing)
+                                        .foregroundColor(.white)
+                                        .frame(width: 100)
+                                        .padding(8)
+                                        .background(Color.slateCard)
+                                        .cornerRadius(8)
+                                }
+                                .padding()
+                                .background(Color.slateBackground)
+                                .cornerRadius(12)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.slateBorder, lineWidth: 1)
+                                )
+                            }
+                        }
+
+                        // Icon picker
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Icon")
+                                .font(.subheadline.weight(.medium))
+                                .foregroundColor(.slateText)
+
+                            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 6), spacing: 12) {
+                                ForEach(icons, id: \.self) { icon in
+                                    Button {
+                                        selectedIcon = icon
+                                    } label: {
+                                        Image(systemName: icon)
+                                            .font(.title2)
+                                            .frame(width: 48, height: 48)
+                                            .background(selectedIcon == icon ? Color.emerald.opacity(0.2) : Color.slateCard)
+                                            .foregroundColor(selectedIcon == icon ? .emerald : .slateText)
+                                            .cornerRadius(10)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 10)
+                                                    .stroke(selectedIcon == icon ? Color.emerald : Color.clear, lineWidth: 2)
+                                            )
+                                    }
+                                }
+                            }
+                        }
+
+                        // Color picker
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Color")
+                                .font(.subheadline.weight(.medium))
+                                .foregroundColor(.slateText)
+
+                            HStack(spacing: 16) {
+                                ForEach(colors, id: \.name) { item in
+                                    Button {
+                                        selectedColor = item.name
+                                    } label: {
+                                        Circle()
+                                            .fill(item.color)
+                                            .frame(width: 40, height: 40)
+                                            .overlay(Circle().stroke(Color.white, lineWidth: selectedColor == item.name ? 3 : 0))
+                                            .overlay {
+                                                if selectedColor == item.name {
+                                                    Image(systemName: "checkmark").font(.caption.bold()).foregroundColor(.white)
+                                                }
+                                            }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    .padding()
+                }
+            }
+            .navigationTitle("Edit Habit")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }.foregroundColor(.slateText)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        habit.name = name
+                        habit.icon = selectedIcon
+                        habit.color = selectedColor
+                        habit.healthKitTrigger = selectedTrigger?.id
+                        habit.healthKitThreshold = Double(thresholdText) ?? selectedTrigger?.defaultThreshold ?? 0
+                        try? modelContext.save()
+                        dismiss()
+                    }
+                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
+                    .foregroundColor(.emerald)
+                }
+            }
+            .sheet(isPresented: $showingHKPicker) {
+                HKTriggerPickerSheet(selected: $selectedTrigger, thresholdText: $thresholdText)
+            }
+        }
+        .presentationDetents([.medium, .large])
+        .onAppear {
+            name = habit.name
+            selectedIcon = habit.icon
+            selectedColor = habit.color
+            selectedTrigger = HKHabitTrigger.all.first { $0.id == habit.healthKitTrigger }
+            if habit.healthKitThreshold > 0 {
+                thresholdText = "\(Int(habit.healthKitThreshold))"
+            }
+        }
     }
 }
 
