@@ -3,6 +3,7 @@ import WatchConnectivity
 
 struct WatchContentView: View {
     @EnvironmentObject var service: WatchHeartRateService
+    @ObservedObject private var sessionManager = WatchSessionManager.shared
 
     var body: some View {
         ZStack {
@@ -35,6 +36,7 @@ struct WatchContentView: View {
                 Button {
                     if service.isMonitoring {
                         service.stopMonitoring()
+                        WatchSessionManager.shared.sendStopWorkout()
                     } else {
                         service.startMonitoring()
                         WatchSessionManager.shared.sendMessage(["action": "startWorkout", "type": "Workout"])
@@ -61,6 +63,13 @@ struct WatchContentView: View {
                 }
             }
             .padding()
+        }
+        // iPhone finished/cancelled the workout — stop monitoring on Watch too
+        .onChange(of: sessionManager.pendingStop) { _, stop in
+            if stop {
+                service.stopMonitoring()
+                sessionManager.pendingStop = false
+            }
         }
     }
 

@@ -40,6 +40,7 @@ class HealthKitManager {
         let shareTypes: Set<HKSampleType> = [
             HKQuantityType(.bodyMass),
             HKQuantityType(.dietaryWater),
+            HKWorkoutType.workoutType(),
         ]
         do {
             try await healthStore.requestAuthorization(toShare: shareTypes, read: allReadTypes)
@@ -47,6 +48,43 @@ class HealthKitManager {
         } catch {
             print("HealthKit auth failed: \(error)")
             return false
+        }
+    }
+
+    // MARK: - Workout
+
+    /// Saves a completed workout to Apple Health / Fitness app.
+    func saveWorkoutToHealth(
+        startDate: Date,
+        endDate: Date,
+        activityType: HKWorkoutActivityType = .traditionalStrengthTraining
+    ) async {
+        guard isAvailable else { return }
+        let config = HKWorkoutConfiguration()
+        config.activityType = activityType
+        config.locationType = .indoor
+
+        let builder = HKWorkoutBuilder(healthStore: healthStore, configuration: config, device: .local())
+
+        await withCheckedContinuation { continuation in
+            builder.beginCollection(withStart: startDate) { success, error in
+                guard success else {
+                    print("[HealthKit] beginCollection failed: \(String(describing: error))")
+                    continuation.resume()
+                    return
+                }
+                builder.endCollection(withEnd: endDate) { success, error in
+                    guard success else {
+                        print("[HealthKit] endCollection failed: \(String(describing: error))")
+                        continuation.resume()
+                        return
+                    }
+                    builder.finishWorkout { _, error in
+                        if let error { print("[HealthKit] finishWorkout failed: \(error)") }
+                        continuation.resume()
+                    }
+                }
+            }
         }
     }
 

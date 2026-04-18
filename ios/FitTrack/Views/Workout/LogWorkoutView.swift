@@ -88,6 +88,7 @@ struct LogWorkoutView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") {
+                        WatchConnectivityManager.shared.sendStopWorkout()
                         dismiss()
                     }
                     .foregroundStyle(Color.slateText)
@@ -127,6 +128,12 @@ struct LogWorkoutView: View {
             .onDisappear {
                 stopTimer()
                 heartRateService.stopMonitoring()
+            }
+            .onChange(of: watchManager.pendingWorkoutStop) { _, stop in
+                if stop {
+                    watchManager.pendingWorkoutStop = false
+                    saveWorkout()
+                }
             }
         }
     }
@@ -464,6 +471,11 @@ struct LogWorkoutView: View {
     private func saveWorkout() {
         stopTimer()
         heartRateService.stopMonitoring()
+        WatchConnectivityManager.shared.sendStopWorkout()
+
+        let workoutEndDate = Date()
+        let workoutStartDate = workoutEndDate.addingTimeInterval(-Double(max(elapsedSeconds, 1)))
+        Task { await HealthKitManager.shared.saveWorkoutToHealth(startDate: workoutStartDate, endDate: workoutEndDate) }
 
         let durationMin = max(1, Int(round(Double(elapsedSeconds) / 60.0)))
         let workout = Workout(

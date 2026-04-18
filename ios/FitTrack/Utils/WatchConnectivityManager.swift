@@ -6,6 +6,7 @@ class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
 
     @Published var liveHeartRate: Double? = nil
     @Published var pendingWorkoutStart = false
+    @Published var pendingWorkoutStop = false
 
     private override init() { super.init() }
 
@@ -21,12 +22,34 @@ class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
 
     func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
         DispatchQueue.main.async {
-            if let action = message["action"] as? String, action == "startWorkout" {
-                self.pendingWorkoutStart = true
+            if let action = message["action"] as? String {
+                if action == "startWorkout" { self.pendingWorkoutStart = true }
+                if action == "stopWorkout"  { self.pendingWorkoutStop  = true }
             }
             if let bpm = message["heartRate"] as? Double {
                 self.liveHeartRate = bpm
             }
+        }
+    }
+
+    // Also handle messages delivered while Watch screen was off
+    func session(_ session: WCSession, didReceiveUserInfo userInfo: [String: Any]) {
+        DispatchQueue.main.async {
+            if let action = userInfo["action"] as? String {
+                if action == "startWorkout" { self.pendingWorkoutStart = true }
+                if action == "stopWorkout"  { self.pendingWorkoutStop  = true }
+            }
+        }
+    }
+
+    /// Tell the Watch to stop its workout. Uses transferUserInfo as fallback when Watch screen is off.
+    func sendStopWorkout() {
+        guard WCSession.default.activationState == .activated else { return }
+        let msg: [String: Any] = ["action": "stopWorkout"]
+        if WCSession.default.isReachable {
+            WCSession.default.sendMessage(msg, replyHandler: nil, errorHandler: nil)
+        } else {
+            WCSession.default.transferUserInfo(msg)
         }
     }
 }
