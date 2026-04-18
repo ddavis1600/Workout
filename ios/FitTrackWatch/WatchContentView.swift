@@ -65,7 +65,7 @@ struct WatchContentView: View {
             .padding()
         }
         // iPhone finished/cancelled the workout — stop monitoring on Watch too
-        .onChange(of: sessionManager.pendingStop) { _, stop in
+        .onChange(of: sessionManager.pendingStop) { stop in
             if stop {
                 service.stopMonitoring()
                 sessionManager.pendingStop = false
