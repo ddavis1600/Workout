@@ -632,9 +632,9 @@ struct HabitsView: View {
                 Text("\(calendar.component(.day, from: date))")
                     .font(.system(size: 14, weight: isToday ? .bold : .regular))
                     .foregroundColor(
-                        isSelected ? .white :
-                        isFuture   ? .slateText.opacity(0.4) :
-                        isToday    ? .emerald : .white
+                        isSelected ? Color.paper :
+                        isFuture   ? Color.slateText.opacity(0.4) :
+                        isToday    ? Color.emerald : Color.ink
                     )
             }
             .frame(maxWidth: .infinity).frame(height: 36).contentShape(Circle())

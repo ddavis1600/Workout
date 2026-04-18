@@ -2,7 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     // Theme
-    @AppStorage("appTheme") private var appTheme = "dark"
+    @AppStorage("appTheme") private var appTheme = "light"
 
     // Rest timer
     @AppStorage("restTimerEnabled") private var restTimerEnabled = true

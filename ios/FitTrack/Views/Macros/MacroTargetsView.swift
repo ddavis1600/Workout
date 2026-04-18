@@ -50,7 +50,7 @@ struct MacroTargetsView: View {
 
             // Macro cards
             HStack(spacing: 12) {
-                macroCard(label: "Protein", grams: protein, percent: proteinPercent, color: .blue, icon: "fish.fill")
+                macroCard(label: "Protein", grams: protein, percent: proteinPercent, color: Color.emerald, icon: "fish.fill")
                 macroCard(label: "Carbs", grams: carbs, percent: carbsPercent, color: .orange, icon: "leaf.fill")
                 macroCard(label: "Fat", grams: fat, percent: fatPercent, color: .pink, icon: "drop.fill")
             }

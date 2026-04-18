@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import UIKit
 
 // MARK: - Date Extensions
 
@@ -24,21 +25,59 @@ extension Double {
 }
 
 // MARK: - Color Extensions
-// Field Notes palette — ink + paper + olive
+// Field Notes palette — adaptive light (paper/ink/olive) + dark (warm dark)
 
 extension Color {
-    // Primary accent: olive #556B2F
-    static let emerald       = Color(red:  85 / 255, green: 107 / 255, blue:  47 / 255)
-    // Backgrounds: off-white paper
-    static let slateBackground = Color(red: 237 / 255, green: 232 / 255, blue: 220 / 255) // paper  #EDE8DC
-    static let slateCard     = Color(red: 229 / 255, green: 223 / 255, blue: 209 / 255) // paper2 #E5DFD1
-    // Border: olive 25% on paper ≈ #C7C9B1
-    static let slateBorder   = Color(red: 199 / 255, green: 201 / 255, blue: 177 / 255)
-    // Muted text: #8A8470
-    static let slateText     = Color(red: 138 / 255, green: 132 / 255, blue: 112 / 255)
-    // New tokens
-    static let ink           = Color(red:  26 / 255, green:  26 / 255, blue:  20 / 255) // ink #1A1A14
-    static let paper         = Color(red: 237 / 255, green: 232 / 255, blue: 220 / 255) // paper #EDE8DC
-    static let oliveTint     = Color(red: 212 / 255, green: 221 / 255, blue: 184 / 255) // #D4DDB8
-    static let fieldNotesAlert = Color(red: 139 / 255, green:  58 / 255, blue:  42 / 255) // alert red #8B3A2A
+    // MARK: Accent — olive #556B2F / #7DA03A (brighter for dark bg)
+    static let emerald = Color(UIColor { tc in
+        tc.userInterfaceStyle == .dark
+            ? UIColor(red: 125/255, green: 160/255, blue:  58/255, alpha: 1) // #7DA03A
+            : UIColor(red:  85/255, green: 107/255, blue:  47/255, alpha: 1) // #556B2F
+    })
+
+    // MARK: Backgrounds
+    // Main page background: paper #EDE8DC / dark warm #1C1A14
+    static let slateBackground = Color(UIColor { tc in
+        tc.userInterfaceStyle == .dark
+            ? UIColor(red:  28/255, green:  26/255, blue:  20/255, alpha: 1) // #1C1A14
+            : UIColor(red: 237/255, green: 232/255, blue: 220/255, alpha: 1) // #EDE8DC
+    })
+    // Card background: paper2 #E5DFD1 / dark card #252219
+    static let slateCard = Color(UIColor { tc in
+        tc.userInterfaceStyle == .dark
+            ? UIColor(red:  37/255, green:  34/255, blue:  25/255, alpha: 1) // #252219
+            : UIColor(red: 229/255, green: 223/255, blue: 209/255, alpha: 1) // #E5DFD1
+    })
+    // Border: olive rule #C7C9B1 / dark border #3A362A
+    static let slateBorder = Color(UIColor { tc in
+        tc.userInterfaceStyle == .dark
+            ? UIColor(red:  58/255, green:  54/255, blue:  42/255, alpha: 1) // #3A362A
+            : UIColor(red: 199/255, green: 201/255, blue: 177/255, alpha: 1) // #C7C9B1
+    })
+
+    // MARK: Text
+    // Muted text: #8A8470 — same in both modes (readable on both backgrounds)
+    static let slateText = Color(red: 138/255, green: 132/255, blue: 112/255)
+    // Primary text: ink #1A1A14 / paper #EDE8DC
+    static let ink = Color(UIColor { tc in
+        tc.userInterfaceStyle == .dark
+            ? UIColor(red: 237/255, green: 232/255, blue: 220/255, alpha: 1) // #EDE8DC
+            : UIColor(red:  26/255, green:  26/255, blue:  20/255, alpha: 1) // #1A1A14
+    })
+
+    // MARK: Fixed tokens (not adaptive)
+    // paper is always the warm off-white — used as text on olive-filled selected states
+    static let paper = Color(red: 237/255, green: 232/255, blue: 220/255) // #EDE8DC
+    // Olive tint surface: #D4DDB8 / dark olive tint #3D4A1E
+    static let oliveTint = Color(UIColor { tc in
+        tc.userInterfaceStyle == .dark
+            ? UIColor(red:  61/255, green:  74/255, blue:  30/255, alpha: 1) // #3D4A1E
+            : UIColor(red: 212/255, green: 221/255, blue: 184/255, alpha: 1) // #D4DDB8
+    })
+    // Alert red #8B3A2A / #C4543C (brighter on dark)
+    static let fieldNotesAlert = Color(UIColor { tc in
+        tc.userInterfaceStyle == .dark
+            ? UIColor(red: 196/255, green:  84/255, blue:  60/255, alpha: 1) // #C4543C
+            : UIColor(red: 139/255, green:  58/255, blue:  42/255, alpha: 1) // #8B3A2A
+    })
 }

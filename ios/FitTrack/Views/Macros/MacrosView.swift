@@ -213,7 +213,7 @@ struct MacrosView: View {
                 .foregroundStyle(Color.ink)
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(isFormValid ? Color.blue : Color.blue.opacity(0.4))
+                .background(isFormValid ? Color.emerald : Color.emerald.opacity(0.4))
                 .clipShape(RoundedRectangle(cornerRadius: 14))
         }
         .disabled(!isFormValid)
@@ -299,10 +299,10 @@ struct MacrosView: View {
                             .foregroundStyle(Color.ink)
                         Spacer()
                         Text("\(Int(cal * proteinPct / 4))g (\(Int(proteinPct * 100))%)")
-                            .foregroundStyle(.blue)
+                            .foregroundStyle(Color.emerald)
                     }
                     Slider(value: proteinBinding, in: 0.05...0.60, step: 0.01)
-                        .tint(.blue)
+                        .tint(Color.emerald)
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
@@ -432,7 +432,7 @@ struct MacrosView: View {
                 HStack(spacing: 0) {
                     savedMacroPill(label: "Carbs", value: s.carbs, unit: "g", color: .orange)
                     savedMacroPill(label: "Fat", value: s.fat, unit: "g", color: .pink)
-                    savedMacroPill(label: "Protein", value: s.protein, unit: "g", color: .blue)
+                    savedMacroPill(label: "Protein", value: s.protein, unit: "g", color: Color.emerald)
                 }
 
                 Text("\(s.calories) kcal / day")
