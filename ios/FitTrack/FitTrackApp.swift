@@ -51,7 +51,7 @@ struct FitTrackApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
         }
         .modelContainer(container)
     }
