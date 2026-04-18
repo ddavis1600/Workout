@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Background: cream paper -->
+  <rect width="256" height="256" fill="#E8DFC1" rx="4"/>
+
+  <!-- Outer border: olive, 2.5px -->
+  <rect x="8" y="8" width="240" height="240" fill="none" stroke="#4A5530" stroke-width="2.5" rx="3"/>
+  <!-- Inner border: olive, 1px -->
+  <rect x="14" y="14" width="228" height="228" fill="none" stroke="#4A5530" stroke-width="1" rx="2"/>
+
+  <!-- FIELD LOG header -->
+  <text x="128" y="40"
+        font-family="'DM Mono', 'Courier New', Courier, monospace"
+        font-size="16" font-weight="700" letter-spacing="4"
+        fill="#3D4826" text-anchor="middle">FIELD LOG</text>
+
+  <!-- NO. 01 subtitle -->
+  <text x="128" y="56"
+        font-family="'DM Mono', 'Courier New', Courier, monospace"
+        font-size="8.5" letter-spacing="3"
+        fill="#5E6B3A" text-anchor="middle">— NO. 01 —</text>
+
+  <!-- Divider rule -->
+  <line x1="22" y1="65" x2="234" y2="65" stroke="#4A5530" stroke-width="0.75"/>
+
+  <!-- Streak tally marks (top-right corner) -->
+  <g stroke="#5E6B3A" stroke-width="1.75" stroke-linecap="round">
+    <line x1="192" y1="74" x2="192" y2="90"/>
+    <line x1="199" y1="74" x2="199" y2="90"/>
+    <line x1="206" y1="74" x2="206" y2="90"/>
+    <line x1="213" y1="74" x2="213" y2="90"/>
+    <!-- Diagonal cross for 5th mark -->
+    <line x1="189" y1="76" x2="217" y2="88"/>
+  </g>
+
+  <!-- Subtle notebook grid lines -->
+  <g stroke="#5E6B3A" stroke-width="0.4" opacity="0.3">
+    <line x1="30" y1="108" x2="226" y2="108"/>
+    <line x1="30" y1="124" x2="226" y2="124"/>
+    <line x1="30" y1="140" x2="226" y2="140"/>
+    <line x1="30" y1="156" x2="226" y2="156"/>
+    <line x1="30" y1="172" x2="226" y2="172"/>
+    <line x1="68"  y1="95"  x2="68"  y2="188"/>
+    <line x1="104" y1="95"  x2="104" y2="188"/>
+    <line x1="140" y1="95"  x2="140" y2="188"/>
+    <line x1="176" y1="95"  x2="176" y2="188"/>
+  </g>
+
+  <!-- Y axis -->
+  <line x1="46" y1="90" x2="46" y2="188" stroke="#4A5530" stroke-width="1.75" stroke-linecap="round"/>
+  <!-- X axis -->
+  <line x1="46" y1="188" x2="218" y2="188" stroke="#4A5530" stroke-width="1.75" stroke-linecap="round"/>
+
+  <!-- Rising progress line -->
+  <path d="M 58 178  L 90 168  L 122 152  L 154 130  L 186 100  L 210 75"
+        fill="none" stroke="#3D4826" stroke-width="3.5"
+        stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Arrow tip at top of rising line -->
+  <path d="M 200 72  L 210 75  L 207 86"
+        fill="none" stroke="#3D4826" stroke-width="3.5"
+        stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Data dots along the line -->
+  <circle cx="58"  cy="178" r="4" fill="#3D4826"/>
+  <circle cx="90"  cy="168" r="4" fill="#3D4826"/>
+  <circle cx="122" cy="152" r="4" fill="#3D4826"/>
+  <circle cx="154" cy="130" r="4" fill="#3D4826"/>
+  <circle cx="186" cy="100" r="4" fill="#3D4826"/>
+  <circle cx="210" cy="75"  r="4" fill="#3D4826"/>
+
+  <!-- Bottom divider rule -->
+  <line x1="22" y1="200" x2="234" y2="200" stroke="#4A5530" stroke-width="0.75"/>
+
+  <!-- Tagline -->
+  <text x="128" y="218"
+        font-family="'DM Mono', 'Courier New', Courier, monospace"
+        font-size="9" letter-spacing="3"
+        fill="#3D4826" text-anchor="middle">TRAIN · WRITE · REPEAT</text>
+
+  <!-- Sub-tagline -->
+  <text x="128" y="233"
+        font-family="'DM Mono', 'Courier New', Courier, monospace"
+        font-size="7" letter-spacing="1.5"
+        fill="#5E6B3A" text-anchor="middle">FITNESS · JOURNAL · HABITS</text>
+</svg>

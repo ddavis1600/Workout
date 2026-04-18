@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 96" width="480" height="96">
+  <!-- Icon: mini notebook cover (72×72, centered vertically) -->
+  <g transform="translate(12, 12)">
+    <!-- Background -->
+    <rect width="72" height="72" fill="#E8DFC1" rx="3"/>
+    <!-- Outer border -->
+    <rect x="2.5" y="2.5" width="67" height="67" fill="none" stroke="#4A5530" stroke-width="2" rx="2"/>
+    <!-- Inner border -->
+    <rect x="5.5" y="5.5" width="61" height="61" fill="none" stroke="#4A5530" stroke-width="0.75" rx="1.5"/>
+    <!-- Subtle grid -->
+    <g stroke="#5E6B3A" stroke-width="0.35" opacity="0.3">
+      <line x1="10" y1="34" x2="62" y2="34"/>
+      <line x1="10" y1="44" x2="62" y2="44"/>
+      <line x1="10" y1="54" x2="62" y2="54"/>
+    </g>
+    <!-- Axes -->
+    <line x1="12" y1="24" x2="12" y2="60" stroke="#4A5530" stroke-width="1.25" stroke-linecap="round"/>
+    <line x1="12" y1="60" x2="62" y2="60" stroke="#4A5530" stroke-width="1.25" stroke-linecap="round"/>
+    <!-- Rising line -->
+    <path d="M 16 55  L 27 49  L 38 41  L 49 30  L 59 20"
+          fill="none" stroke="#3D4826" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Arrow tip -->
+    <path d="M 53 18  L 59 20  L 57 27"
+          fill="none" stroke="#3D4826" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Data dots -->
+    <circle cx="16" cy="55" r="2.5" fill="#3D4826"/>
+    <circle cx="27" cy="49" r="2.5" fill="#3D4826"/>
+    <circle cx="38" cy="41" r="2.5" fill="#3D4826"/>
+    <circle cx="49" cy="30" r="2.5" fill="#3D4826"/>
+    <circle cx="59" cy="20" r="2.5" fill="#3D4826"/>
+  </g>
+
+  <!-- Wordmark text block -->
+  <!-- FIELD LOG -->
+  <text x="104" y="52"
+        font-family="'DM Mono', 'Courier New', Courier, monospace"
+        font-size="36" font-weight="700" letter-spacing="5"
+        fill="#3D4826">FIELD LOG</text>
+
+  <!-- Tagline -->
+  <text x="107" y="72"
+        font-family="'DM Mono', 'Courier New', Courier, monospace"
+        font-size="10" letter-spacing="3.5"
+        fill="#5E6B3A">TRAIN · WRITE · REPEAT</text>
+</svg>
