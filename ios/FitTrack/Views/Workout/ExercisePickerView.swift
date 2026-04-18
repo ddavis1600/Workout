@@ -43,7 +43,7 @@ struct ExercisePickerView: View {
                                         VStack(alignment: .leading, spacing: 2) {
                                             Text(exercise.name)
                                                 .font(.subheadline)
-                                                .foregroundStyle(.white)
+                                                .foregroundStyle(Color.ink)
                                             if let equipment = exercise.equipment {
                                                 Text(equipment.capitalized)
                                                     .font(.caption)

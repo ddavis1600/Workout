@@ -122,7 +122,7 @@ struct HeartRateView: View {
                             HStack(alignment: .firstTextBaseline, spacing: 4) {
                                 Text("\(viewModel.service.currentBPM)")
                                     .font(.system(size: 56, weight: .bold, design: .rounded))
-                                    .foregroundColor(.white)
+                                    .foregroundColor(Color.ink)
                                 Text("BPM")
                                     .font(.title3.weight(.medium))
                                     .foregroundColor(.slateText)
@@ -154,7 +154,7 @@ struct HeartRateView: View {
 
                     Text("Heart Rate Access Required")
                         .font(.headline)
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.ink)
 
                     Text("Grant HealthKit access to see your Apple Watch heart rate data.")
                         .font(.subheadline)
@@ -234,7 +234,7 @@ struct HeartRateView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Resting Heart Rate")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(Color.ink)
 
             if let s = viewModel.restingStats {
                 HStack(spacing: 0) {
@@ -271,7 +271,7 @@ struct HeartRateView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Zone Breakdown (\(viewModel.selectedPeriod.rawValue))")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(Color.ink)
 
             if viewModel.historicalZoneFractions.isEmpty {
                 Text("No heart rate data for this period")
@@ -296,7 +296,7 @@ struct HeartRateView: View {
                                 .frame(width: 8, height: 8)
                             Text("Z\(zone): \(name)")
                                 .font(.caption.weight(.medium))
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.ink)
                             Spacer()
                             Text(bpmLabel)
                                 .font(.caption2)
@@ -344,12 +344,12 @@ struct HeartRateView: View {
         VStack(spacing: 12) {
             Text("Settings")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(Color.ink)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             HStack {
                 Text("Age")
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.ink)
                 Spacer()
                 TextField("Age", value: $viewModel.userAge, format: .number)
                     .keyboardType(.numberPad)
@@ -360,7 +360,7 @@ struct HeartRateView: View {
 
             HStack {
                 Text("Max Heart Rate")
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.ink)
                 Spacer()
                 Text("\(viewModel.maxHeartRate) BPM")
                     .foregroundColor(.slateText)

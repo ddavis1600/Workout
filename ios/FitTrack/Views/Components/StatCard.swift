@@ -21,7 +21,7 @@ struct StatCard: View {
                     .foregroundStyle(Color.slateText)
                 Text(value)
                     .font(.title3.bold())
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.ink)
             }
 
             Spacer()

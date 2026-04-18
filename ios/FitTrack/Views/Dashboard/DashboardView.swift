@@ -58,7 +58,7 @@ struct DashboardView: View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Welcome back")
                 .font(.title.bold())
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.ink)
             Text(Date.now, format: .dateTime.weekday(.wide).month(.wide).day())
                 .font(.subheadline)
                 .foregroundStyle(Color.slateText)
@@ -74,7 +74,7 @@ struct DashboardView: View {
                 .foregroundStyle(Color.emerald)
             Text("Set up your macros")
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.ink)
             Text("Configure your body stats and goals to track your daily nutrition.")
                 .font(.subheadline)
                 .foregroundStyle(Color.slateText)
@@ -96,7 +96,7 @@ struct DashboardView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Today's Nutrition")
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.ink)
 
             let profile = vm.profile!
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
@@ -121,7 +121,7 @@ struct DashboardView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Recent Workouts")
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.ink)
 
             if vm.recentWorkouts.isEmpty {
                 HStack {

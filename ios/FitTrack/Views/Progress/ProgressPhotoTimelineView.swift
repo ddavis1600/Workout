@@ -80,7 +80,7 @@ struct ProgressPhotoTimelineView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(photo.date.formatted(as: "MMM d, yyyy"))
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.ink)
                     if !photo.caption.isEmpty {
                         Text(photo.caption)
                             .font(.caption2)
@@ -118,7 +118,7 @@ struct ProgressPhotoTimelineView: View {
                 .foregroundStyle(Color.slateText)
             Text("No progress photos yet")
                 .font(.title3.weight(.semibold))
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.ink)
             Text("Tap + to add your first progress photo")
                 .font(.subheadline)
                 .foregroundStyle(Color.slateText)
@@ -177,7 +177,7 @@ struct AddProgressPhotoSheet: View {
                             PhotosPicker(selection: $photoPickerItem, matching: .images) {
                                 Label("Library", systemImage: "photo.on.rectangle")
                                     .font(.subheadline.weight(.medium))
-                                    .foregroundStyle(.white)
+                                    .foregroundStyle(Color.ink)
                                     .frame(maxWidth: .infinity)
                                     .padding(12)
                                     .background(Color.slateCard)
@@ -198,7 +198,7 @@ struct AddProgressPhotoSheet: View {
                             } label: {
                                 Label("Camera", systemImage: "camera.fill")
                                     .font(.subheadline.weight(.medium))
-                                    .foregroundStyle(.white)
+                                    .foregroundStyle(Color.ink)
                                     .frame(maxWidth: .infinity)
                                     .padding(12)
                                     .background(Color.slateCard)
@@ -209,7 +209,7 @@ struct AddProgressPhotoSheet: View {
                         DatePicker("Date", selection: $date, displayedComponents: .date)
                             .datePickerStyle(.compact)
                             .tint(.emerald)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Color.ink)
                             .padding(12)
                             .background(Color.slateCard)
                             .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -219,7 +219,7 @@ struct AddProgressPhotoSheet: View {
                             .padding(12)
                             .background(Color.slateCard)
                             .clipShape(RoundedRectangle(cornerRadius: 10))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Color.ink)
                     }
                     .padding()
                 }
@@ -309,7 +309,7 @@ struct ProgressPhotoFullscreenView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(photo.date.formatted(as: "EEEE, MMM d, yyyy"))
                         .font(.headline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.ink)
                     if !photo.caption.isEmpty {
                         Text(photo.caption)
                             .font(.subheadline)

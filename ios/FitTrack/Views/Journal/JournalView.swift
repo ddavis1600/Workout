@@ -69,7 +69,7 @@ struct JournalView: View {
                 .foregroundColor(.slateText)
             Text("No journal entries yet")
                 .font(.title3)
-                .foregroundColor(.white)
+                .foregroundColor(Color.ink)
             Text("Tap + to write your first entry")
                 .font(.subheadline)
                 .foregroundColor(.slateText)
@@ -88,7 +88,7 @@ struct JournalView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(entry.title.isEmpty ? "Untitled" : entry.title)
                         .font(.body.weight(.medium))
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.ink)
                         .lineLimit(1)
                     Text(entry.date.formatted(as: "MMM d, yyyy 'at' h:mm a"))
                         .font(.caption)
@@ -160,7 +160,7 @@ struct NewJournalEntryView: View {
                             .padding()
                             .background(Color.slateCard)
                             .cornerRadius(12)
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.ink)
 
                         // Content
                         VStack(alignment: .leading, spacing: 8) {
@@ -174,7 +174,7 @@ struct NewJournalEntryView: View {
                                 .padding(12)
                                 .background(Color.slateCard)
                                 .cornerRadius(12)
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.ink)
                         }
 
                         // Photo
@@ -331,7 +331,7 @@ struct NewJournalEntryView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Voice Note")
                             .font(.subheadline.weight(.medium))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.ink)
                         if let dur = audioDuration {
                             Text(formatDuration(dur))
                                 .font(.caption)
@@ -524,7 +524,7 @@ struct JournalDetailView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(entry.title.isEmpty ? "Untitled" : entry.title)
                                 .font(.title2.weight(.bold))
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.ink)
                             Text(entry.date.formatted(as: "EEEE, MMM d, yyyy 'at' h:mm a"))
                                 .font(.subheadline)
                                 .foregroundColor(.slateText)
@@ -544,7 +544,7 @@ struct JournalDetailView: View {
                     if !entry.content.isEmpty {
                         Text(entry.content)
                             .font(.body)
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.ink)
                             .padding()
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(Color.slateCard)
@@ -566,7 +566,7 @@ struct JournalDetailView: View {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Voice Note")
                                     .font(.headline)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(Color.ink)
                                 if let dur = entry.audioDuration {
                                     Text(formatDuration(dur))
                                         .font(.subheadline)

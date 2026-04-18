@@ -48,7 +48,7 @@ struct WorkoutHeartRateCard: View {
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text("\(service.currentBPM)")
                     .font(.system(size: 36, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.ink)
                 Text("BPM")
                     .font(.caption.weight(.medium))
                     .foregroundColor(.slateText)
@@ -58,7 +58,7 @@ struct WorkoutHeartRateCard: View {
 
             Text(zone.name)
                 .font(.caption.weight(.bold))
-                .foregroundColor(.white)
+                .foregroundColor(Color.ink)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 5)
                 .background(zoneColor(zone.color))
@@ -161,7 +161,7 @@ struct WorkoutHeartRateCard: View {
         VStack(spacing: 2) {
             Text(value)
                 .font(.system(size: 16, weight: .bold, design: .rounded))
-                .foregroundColor(.white)
+                .foregroundColor(Color.ink)
             Text(label)
                 .font(.system(size: 10))
                 .foregroundColor(.slateText)
@@ -179,7 +179,7 @@ struct WorkoutHeartRateCard: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Waiting for heart rate...")
                     .font(.subheadline.weight(.medium))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.ink)
                 Text("Connect Apple Watch to see live data")
                     .font(.caption)
                     .foregroundColor(.slateText)

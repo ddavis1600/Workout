@@ -24,7 +24,7 @@ struct SetRowView: View {
                     .padding(8)
                     .background(Color.slateBackground)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.ink)
                     .frame(maxWidth: .infinity)
 
                 TextField("Weight", text: $weight)
@@ -33,7 +33,7 @@ struct SetRowView: View {
                     .padding(8)
                     .background(Color.slateBackground)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.ink)
                     .frame(maxWidth: .infinity)
 
                 TextField("RPE", text: $rpe)
@@ -42,7 +42,7 @@ struct SetRowView: View {
                     .padding(8)
                     .background(Color.slateBackground)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.ink)
                     .frame(width: 60)
 
                 Button {
@@ -67,7 +67,7 @@ struct SetRowView: View {
                     .padding(8)
                     .background(Color.slateBackground)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.ink)
                     .padding(.leading, 38)
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }

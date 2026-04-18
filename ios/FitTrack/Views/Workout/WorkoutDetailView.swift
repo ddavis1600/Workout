@@ -78,7 +78,7 @@ struct WorkoutDetailView: View {
                         .foregroundStyle(Color.slateText)
                     Text(workout.notes)
                         .font(.subheadline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.ink)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
@@ -118,7 +118,7 @@ struct WorkoutDetailView: View {
                     .foregroundColor(.red)
                 Text("Heart Rate")
                     .font(.headline)
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.ink)
             }
 
             // Stats row
@@ -127,7 +127,7 @@ struct WorkoutDetailView: View {
                     VStack(spacing: 2) {
                         Text("\(avg)")
                             .font(.system(size: 20, weight: .bold, design: .rounded))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.ink)
                         Text("Avg BPM")
                             .font(.caption)
                             .foregroundColor(.slateText)
@@ -274,7 +274,7 @@ struct WorkoutDetailView: View {
                             }
                         }
                         .font(.subheadline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.ink)
 
                         if !workoutSet.notes.isEmpty {
                             Text(workoutSet.notes)

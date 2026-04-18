@@ -104,7 +104,7 @@ struct WorkoutListView: View {
                 .foregroundStyle(Color.slateText)
             Text("No workouts yet")
                 .font(.title3.weight(.semibold))
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.ink)
             Text("Tap the + button to log your first workout.")
                 .font(.subheadline)
                 .foregroundStyle(Color.slateText)
@@ -151,7 +151,7 @@ struct WorkoutListView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(displayName)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.ink)
                 Text(workout.date, format: .dateTime.month(.abbreviated).day().year())
                     .font(.caption)
                     .foregroundStyle(Color.slateText)

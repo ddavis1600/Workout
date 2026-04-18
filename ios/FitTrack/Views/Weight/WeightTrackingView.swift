@@ -143,7 +143,7 @@ struct WeightTrackingView: View {
             if let latest = entries.first {
                 Text("\(latest.displayWeight(unitSystem: unitSystem), specifier: "%.1f") \(unitLabel)")
                     .font(.system(size: 42, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.ink)
 
                 if let trend = weightTrend {
                     HStack(spacing: 4) {
@@ -184,7 +184,7 @@ struct WeightTrackingView: View {
             HStack {
                 Text("Progress")
                     .font(.headline)
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.ink)
 
                 Spacer()
 
@@ -251,7 +251,7 @@ struct WeightTrackingView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Apple Health Sync")
                     .font(.body.weight(.medium))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.ink)
                 Text(healthSyncEnabled ? "Syncing with Health" : "Tap to enable")
                     .font(.caption)
                     .foregroundColor(.slateText)
@@ -303,14 +303,14 @@ struct WeightTrackingView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Recent Entries")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(Color.ink)
 
             ForEach(recentEntries) { entry in
                 HStack {
                     VStack(alignment: .leading, spacing: 3) {
                         Text(entry.date.formatted(as: "MMM d, yyyy"))
                             .font(.body.weight(.medium))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.ink)
 
                         if !entry.note.isEmpty {
                             Text(entry.note)
@@ -347,7 +347,7 @@ struct WeightTrackingView: View {
                 .foregroundColor(.slateText)
             Text("No weight entries yet")
                 .font(.title3)
-                .foregroundColor(.white)
+                .foregroundColor(Color.ink)
             Text("Tap + to log your weight")
                 .font(.subheadline)
                 .foregroundColor(.slateText)
@@ -394,7 +394,7 @@ struct LogWeightSheet: View {
                                 .padding()
                                 .background(Color.slateCard)
                                 .cornerRadius(12)
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.ink)
                         }
 
                         // Date picker
@@ -423,7 +423,7 @@ struct LogWeightSheet: View {
                                 .padding()
                                 .background(Color.slateCard)
                                 .cornerRadius(12)
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.ink)
                         }
                     }
                     .padding()

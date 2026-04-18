@@ -180,7 +180,7 @@ struct DiaryView: View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Daily Summary")
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.ink)
 
             if let vm = viewModel {
                 let calorieTarget = profile?.calorieTarget ?? 2000

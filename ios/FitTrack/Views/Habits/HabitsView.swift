@@ -72,7 +72,7 @@ struct MilestoneCelebrationSheet: View {
                 VStack(spacing: 8) {
                     Text("Milestone Reached!")
                         .font(.title.weight(.bold))
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.ink)
                     ForEach(milestones, id: \.self) { m in
                         Text("\(m)-day streak \(emoji(for: m))")
                             .font(.title3)
@@ -89,7 +89,7 @@ struct MilestoneCelebrationSheet: View {
                 } label: {
                     Text("Awesome!")
                         .font(.headline)
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.ink)
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(Color.emerald)
@@ -173,7 +173,7 @@ struct HabitLibrarySheet: View {
                                             .frame(width: 32)
                                         VStack(alignment: .leading, spacing: 2) {
                                             Text(template.name)
-                                                .foregroundColor(.white)
+                                                .foregroundColor(Color.ink)
                                             Text("\(template.weeklyTarget)×/week · \(template.category)")
                                                 .font(.caption)
                                                 .foregroundColor(.slateText)
@@ -272,7 +272,7 @@ struct HabitsView: View {
                 Section {
                     Text(selectedDateString)
                         .font(.headline)
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.ink)
                         .listRowBackground(Color.slateBackground)
                         .listRowSeparator(.hidden)
                 }
@@ -477,7 +477,7 @@ struct HabitsView: View {
                         HStack(alignment: .firstTextBaseline, spacing: 4) {
                             Text("\(hit)/\(total)")
                                 .font(.title2.weight(.bold))
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.ink)
                             Text("on track")
                                 .font(.subheadline)
                                 .foregroundColor(.slateText)
@@ -490,7 +490,7 @@ struct HabitsView: View {
                             .foregroundColor(.slateText)
                         Text("\(lastHit)/\(lastTotal) goals hit")
                             .font(.subheadline)
-                            .foregroundColor(lastHit == lastTotal && lastTotal > 0 ? .emerald : .white)
+                            .foregroundColor(lastHit == lastTotal && lastTotal > 0 ? Color.emerald : Color.ink)
                     }
                     Image(systemName: "chevron.down")
                         .font(.caption)
@@ -515,7 +515,7 @@ struct HabitsView: View {
                                 .frame(width: 20)
                             Text(habit.name)
                                 .font(.subheadline)
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.ink)
                             Spacer()
                             Text("\(completed)/\(target) days")
                                 .font(.caption)
@@ -580,7 +580,7 @@ struct HabitsView: View {
                 }
                 .buttonStyle(.plain)
                 Spacer()
-                Text(monthYearString).font(.headline).foregroundColor(.white)
+                Text(monthYearString).font(.headline).foregroundColor(Color.ink)
                 Spacer()
                 Button {
                     displayedMonth = calendar.date(byAdding: .month, value: 1, to: displayedMonth) ?? displayedMonth
@@ -648,7 +648,7 @@ struct HabitsView: View {
     private var emptyState: some View {
         VStack(spacing: 16) {
             Image(systemName: "checkmark.circle.badge.plus").font(.system(size: 48)).foregroundColor(.slateText)
-            Text("No habits yet").font(.title3).foregroundColor(.white)
+            Text("No habits yet").font(.title3).foregroundColor(Color.ink)
             Text("Tap + to add your first habit").font(.subheadline).foregroundColor(.slateText)
         }
         .frame(maxWidth: .infinity).padding(.vertical, 60)
@@ -679,7 +679,7 @@ struct HabitsView: View {
 
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 6) {
-                        Text(habit.name).font(.body.weight(.medium)).foregroundColor(.white)
+                        Text(habit.name).font(.body.weight(.medium)).foregroundColor(Color.ink)
                         if isHKHabit { Image(systemName: "heart.fill").font(.caption2).foregroundColor(.pink) }
                     }
 
@@ -876,7 +876,7 @@ struct AddHabitSheet: View {
                 .padding()
                 .background(Color.slateCard)
                 .cornerRadius(12)
-                .foregroundColor(.white)
+                .foregroundColor(Color.ink)
         }
     }
 
@@ -888,7 +888,7 @@ struct AddHabitSheet: View {
                 }
             } label: {
                 HStack {
-                    Text(category).foregroundColor(.white)
+                    Text(category).foregroundColor(Color.ink)
                     Spacer()
                     Image(systemName: "chevron.up.chevron.down").font(.caption).foregroundColor(.slateText)
                 }
@@ -911,7 +911,7 @@ struct AddHabitSheet: View {
                             .font(.caption.weight(.semibold))
                             .frame(width: 36, height: 36)
                             .background(scheduledDays.contains(d) ? Color.emerald : Color.slateCard)
-                            .foregroundColor(scheduledDays.contains(d) ? .white : .slateText)
+                            .foregroundColor(scheduledDays.contains(d) ? Color.paper : Color.slateText)
                             .clipShape(Circle())
                     }
                 }
@@ -926,7 +926,7 @@ struct AddHabitSheet: View {
                 .overlay(
                     HStack {
                         Text("\(weeklyTarget) day\(weeklyTarget == 1 ? "" : "s") / week")
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.ink)
                         Spacer()
                     }
                 )
@@ -944,13 +944,13 @@ struct AddHabitSheet: View {
                     .background(Color.slateCard)
                     .cornerRadius(12)
                     .tint(.emerald)
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.ink)
                 if hasReminder {
                     DatePicker("Time", selection: $reminderTime, displayedComponents: .hourAndMinute)
                         .padding()
                         .background(Color.slateCard)
                         .cornerRadius(12)
-                        .colorScheme(.dark)
+                        
                 }
             }
         }
@@ -964,7 +964,7 @@ struct AddHabitSheet: View {
                         Image(systemName: selectedTrigger == nil ? "heart.slash" : (selectedTrigger?.icon ?? "heart.fill"))
                             .foregroundColor(selectedTrigger == nil ? .slateText : .pink)
                         Text(selectedTrigger?.displayName ?? "None — mark manually")
-                            .foregroundColor(selectedTrigger == nil ? .slateText : .white)
+                            .foregroundColor(selectedTrigger == nil ? Color.slateText : Color.paper)
                         Spacer()
                         Image(systemName: "chevron.right").font(.caption).foregroundColor(.slateText)
                     }
@@ -976,7 +976,7 @@ struct AddHabitSheet: View {
                         Spacer()
                         TextField("e.g. \(Int(trigger.defaultThreshold))", text: $thresholdText)
                             .keyboardType(.decimalPad).textFieldStyle(.plain)
-                            .multilineTextAlignment(.trailing).foregroundColor(.white)
+                            .multilineTextAlignment(.trailing).foregroundColor(Color.ink)
                             .frame(width: 100).padding(8).background(Color.slateCard).cornerRadius(8)
                     }
                     .padding().background(Color.slateBackground).cornerRadius(12)
@@ -1013,7 +1013,7 @@ struct AddHabitSheet: View {
                             .overlay(Circle().stroke(Color.white, lineWidth: selectedColor == name ? 3 : 0))
                             .overlay {
                                 if selectedColor == name {
-                                    Image(systemName: "checkmark").font(.caption.bold()).foregroundColor(.white)
+                                    Image(systemName: "checkmark").font(.caption.bold()).foregroundColor(Color.ink)
                                 }
                             }
                     }
@@ -1064,7 +1064,7 @@ struct EditHabitSheet: View {
                         field("Habit Name") {
                             TextField("e.g. Drink water", text: $name)
                                 .textFieldStyle(.plain).padding()
-                                .background(Color.slateCard).cornerRadius(12).foregroundColor(.white)
+                                .background(Color.slateCard).cornerRadius(12).foregroundColor(Color.ink)
                         }
 
                         field("Category") {
@@ -1074,7 +1074,7 @@ struct EditHabitSheet: View {
                                 }
                             } label: {
                                 HStack {
-                                    Text(category).foregroundColor(.white)
+                                    Text(category).foregroundColor(Color.ink)
                                     Spacer()
                                     Image(systemName: "chevron.up.chevron.down").font(.caption).foregroundColor(.slateText)
                                 }
@@ -1093,7 +1093,7 @@ struct EditHabitSheet: View {
                                             .font(.caption.weight(.semibold))
                                             .frame(width: 36, height: 36)
                                             .background(scheduledDays.contains(d) ? Color.emerald : Color.slateCard)
-                                            .foregroundColor(scheduledDays.contains(d) ? .white : .slateText)
+                                            .foregroundColor(scheduledDays.contains(d) ? Color.paper : Color.slateText)
                                             .clipShape(Circle())
                                     }
                                 }
@@ -1106,7 +1106,7 @@ struct EditHabitSheet: View {
                                 .overlay(
                                     HStack {
                                         Text("\(weeklyTarget) day\(weeklyTarget == 1 ? "" : "s") / week")
-                                            .foregroundColor(.white)
+                                            .foregroundColor(Color.ink)
                                         Spacer()
                                     }
                                 )
@@ -1117,10 +1117,10 @@ struct EditHabitSheet: View {
                             VStack(spacing: 8) {
                                 Toggle("Enable reminder", isOn: $hasReminder)
                                     .padding().background(Color.slateCard).cornerRadius(12)
-                                    .tint(.emerald).foregroundColor(.white)
+                                    .tint(.emerald).foregroundColor(Color.ink)
                                 if hasReminder {
                                     DatePicker("Time", selection: $reminderTime, displayedComponents: .hourAndMinute)
-                                        .padding().background(Color.slateCard).cornerRadius(12).colorScheme(.dark)
+                                        .padding().background(Color.slateCard).cornerRadius(12)
                                 }
                             }
                         }
@@ -1132,7 +1132,7 @@ struct EditHabitSheet: View {
                                         Image(systemName: selectedTrigger == nil ? "heart.slash" : (selectedTrigger?.icon ?? "heart.fill"))
                                             .foregroundColor(selectedTrigger == nil ? .slateText : .pink)
                                         Text(selectedTrigger?.displayName ?? "None — mark manually")
-                                            .foregroundColor(selectedTrigger == nil ? .slateText : .white)
+                                            .foregroundColor(selectedTrigger == nil ? Color.slateText : Color.paper)
                                         Spacer()
                                         Image(systemName: "chevron.right").font(.caption).foregroundColor(.slateText)
                                     }
@@ -1144,7 +1144,7 @@ struct EditHabitSheet: View {
                                         Spacer()
                                         TextField("e.g. \(Int(trigger.defaultThreshold))", text: $thresholdText)
                                             .keyboardType(.decimalPad).textFieldStyle(.plain)
-                                            .multilineTextAlignment(.trailing).foregroundColor(.white)
+                                            .multilineTextAlignment(.trailing).foregroundColor(Color.ink)
                                             .frame(width: 100).padding(8).background(Color.slateCard).cornerRadius(8)
                                     }
                                     .padding().background(Color.slateBackground).cornerRadius(12)
@@ -1177,7 +1177,7 @@ struct EditHabitSheet: View {
                                             .overlay(Circle().stroke(Color.white, lineWidth: selectedColor == cName ? 3 : 0))
                                             .overlay {
                                                 if selectedColor == cName {
-                                                    Image(systemName: "checkmark").font(.caption.bold()).foregroundColor(.white)
+                                                    Image(systemName: "checkmark").font(.caption.bold()).foregroundColor(Color.ink)
                                                 }
                                             }
                                     }
@@ -1272,7 +1272,7 @@ struct HKTriggerPickerSheet: View {
                     } label: {
                         HStack {
                             Image(systemName: "hand.raised.slash").frame(width: 28).foregroundColor(.slateText)
-                            Text("None — mark manually").foregroundColor(.white)
+                            Text("None — mark manually").foregroundColor(Color.ink)
                             Spacer()
                             if selected == nil { Image(systemName: "checkmark").foregroundColor(.emerald) }
                         }
@@ -1288,7 +1288,7 @@ struct HKTriggerPickerSheet: View {
                             HStack {
                                 Image(systemName: trigger.icon).frame(width: 28).foregroundColor(.pink)
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text(trigger.displayName).foregroundColor(.white)
+                                    Text(trigger.displayName).foregroundColor(Color.ink)
                                     Text("Default: \(Int(trigger.defaultThreshold)) \(trigger.unit)").font(.caption).foregroundColor(.slateText)
                                 }
                                 Spacer()

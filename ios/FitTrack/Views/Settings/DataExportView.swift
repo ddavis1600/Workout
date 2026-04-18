@@ -41,7 +41,7 @@ struct DataExportView: View {
                         }
                         Spacer()
                     }
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.ink)
                     .padding(.vertical, 4)
                 }
                 .listRowBackground(Color.emerald)

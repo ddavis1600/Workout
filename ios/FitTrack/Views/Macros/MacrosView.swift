@@ -101,7 +101,7 @@ struct MacrosView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Entry Mode")
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.ink)
             Picker("Mode", selection: $manualMode) {
                 Text("Calculate").tag(false)
                 Text("Manual Entry").tag(true)
@@ -116,7 +116,7 @@ struct MacrosView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Set Your Macros")
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.ink)
 
             VStack(spacing: 14) {
                 macroField(label: "Daily Calories (kcal)", text: $manualCalories)
@@ -154,7 +154,7 @@ struct MacrosView: View {
                 .padding(12)
                 .background(Color.slateBackground)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.ink)
         }
     }
 
@@ -164,7 +164,7 @@ struct MacrosView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Unit System")
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.ink)
             Picker("Unit System", selection: $unitSystem) {
                 Text("Imperial").tag("imperial")
                 Text("Metric").tag("metric")
@@ -210,7 +210,7 @@ struct MacrosView: View {
         } label: {
             Label("Calculate Macros", systemImage: "function")
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.ink)
                 .frame(maxWidth: .infinity)
                 .padding()
                 .background(isFormValid ? Color.blue : Color.blue.opacity(0.4))
@@ -236,7 +236,7 @@ struct MacrosView: View {
                     .foregroundStyle(Color.slateText)
                 Text("\(Int(previewTDEE))")
                     .font(.system(size: 42, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.ink)
                 Text("calories / day")
                     .font(.caption)
                     .foregroundStyle(Color.slateText)
@@ -288,7 +288,7 @@ struct MacrosView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Adjust Macro Split")
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.ink)
 
             if let targets = previewTargets {
                 let cal = targets.calories
@@ -296,7 +296,7 @@ struct MacrosView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text("Protein")
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Color.ink)
                         Spacer()
                         Text("\(Int(cal * proteinPct / 4))g (\(Int(proteinPct * 100))%)")
                             .foregroundStyle(.blue)
@@ -308,7 +308,7 @@ struct MacrosView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text("Carbs")
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Color.ink)
                         Spacer()
                         Text("\(Int(cal * carbsPct / 4))g (\(Int(carbsPct * 100))%)")
                             .foregroundStyle(.orange)
@@ -320,7 +320,7 @@ struct MacrosView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text("Fat")
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Color.ink)
                         Spacer()
                         Text("\(Int(cal * fatPct / 9))g (\(Int(fatPct * 100))%)")
                             .foregroundStyle(.pink)
@@ -405,7 +405,7 @@ struct MacrosView: View {
         } label: {
             Text("Save Profile")
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.ink)
                 .frame(maxWidth: .infinity)
                 .padding()
                 .background(Color.emerald)
@@ -426,7 +426,7 @@ struct MacrosView: View {
                         .foregroundStyle(Color.emerald)
                     Text("Saved Targets")
                         .font(.headline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.ink)
                 }
 
                 HStack(spacing: 0) {
@@ -469,7 +469,7 @@ struct MacrosView: View {
             Spacer()
             Text("Profile saved!")
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.ink)
                 .padding(.horizontal, 24)
                 .padding(.vertical, 12)
                 .background(Color.emerald)

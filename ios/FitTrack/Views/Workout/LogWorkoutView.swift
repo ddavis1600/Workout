@@ -152,7 +152,7 @@ struct LogWorkoutView: View {
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text("\(Int(bpm))")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.ink)
                 Text("BPM")
                     .font(.caption.weight(.medium))
                     .foregroundStyle(Color.slateText)
@@ -242,12 +242,12 @@ struct LogWorkoutView: View {
                 .padding(12)
                 .background(Color.slateCard)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.ink)
 
             DatePicker("Date", selection: $workoutDate, displayedComponents: .date)
                 .datePickerStyle(.compact)
                 .tint(.emerald)
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.ink)
                 .padding(12)
                 .background(Color.slateCard)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -258,7 +258,7 @@ struct LogWorkoutView: View {
                 .padding(12)
                 .background(Color.slateCard)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.ink)
         }
     }
 

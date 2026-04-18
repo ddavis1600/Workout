@@ -31,7 +31,7 @@ struct MacroRing: View {
                 VStack(spacing: 0) {
                     Text("\(Int(current))")
                         .font(.system(.body, design: .rounded, weight: .bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.ink)
                     Text("/ \(Int(target))")
                         .font(.system(.caption2, design: .rounded))
                         .foregroundStyle(Color.slateText)

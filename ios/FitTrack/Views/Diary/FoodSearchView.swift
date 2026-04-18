@@ -244,7 +244,7 @@ struct FoodSearchView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(food.name)
                             .font(.subheadline.weight(.medium))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Color.ink)
                         HStack(spacing: 8) {
                             if let brand = food.brand, !brand.isEmpty {
                                 Text(brand)
@@ -304,7 +304,7 @@ struct FoodSearchView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(result.name)
                             .font(.subheadline.weight(.medium))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Color.ink)
                             .lineLimit(2)
                         HStack(spacing: 8) {
                             if let brand = result.brand, !brand.isEmpty {
@@ -356,7 +356,7 @@ struct FoodSearchView: View {
             HStack {
                 Text("Servings")
                     .font(.subheadline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.ink)
                 Spacer()
                 Button {
                     if servings > 0.5 {
@@ -369,7 +369,7 @@ struct FoodSearchView: View {
 
                 Text("\(servings, specifier: "%.1f")")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.ink)
                     .frame(width: 40, alignment: .center)
 
                 Button {
@@ -388,7 +388,7 @@ struct FoodSearchView: View {
                 Spacer()
                 Text("\(Int(food.calories * servings)) kcal")
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.ink)
             }
 
             // Add button
@@ -398,7 +398,7 @@ struct FoodSearchView: View {
             } label: {
                 Text("Add")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.ink)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
                     .background(Color.emerald)
@@ -426,7 +426,7 @@ struct FoodSearchView: View {
             HStack {
                 Text("Servings")
                     .font(.subheadline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.ink)
                 Spacer()
                 Button {
                     if apiServings > 0.5 {
@@ -439,7 +439,7 @@ struct FoodSearchView: View {
 
                 Text("\(apiServings, specifier: "%.1f")")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.ink)
                     .frame(width: 40, alignment: .center)
 
                 Button {
@@ -458,7 +458,7 @@ struct FoodSearchView: View {
                 Spacer()
                 Text("\(Int(result.calories * apiServings)) kcal")
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.ink)
             }
 
             // Add button
@@ -467,7 +467,7 @@ struct FoodSearchView: View {
             } label: {
                 Text("Add")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.ink)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
                     .background(Color.emerald)

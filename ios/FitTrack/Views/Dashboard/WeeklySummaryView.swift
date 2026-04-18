@@ -106,7 +106,7 @@ struct WeeklySummaryView: View {
         VStack(alignment: .leading, spacing: 14) {
             Text("This Week")
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.ink)
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                 summaryCard(
@@ -181,7 +181,7 @@ struct WeeklySummaryView: View {
 
             Text(value)
                 .font(.title3.weight(.bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.ink)
 
             if let diff = comparison {
                 HStack(spacing: 2) {

@@ -56,7 +56,7 @@ struct NotificationSettingsView: View {
             Section {
                 Toggle(isOn: $workoutReminderEnabled) {
                     Label("Workout Reminders", systemImage: "dumbbell.fill")
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.ink)
                 }
                 .tint(.emerald)
                 .listRowBackground(Color.slateCard)
@@ -73,13 +73,13 @@ struct NotificationSettingsView: View {
                 if workoutReminderEnabled {
                     DatePicker("Time", selection: workoutTime, displayedComponents: .hourAndMinute)
                         .tint(.emerald)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.ink)
                         .listRowBackground(Color.slateCard)
 
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Days")
                             .font(.subheadline)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Color.ink)
 
                         HStack(spacing: 6) {
                             ForEach(1...7, id: \.self) { day in
@@ -91,7 +91,7 @@ struct NotificationSettingsView: View {
                                         .font(.system(size: 12, weight: .medium))
                                         .frame(width: 36, height: 36)
                                         .background(isSelected ? Color.emerald : Color.slateBackground)
-                                        .foregroundStyle(isSelected ? .white : Color.slateText)
+                                        .foregroundStyle(isSelected ? Color.paper : Color.slateText)
                                         .clipShape(Circle())
                                 }
                                 .buttonStyle(.plain)
@@ -108,7 +108,7 @@ struct NotificationSettingsView: View {
             Section {
                 Toggle(isOn: $habitReminderEnabled) {
                     Label("Habit Reminders", systemImage: "checkmark.circle.fill")
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.ink)
                 }
                 .tint(.emerald)
                 .listRowBackground(Color.slateCard)
@@ -124,7 +124,7 @@ struct NotificationSettingsView: View {
                 if habitReminderEnabled {
                     DatePicker("Time", selection: habitTime, displayedComponents: .hourAndMinute)
                         .tint(.emerald)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.ink)
                         .listRowBackground(Color.slateCard)
                 }
             } header: {

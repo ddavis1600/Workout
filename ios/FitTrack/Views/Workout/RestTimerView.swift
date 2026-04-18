@@ -25,7 +25,7 @@ struct RestTimerView: View {
             HStack {
                 Text("Rest Timer")
                     .font(.headline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.ink)
                 Spacer()
                 Button {
                     stopTimer()
@@ -52,7 +52,7 @@ struct RestTimerView: View {
                 VStack(spacing: 2) {
                     Text(formattedTime)
                         .font(.system(size: 32, weight: .bold, design: .monospaced))
-                        .foregroundStyle(isFinished ? .green : .white)
+                        .foregroundStyle(isFinished ? Color.emerald : Color.ink)
                     if isFinished {
                         Text("Done!")
                             .font(.caption.weight(.semibold))
@@ -80,7 +80,7 @@ struct RestTimerView: View {
                 } label: {
                     Text("Skip")
                         .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.ink)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
                         .background(Color.slateBackground)

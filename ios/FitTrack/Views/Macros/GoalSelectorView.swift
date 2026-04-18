@@ -20,7 +20,7 @@ struct GoalSelectorView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Goal")
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.ink)
 
             HStack(spacing: 10) {
                 ForEach(goals, id: \.key) { goal in
@@ -41,7 +41,7 @@ struct GoalSelectorView: View {
             VStack(spacing: 6) {
                 Text(goal.title)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(isSelected ? .white : Color.slateText)
+                    .foregroundStyle(isSelected ? Color.paper : Color.slateText)
 
                 Text(goal.adjustment)
                     .font(.caption.weight(.medium))

@@ -25,7 +25,7 @@ struct RecentWorkoutsCard: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(displayName)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.ink)
                 Text(workout.date, format: .dateTime.month(.abbreviated).day().year())
                     .font(.caption)
                     .foregroundStyle(Color.slateText)

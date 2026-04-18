@@ -20,7 +20,7 @@ struct TemplateListView: View {
                             .foregroundStyle(Color.slateText)
                         Text("No templates yet")
                             .font(.title3.weight(.semibold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Color.ink)
                         Text("Save a workout as a template to reuse it later.")
                             .font(.subheadline)
                             .foregroundStyle(Color.slateText)
@@ -37,7 +37,7 @@ struct TemplateListView: View {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(template.name)
                                         .font(.subheadline.weight(.semibold))
-                                        .foregroundStyle(.white)
+                                        .foregroundStyle(Color.ink)
                                     let exerciseNames = template.exercises
                                         .sorted { $0.sortOrder < $1.sortOrder }
                                         .map(\.exerciseName)

@@ -19,7 +19,7 @@ struct BodyMeasurementsView: View {
                             .foregroundStyle(Color.slateText)
                         Text("No measurements yet")
                             .font(.title3.weight(.semibold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Color.ink)
                         Text("Tap + to record your body measurements.")
                             .font(.subheadline)
                             .foregroundStyle(Color.slateText)
@@ -78,7 +78,7 @@ struct BodyMeasurementsView: View {
         return VStack(alignment: .leading, spacing: 12) {
             Text("Waist Trend")
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.ink)
 
             if waistData.count >= 2 {
                 Chart {
@@ -121,7 +121,7 @@ struct BodyMeasurementsView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(m.date.formatted(as: "MMM d, yyyy"))
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.ink)
 
             let items: [(String, Double?)] = [
                 ("Chest", m.chest), ("Waist", m.waist), ("Hips", m.hips),
@@ -184,7 +184,7 @@ struct AddMeasurementSheet: View {
                         DatePicker("Date", selection: $date, displayedComponents: .date)
                             .datePickerStyle(.compact)
                             .tint(.emerald)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Color.ink)
                             .padding(12)
                             .background(Color.slateCard)
                             .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -226,7 +226,7 @@ struct AddMeasurementSheet: View {
             .padding(12)
             .background(Color.slateCard)
             .clipShape(RoundedRectangle(cornerRadius: 10))
-            .foregroundStyle(.white)
+            .foregroundStyle(Color.ink)
     }
 
     private func save() {

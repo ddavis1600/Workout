@@ -39,7 +39,7 @@ struct MealSectionView: View {
             HStack {
                 Text(mealType.capitalized)
                     .font(.headline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.ink)
                 Spacer()
                 Text("\(Int(mealCalories)) kcal")
                     .font(.subheadline.weight(.medium))
@@ -92,7 +92,7 @@ struct MealSectionView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(entry.food?.name ?? "Unknown")
                                 .font(.subheadline)
-                                .foregroundStyle(.white)
+                                .foregroundStyle(Color.ink)
                             Text("\(entry.servings, specifier: "%.1f") serving\(entry.servings == 1 ? "" : "s")")
                                 .font(.caption)
                                 .foregroundStyle(Color.slateText)

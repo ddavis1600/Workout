@@ -55,7 +55,7 @@ struct SettingsView: View {
                                     .foregroundColor(.emerald)
                                     .frame(width: 24)
                                 Text(item.label)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(Color.ink)
                             }
                         }
                         .tint(.emerald)
@@ -77,7 +77,7 @@ struct SettingsView: View {
                                 .foregroundColor(.emerald)
                                 .frame(width: 24)
                             Text("Rest Timer")
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.ink)
                         }
                     }
                     .tint(.emerald)
@@ -97,7 +97,7 @@ struct SettingsView: View {
                                     .foregroundColor(.emerald)
                                     .frame(width: 24)
                                 Text("Duration")
-                                    .foregroundColor(.white)
+                                    .foregroundColor(Color.ink)
                             }
                         }
                         .tint(.emerald)
@@ -116,7 +116,7 @@ struct SettingsView: View {
                                 .frame(width: 24)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Show Net Carbs")
-                                    .foregroundColor(.white)
+                                    .foregroundColor(Color.ink)
                                 Text("Subtracts fiber from carbs in all displays")
                                     .font(.caption)
                                     .foregroundColor(.slateText)
@@ -141,7 +141,7 @@ struct SettingsView: View {
                                 .foregroundColor(.emerald)
                                 .frame(width: 24)
                             Text("Theme")
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.ink)
                         }
                     }
                     .tint(.emerald)
@@ -160,7 +160,7 @@ struct SettingsView: View {
                                 .foregroundColor(.emerald)
                                 .frame(width: 24)
                             Text("Notifications")
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.ink)
                         }
                     }
                     .listRowBackground(Color.slateCard)
@@ -173,7 +173,7 @@ struct SettingsView: View {
                                 .foregroundColor(.emerald)
                                 .frame(width: 24)
                             Text("Export Data")
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.ink)
                         }
                     }
                     .listRowBackground(Color.slateCard)
@@ -185,7 +185,7 @@ struct SettingsView: View {
                 Section {
                     HStack {
                         Text("Version")
-                            .foregroundColor(.white)
+                            .foregroundColor(Color.ink)
                         Spacer()
                         Text("1.0")
                             .foregroundColor(.slateText)

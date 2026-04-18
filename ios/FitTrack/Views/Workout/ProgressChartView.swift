@@ -53,7 +53,7 @@ struct ProgressChartView: View {
             } label: {
                 HStack {
                     Text(selectedExercise?.name ?? "Select an exercise")
-                        .foregroundStyle(selectedExercise != nil ? .white : Color.slateText)
+                        .foregroundStyle(selectedExercise != nil ? Color.paper : Color.slateText)
                     Spacer()
                     Image(systemName: "chevron.up.chevron.down")
                         .foregroundStyle(Color.slateText)
@@ -89,7 +89,7 @@ struct ProgressChartView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Max Weight Over Time")
                         .font(.headline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.ink)
 
                     Chart {
                         ForEach(chartData, id: \.date) { point in
@@ -147,7 +147,7 @@ struct ProgressChartView: View {
                 .foregroundStyle(Color.slateText)
             Text(title)
                 .font(.title3.weight(.semibold))
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.ink)
             Text(subtitle)
                 .font(.subheadline)
                 .foregroundStyle(Color.slateText)

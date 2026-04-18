@@ -20,7 +20,7 @@ struct PRHistoryView: View {
                         .foregroundStyle(Color.slateText)
                     Text("No personal records yet")
                         .font(.title3.weight(.semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.ink)
                     Text("Log workouts to start tracking your PRs")
                         .font(.subheadline)
                         .foregroundStyle(Color.slateText)
@@ -56,7 +56,7 @@ struct PRHistoryView: View {
                     .foregroundStyle(.yellow)
                 Text(name)
                     .font(.headline)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.ink)
             }
 
             ForEach(records, id: \.type.rawValue) { record in
@@ -72,7 +72,7 @@ struct PRHistoryView: View {
                     Spacer()
                     Text(formattedValue(record))
                         .font(.title3.weight(.bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.ink)
                 }
                 .padding(10)
                 .background(Color.slateBackground)

@@ -46,7 +46,7 @@ struct ContentView: View {
     }
 
     @State private var selectedTab: Tab = .dashboard
-    @AppStorage("appTheme") private var appTheme = "dark"
+    @AppStorage("appTheme") private var appTheme = "light"
     @ObservedObject private var watchManager = WatchConnectivityManager.shared
 
     // Tab visibility from UserDefaults
@@ -112,7 +112,7 @@ struct ContentView: View {
             .background(Color.slateCard)
         }
         .ignoresSafeArea(.keyboard)
-        .preferredColorScheme(appTheme == "system" ? nil : appTheme == "light" ? .light : .dark)
+        .preferredColorScheme(.light)
         .onChange(of: visibleTabs) { _, newTabs in
             if !newTabs.contains(selectedTab) {
                 selectedTab = newTabs.first ?? .settings

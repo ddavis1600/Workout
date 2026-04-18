@@ -25,7 +25,7 @@ struct MacroTargetsView: View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Your Targets")
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.ink)
 
             // Total Calories
             HStack {
@@ -65,7 +65,7 @@ struct MacroTargetsView: View {
 
             Text("\(Int(grams))g")
                 .font(.title3.weight(.bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.ink)
 
             Text(label)
                 .font(.caption.weight(.medium))

@@ -20,7 +20,7 @@ struct SaveTemplateSheet: View {
                         .padding(12)
                         .background(Color.slateCard)
                         .clipShape(RoundedRectangle(cornerRadius: 10))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.ink)
 
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Exercises")
@@ -31,7 +31,7 @@ struct SaveTemplateSheet: View {
                             HStack {
                                 Text(group.exerciseName)
                                     .font(.subheadline)
-                                    .foregroundStyle(.white)
+                                    .foregroundStyle(Color.ink)
                                 Spacer()
                                 Text("\(group.setCount) sets")
                                     .font(.caption)

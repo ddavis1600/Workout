@@ -71,7 +71,7 @@ struct BodyStatsForm: View {
     private func sectionHeader(_ title: String) -> some View {
         Text(title)
             .font(.headline)
-            .foregroundStyle(.white)
+            .foregroundStyle(Color.ink)
             .frame(maxWidth: .infinity, alignment: .leading)
     }
 
@@ -86,7 +86,7 @@ struct BodyStatsForm: View {
                 .padding(12)
                 .background(Color.slateBackground)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.ink)
         }
     }
 }

@@ -54,7 +54,7 @@ struct HabitDetailView: View {
     private func statCard(_ value: String, _ label: String, _ emoji: String) -> some View {
         VStack(spacing: 6) {
             Text(emoji).font(.title2)
-            Text(value).font(.title2.weight(.bold)).foregroundColor(.white)
+            Text(value).font(.title2.weight(.bold)).foregroundColor(Color.ink)
             Text(label).font(.caption).foregroundColor(.slateText)
         }
         .frame(maxWidth: .infinity)
@@ -68,7 +68,7 @@ struct HabitDetailView: View {
     private var heatmapSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Last 12 Weeks")
-                .font(.headline).foregroundColor(.white)
+                .font(.headline).foregroundColor(Color.ink)
 
             HStack(alignment: .top, spacing: 6) {
                 VStack(spacing: 4) {
@@ -118,7 +118,7 @@ struct HabitDetailView: View {
 
     private var badgesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Badges Earned").font(.headline).foregroundColor(.white)
+            Text("Badges Earned").font(.headline).foregroundColor(Color.ink)
             HStack(spacing: 20) {
                 ForEach(habit.earnedBadges.sorted(), id: \.self) { m in
                     VStack(spacing: 4) {

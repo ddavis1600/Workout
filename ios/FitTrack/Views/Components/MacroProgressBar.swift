@@ -27,7 +27,7 @@ struct MacroProgressBar: View {
             HStack {
                 Text(label)
                     .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.ink)
                 Spacer()
                 Text("\(Int(current))\(unit) / \(Int(target))\(unit)")
                     .font(.caption)
