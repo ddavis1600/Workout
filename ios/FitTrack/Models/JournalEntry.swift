@@ -11,6 +11,7 @@ final class JournalEntry {
     var audioFileName: String?      // filename in app documents
     var audioDuration: Double?      // seconds
     var createdAt: Date = Date()
+    var updatedAt: Date? = nil
 
     init(
         date: Date = Date(),
@@ -29,6 +30,7 @@ final class JournalEntry {
         self.audioFileName = audioFileName
         self.audioDuration = audioDuration
         self.createdAt = Date()
+        self.updatedAt = nil
     }
 
     /// Full path to audio file in documents directory
