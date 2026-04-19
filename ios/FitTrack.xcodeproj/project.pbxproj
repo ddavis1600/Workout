@@ -47,6 +47,7 @@
 		A10000000000000000000021 /* WorkoutDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000021 /* WorkoutDetailView.swift */; };
 		A10000000000000000000022 /* WorkoutListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000022 /* WorkoutListView.swift */; };
 		A1000000000000000000009A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000009A /* Assets.xcassets */; };
+		PRIV100000000000000000001 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = PRIV200000000000000000001 /* PrivacyInfo.xcprivacy */; };
 		B267CBA7DAFCBFFA4641AFB5 /* WatchContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 386ACDE9B9AE78D3BE830989 /* WatchContentView.swift */; };
 		C10000000000000000000001 /* Habit.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000000000000000000001 /* Habit.swift */; };
 		C10000000000000000000002 /* HabitCompletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20000000000000000000002 /* HabitCompletion.swift */; };
@@ -106,6 +107,7 @@
 		47883AB36CFCAEA904FA873E /* FitTrack Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "FitTrack Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		82FC10748D15A43C3CCAE52C /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A20000000000000000000001 /* FitTrackApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitTrackApp.swift; sourceTree = "<group>"; };
+		PRIV200000000000000000001 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		A20000000000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A20000000000000000000003 /* DataController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataController.swift; sourceTree = "<group>"; };
 		A20000000000000000000004 /* DiaryEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaryEntry.swift; sourceTree = "<group>"; };
@@ -223,6 +225,7 @@
 			children = (
 				A2000000000000000000009A /* Assets.xcassets */,
 				A20000000000000000000001 /* FitTrackApp.swift */,
+				PRIV200000000000000000001 /* PrivacyInfo.xcprivacy */,
 				A20000000000000000000002 /* ContentView.swift */,
 				A40000000000000000000010 /* Data */,
 				A40000000000000000000004 /* Models */,
@@ -542,6 +545,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1000000000000000000009A /* Assets.xcassets in Resources */,
+				PRIV100000000000000000001 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
