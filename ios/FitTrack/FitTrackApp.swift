@@ -1,48 +1,63 @@
 import SwiftUI
 import SwiftData
 import WatchConnectivity
+import os.log
 
 @main
 struct FitTrackApp: App {
     let container: ModelContainer
 
     init() {
-        let schema = Schema([
-            Exercise.self,
-            Workout.self,
-            WorkoutSet.self,
-            UserProfile.self,
-            Food.self,
-            DiaryEntry.self,
-            Habit.self,
-            HabitCompletion.self,
-            WeightEntry.self,
-            JournalEntry.self,
-            WorkoutTemplate.self,
-            TemplateExercise.self,
-            BodyMeasurement.self,
-            FoodFavorite.self,
-            ProgressPhoto.self,
-        ])
-
-        let config = ModelConfiguration(schema: schema, cloudKitDatabase: .none)
+        let config = ModelConfiguration(cloudKitDatabase: .none)
 
         do {
-            container = try ModelContainer(for: schema, configurations: config)
+            container = try ModelContainer(
+                for:
+                    Exercise.self, Workout.self, WorkoutSet.self,
+                    UserProfile.self, Food.self, DiaryEntry.self,
+                    Habit.self, HabitCompletion.self,
+                    WeightEntry.self, JournalEntry.self,
+                    WorkoutTemplate.self, TemplateExercise.self,
+                    BodyMeasurement.self, FoodFavorite.self, ProgressPhoto.self,
+                migrationPlan: FitTrackMigrationPlan.self,
+                configurations: config
+            )
         } catch {
-            // Schema changed — delete old store and companion WAL/SHM files, then retry
+#if DEBUG
+            // DEBUG-only escape hatch: wipe the local store to unblock
+            // iterative schema changes during development. This block is
+            // compiled out of Release builds — production users always see
+            // the fatalError below instead of silent data loss.
+            let log = Logger(subsystem: "com.danieldavis16.fittrack", category: "storage")
+            log.warning("⚠️ ModelContainer init failed in DEBUG — wiping store: \(error)")
             let url = config.url
-            try? FileManager.default.removeItem(at: url)
-            try? FileManager.default.removeItem(at: URL(fileURLWithPath: url.path + "-wal"))
-            try? FileManager.default.removeItem(at: URL(fileURLWithPath: url.path + "-shm"))
+            [url,
+             URL(fileURLWithPath: url.path + "-wal"),
+             URL(fileURLWithPath: url.path + "-shm")]
+                .forEach { try? FileManager.default.removeItem(at: $0) }
             do {
-                container = try ModelContainer(for: schema, configurations: config)
+                container = try ModelContainer(
+                    for:
+                        Exercise.self, Workout.self, WorkoutSet.self,
+                        UserProfile.self, Food.self, DiaryEntry.self,
+                        Habit.self, HabitCompletion.self,
+                        WeightEntry.self, JournalEntry.self,
+                        WorkoutTemplate.self, TemplateExercise.self,
+                        BodyMeasurement.self, FoodFavorite.self, ProgressPhoto.self,
+                    migrationPlan: FitTrackMigrationPlan.self,
+                    configurations: config
+                )
             } catch {
-                fatalError("Failed to create ModelContainer: \(error)")
+                fatalError("ModelContainer failed even after DEBUG store wipe: \(error)")
             }
+#else
+            // In production, a failed migration is a hard stop.
+            // Add a new SchemaMigrationPlan stage for any schema change
+            // before shipping rather than silently wiping user data.
+            fatalError("ModelContainer init failed — add a migration stage for this schema change: \(error)")
+#endif
         }
 
-        // Seed data on first launch
         let context = ModelContext(container)
         DataController.seedDataIfNeeded(context: context)
 

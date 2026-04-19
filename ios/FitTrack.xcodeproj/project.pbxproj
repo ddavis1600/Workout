@@ -13,6 +13,7 @@
 		69B448E53E2E01493B6767E7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3C946087B78751B8870890B4 /* Assets.xcassets */; };
 		7836344C2451134116929FF4 /* FitTrack Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = FFA64365D10993F43A4738C5 /* FitTrack Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		A10000000000000000000001 /* FitTrackApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* FitTrackApp.swift */; };
+		MIGR100000000000000000001 /* FitTrackMigrationPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = MIGR200000000000000000001 /* FitTrackMigrationPlan.swift */; };
 		A10000000000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* ContentView.swift */; };
 		A10000000000000000000003 /* DataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* DataController.swift */; };
 		A10000000000000000000004 /* DiaryEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* DiaryEntry.swift */; };
@@ -106,6 +107,7 @@
 		47883AB36CFCAEA904FA873E /* FitTrack Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "FitTrack Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		82FC10748D15A43C3CCAE52C /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A20000000000000000000001 /* FitTrackApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitTrackApp.swift; sourceTree = "<group>"; };
+		MIGR200000000000000000001 /* FitTrackMigrationPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitTrackMigrationPlan.swift; sourceTree = "<group>"; };
 		A20000000000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A20000000000000000000003 /* DataController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataController.swift; sourceTree = "<group>"; };
 		A20000000000000000000004 /* DiaryEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaryEntry.swift; sourceTree = "<group>"; };
@@ -223,6 +225,7 @@
 			children = (
 				A2000000000000000000009A /* Assets.xcassets */,
 				A20000000000000000000001 /* FitTrackApp.swift */,
+				MIGR200000000000000000001 /* FitTrackMigrationPlan.swift */,
 				A20000000000000000000002 /* ContentView.swift */,
 				A40000000000000000000010 /* Data */,
 				A40000000000000000000004 /* Models */,
@@ -573,6 +576,7 @@
 			files = (
 				D00000000000000000000001 /* FoodAPIService.swift in Sources */,
 				A10000000000000000000001 /* FitTrackApp.swift in Sources */,
+				MIGR100000000000000000001 /* FitTrackMigrationPlan.swift in Sources */,
 				A10000000000000000000002 /* ContentView.swift in Sources */,
 				A10000000000000000000003 /* DataController.swift in Sources */,
 				A10000000000000000000004 /* DiaryEntry.swift in Sources */,
