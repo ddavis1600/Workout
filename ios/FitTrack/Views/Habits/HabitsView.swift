@@ -779,15 +779,8 @@ struct AddHabitSheet: View {
     @State private var reminderTime = Calendar.current.date(bySettingHour: 8, minute: 0, second: 0, of: Date()) ?? Date()
     @State private var weeklyTarget = 7
     @State private var category = "Custom"
+    @State private var showingIconPicker = false
 
-    private let icons = [
-        "checkmark.circle", "drop.fill", "bed.double.fill",
-        "figure.walk", "pill.fill", "book.fill",
-        "heart.fill", "moon.fill", "leaf.fill",
-        "dumbbell.fill", "cup.and.saucer.fill", "brain",
-        "figure.flexibility", "iphone.slash", "snowflake",
-        "pencil", "star.fill", "bolt.fill"
-    ]
     private let colors: [(String, Color)] = [
         ("emerald",.emerald),("blue",.blue),("orange",.orange),("pink",.pink),("purple",.purple)
     ]
@@ -825,6 +818,9 @@ struct AddHabitSheet: View {
             }
             .sheet(isPresented: $showingHKPicker) {
                 HKTriggerPickerSheet(selected: $selectedTrigger, thresholdText: $thresholdText)
+            }
+            .sheet(isPresented: $showingIconPicker) {
+                IconPickerView(selectedIcon: $selectedIcon)
             }
         }
         .presentationDetents([.large])
@@ -988,18 +984,25 @@ struct AddHabitSheet: View {
 
     private var iconPicker: some View {
         field("Icon") {
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 6), spacing: 12) {
-                ForEach(icons, id: \.self) { icon in
-                    Button { selectedIcon = icon } label: {
-                        Image(systemName: icon).font(.title2)
-                            .frame(width: 48, height: 48)
-                            .background(selectedIcon == icon ? Color.emerald.opacity(0.2) : Color.slateCard)
-                            .foregroundColor(selectedIcon == icon ? .emerald : .slateText)
-                            .cornerRadius(10)
-                            .overlay(RoundedRectangle(cornerRadius: 10)
-                                .stroke(selectedIcon == icon ? Color.emerald : Color.clear, lineWidth: 2))
-                    }
+            Button { showingIconPicker = true } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: selectedIcon)
+                        .font(.title2)
+                        .frame(width: 48, height: 48)
+                        .background(Color.emerald.opacity(0.2))
+                        .foregroundColor(.emerald)
+                        .cornerRadius(10)
+                    Text("Tap to browse icons")
+                        .font(.subheadline)
+                        .foregroundColor(.slateText)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundColor(.slateText)
                 }
+                .padding()
+                .background(Color.slateCard)
+                .cornerRadius(12)
             }
         }
     }
@@ -1041,15 +1044,8 @@ struct EditHabitSheet: View {
     @State private var reminderTime = Calendar.current.date(bySettingHour: 8, minute: 0, second: 0, of: Date()) ?? Date()
     @State private var weeklyTarget = 7
     @State private var category = "Custom"
+    @State private var showingIconPicker = false
 
-    private let icons = [
-        "checkmark.circle", "drop.fill", "bed.double.fill",
-        "figure.walk", "pill.fill", "book.fill",
-        "heart.fill", "moon.fill", "leaf.fill",
-        "dumbbell.fill", "cup.and.saucer.fill", "brain",
-        "figure.flexibility", "iphone.slash", "snowflake",
-        "pencil", "star.fill", "bolt.fill"
-    ]
     private let colors: [(String, Color)] = [
         ("emerald",.emerald),("blue",.blue),("orange",.orange),("pink",.pink),("purple",.purple)
     ]
@@ -1154,18 +1150,25 @@ struct EditHabitSheet: View {
                         }
 
                         field("Icon") {
-                            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 6), spacing: 12) {
-                                ForEach(icons, id: \.self) { icon in
-                                    Button { selectedIcon = icon } label: {
-                                        Image(systemName: icon).font(.title2)
-                                            .frame(width: 48, height: 48)
-                                            .background(selectedIcon == icon ? Color.emerald.opacity(0.2) : Color.slateCard)
-                                            .foregroundColor(selectedIcon == icon ? .emerald : .slateText)
-                                            .cornerRadius(10)
-                                            .overlay(RoundedRectangle(cornerRadius: 10)
-                                                .stroke(selectedIcon == icon ? Color.emerald : Color.clear, lineWidth: 2))
-                                    }
+                            Button { showingIconPicker = true } label: {
+                                HStack(spacing: 12) {
+                                    Image(systemName: selectedIcon)
+                                        .font(.title2)
+                                        .frame(width: 48, height: 48)
+                                        .background(Color.emerald.opacity(0.2))
+                                        .foregroundColor(.emerald)
+                                        .cornerRadius(10)
+                                    Text("Tap to browse icons")
+                                        .font(.subheadline)
+                                        .foregroundColor(.slateText)
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption)
+                                        .foregroundColor(.slateText)
                                 }
+                                .padding()
+                                .background(Color.slateCard)
+                                .cornerRadius(12)
                             }
                         }
 
@@ -1202,6 +1205,9 @@ struct EditHabitSheet: View {
             }
             .sheet(isPresented: $showingHKPicker) {
                 HKTriggerPickerSheet(selected: $selectedTrigger, thresholdText: $thresholdText)
+            }
+            .sheet(isPresented: $showingIconPicker) {
+                IconPickerView(selectedIcon: $selectedIcon)
             }
         }
         .presentationDetents([.large])
@@ -1309,6 +1315,259 @@ struct HKTriggerPickerSheet: View {
             }
         }
         .presentationDetents([.medium, .large])
+    }
+}
+
+// MARK: - Icon Picker
+
+private struct HabitIcon: Identifiable {
+    let symbol: String
+    let label: String
+    var id: String { symbol }
+}
+
+private struct HabitIconCategory: Identifiable {
+    let name: String
+    let icons: [HabitIcon]
+    var id: String { name }
+}
+
+private let habitIconCategories: [HabitIconCategory] = [
+    .init(name: "Fitness", icons: [
+        .init(symbol: "figure.run",                          label: "Run"),
+        .init(symbol: "figure.walk",                         label: "Walk"),
+        .init(symbol: "figure.strengthtraining.traditional", label: "Lift"),
+        .init(symbol: "figure.yoga",                         label: "Yoga"),
+        .init(symbol: "figure.pool.swim",                    label: "Swim"),
+        .init(symbol: "figure.outdoor.cycle",                label: "Cycle"),
+        .init(symbol: "figure.hiking",                       label: "Hike"),
+        .init(symbol: "figure.dance",                        label: "Dance"),
+        .init(symbol: "figure.mind.and.body",                label: "Mindful"),
+        .init(symbol: "figure.flexibility",                  label: "Stretch"),
+        .init(symbol: "figure.martial.arts",                 label: "Martial Arts"),
+        .init(symbol: "dumbbell.fill",                       label: "Weights"),
+        .init(symbol: "heart.fill",                          label: "Heart Rate"),
+        .init(symbol: "lungs.fill",                          label: "Breathe"),
+    ]),
+    .init(name: "Nutrition", icons: [
+        .init(symbol: "fork.knife",                          label: "Eat"),
+        .init(symbol: "leaf.fill",                           label: "Greens"),
+        .init(symbol: "cup.and.saucer.fill",                 label: "Coffee"),
+        .init(symbol: "mug.fill",                            label: "Hot Drink"),
+        .init(symbol: "waterbottle.fill",                    label: "Water Bottle"),
+        .init(symbol: "drop.fill",                           label: "Hydrate"),
+        .init(symbol: "takeoutbag.and.cup.and.straw.fill",   label: "Meals"),
+        .init(symbol: "flame.fill",                          label: "Calories"),
+    ]),
+    .init(name: "Sleep", icons: [
+        .init(symbol: "bed.double.fill",                     label: "Sleep"),
+        .init(symbol: "moon.fill",                           label: "Night"),
+        .init(symbol: "moon.zzz.fill",                       label: "Rest"),
+        .init(symbol: "moon.stars.fill",                     label: "Bedtime"),
+        .init(symbol: "zzz",                                 label: "Nap"),
+        .init(symbol: "alarm.fill",                          label: "Wake Up"),
+    ]),
+    .init(name: "Mind", icons: [
+        .init(symbol: "brain.head.profile",                  label: "Focus"),
+        .init(symbol: "brain",                               label: "Think"),
+        .init(symbol: "book.fill",                           label: "Read"),
+        .init(symbol: "books.vertical.fill",                 label: "Study"),
+        .init(symbol: "pencil",                              label: "Write"),
+        .init(symbol: "graduationcap.fill",                  label: "Learn"),
+        .init(symbol: "lightbulb.fill",                      label: "Ideas"),
+        .init(symbol: "sparkles",                            label: "Creative"),
+    ]),
+    .init(name: "Productivity", icons: [
+        .init(symbol: "checklist",                           label: "To-Do"),
+        .init(symbol: "checkmark.circle.fill",               label: "Complete"),
+        .init(symbol: "checkmark.circle",                    label: "Done"),
+        .init(symbol: "calendar",                            label: "Schedule"),
+        .init(symbol: "clock.fill",                          label: "Time"),
+        .init(symbol: "hourglass",                           label: "Timer"),
+        .init(symbol: "timer",                               label: "Countdown"),
+        .init(symbol: "target",                              label: "Goals"),
+        .init(symbol: "flag.fill",                           label: "Milestone"),
+        .init(symbol: "iphone.slash",                        label: "Screen Time"),
+    ]),
+    .init(name: "Social", icons: [
+        .init(symbol: "person.2.fill",                       label: "Friends"),
+        .init(symbol: "phone.fill",                          label: "Call"),
+        .init(symbol: "envelope.fill",                       label: "Email"),
+        .init(symbol: "message.fill",                        label: "Message"),
+        .init(symbol: "hand.wave.fill",                      label: "Connect"),
+        .init(symbol: "gift.fill",                           label: "Give"),
+        .init(symbol: "heart.text.square.fill",              label: "Gratitude"),
+    ]),
+    .init(name: "Home", icons: [
+        .init(symbol: "house.fill",                          label: "Home"),
+        .init(symbol: "cart.fill",                           label: "Shopping"),
+        .init(symbol: "trash.fill",                          label: "Clean"),
+        .init(symbol: "bag.fill",                            label: "Errands"),
+        .init(symbol: "washer.fill",                         label: "Laundry"),
+        .init(symbol: "fork.knife.circle.fill",              label: "Cook"),
+        .init(symbol: "archivebox.fill",                     label: "Organize"),
+    ]),
+    .init(name: "Finance", icons: [
+        .init(symbol: "dollarsign.circle.fill",              label: "Budget"),
+        .init(symbol: "creditcard.fill",                     label: "Spending"),
+        .init(symbol: "chart.line.uptrend.xyaxis",           label: "Growth"),
+        .init(symbol: "banknote.fill",                       label: "Cash"),
+        .init(symbol: "chart.bar.fill",                      label: "Stats"),
+        .init(symbol: "arrow.up.arrow.down.circle.fill",     label: "Savings"),
+    ]),
+    .init(name: "Hobbies", icons: [
+        .init(symbol: "music.note",                          label: "Music"),
+        .init(symbol: "guitars.fill",                        label: "Guitar"),
+        .init(symbol: "camera.fill",                         label: "Photography"),
+        .init(symbol: "paintbrush.fill",                     label: "Paint"),
+        .init(symbol: "gamecontroller.fill",                 label: "Gaming"),
+        .init(symbol: "theatermasks",                        label: "Theater"),
+        .init(symbol: "film.fill",                           label: "Film"),
+        .init(symbol: "photo.fill",                          label: "Photos"),
+        .init(symbol: "pencil.and.ruler",                    label: "Design"),
+    ]),
+    .init(name: "Outdoors", icons: [
+        .init(symbol: "sun.max.fill",                        label: "Sunny"),
+        .init(symbol: "cloud.sun.fill",                      label: "Outside"),
+        .init(symbol: "snowflake",                           label: "Cold"),
+        .init(symbol: "airplane",                            label: "Travel"),
+        .init(symbol: "car.fill",                            label: "Drive"),
+        .init(symbol: "bicycle",                             label: "Bike"),
+        .init(symbol: "map.fill",                            label: "Navigate"),
+        .init(symbol: "binoculars.fill",                     label: "Explore"),
+        .init(symbol: "tent.fill",                           label: "Camp"),
+    ]),
+    .init(name: "Wellness", icons: [
+        .init(symbol: "pills.fill",                          label: "Medication"),
+        .init(symbol: "pill.fill",                           label: "Pill"),
+        .init(symbol: "cross.case.fill",                     label: "First Aid"),
+        .init(symbol: "stethoscope",                         label: "Health"),
+        .init(symbol: "eye.fill",                            label: "Vision"),
+        .init(symbol: "hand.raised.fill",                    label: "Self-Care"),
+        .init(symbol: "bandage.fill",                        label: "Recovery"),
+        .init(symbol: "figure.cooldown",                     label: "Cool Down"),
+    ]),
+    .init(name: "Reflection", icons: [
+        .init(symbol: "sun.horizon.fill",                    label: "Sunrise"),
+        .init(symbol: "hands.sparkles",                      label: "Gratitude"),
+        .init(symbol: "star.fill",                           label: "Achievement"),
+        .init(symbol: "bolt.fill",                           label: "Energy"),
+        .init(symbol: "text.bubble.fill",                    label: "Journal"),
+    ]),
+]
+
+struct IconPickerView: View {
+    @Binding var selectedIcon: String
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var searchText = ""
+    @State private var selectedCategory = "All"
+
+    private var categoryNames: [String] {
+        ["All"] + habitIconCategories.map(\.name)
+    }
+
+    private var filteredIcons: [HabitIcon] {
+        let base: [HabitIcon]
+        if selectedCategory == "All" {
+            base = habitIconCategories.flatMap(\.icons)
+        } else {
+            base = habitIconCategories.first { $0.name == selectedCategory }?.icons ?? []
+        }
+        guard !searchText.isEmpty else { return base }
+        let q = searchText.lowercased()
+        return base.filter { $0.label.lowercased().contains(q) || $0.symbol.lowercased().contains(q) }
+    }
+
+    private let columns = [GridItem(.adaptive(minimum: 68), spacing: 12)]
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                categoryScrollView
+                Divider()
+                iconGridView
+            }
+            .background(Color.slateBackground)
+            .navigationTitle("Choose Icon")
+            .navigationBarTitleDisplayMode(.inline)
+            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search icons")
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                        .foregroundStyle(Color.emerald)
+                }
+            }
+        }
+        .presentationDetents([.large])
+    }
+
+    private var categoryScrollView: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(categoryNames, id: \.self) { cat in
+                    Button(cat) {
+                        withAnimation(.easeInOut(duration: 0.15)) {
+                            selectedCategory = cat
+                        }
+                    }
+                    .font(.caption.weight(.medium))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(selectedCategory == cat ? Color.emerald : Color(.systemGray5))
+                    .foregroundStyle(selectedCategory == cat ? Color.white : Color.primary)
+                    .clipShape(Capsule())
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+        }
+    }
+
+    private var iconGridView: some View {
+        ScrollView {
+            if filteredIcons.isEmpty {
+                ContentUnavailableView(
+                    "No icons found",
+                    systemImage: "magnifyingglass",
+                    description: Text("Try a different search term.")
+                )
+                .padding(.top, 60)
+            } else {
+                LazyVGrid(columns: columns, spacing: 12) {
+                    ForEach(filteredIcons) { icon in
+                        iconCell(icon)
+                    }
+                }
+                .padding(16)
+            }
+        }
+    }
+
+    private func iconCell(_ entry: HabitIcon) -> some View {
+        let isSelected = selectedIcon == entry.symbol
+        return Button {
+            selectedIcon = entry.symbol
+        } label: {
+            VStack(spacing: 4) {
+                Image(systemName: entry.symbol)
+                    .font(.system(size: 24))
+                    .frame(width: 40, height: 40)
+                Text(entry.label)
+                    .font(.system(size: 9))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+            .frame(width: 68, height: 76)
+            .background(isSelected ? Color.emerald.opacity(0.2) : Color.slateCard)
+            .foregroundStyle(isSelected ? Color.emerald : Color.primary)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .strokeBorder(isSelected ? Color.emerald : Color.clear, lineWidth: 2)
+            )
+        }
+        .buttonStyle(.plain)
     }
 }
 
