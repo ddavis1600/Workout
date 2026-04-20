@@ -19,7 +19,6 @@ struct FitTrackApp: App {
                     WeightEntry.self, JournalEntry.self,
                     WorkoutTemplate.self, TemplateExercise.self,
                     BodyMeasurement.self, FoodFavorite.self, ProgressPhoto.self,
-                migrationPlan: FitTrackMigrationPlan.self,
                 configurations: config
             )
         } catch {
@@ -44,7 +43,6 @@ struct FitTrackApp: App {
                         WeightEntry.self, JournalEntry.self,
                         WorkoutTemplate.self, TemplateExercise.self,
                         BodyMeasurement.self, FoodFavorite.self, ProgressPhoto.self,
-                    migrationPlan: FitTrackMigrationPlan.self,
                     configurations: config
                 )
             } catch {
