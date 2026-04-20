@@ -25,7 +25,6 @@ class HealthKitManager {
             HKQuantityType(.dietaryCarbohydrates),
             HKQuantityType(.dietaryFatTotal),
             HKWorkoutType.workoutType(),
-            HKCorrelationType(.food),
         ]
         if let mindful = HKObjectType.categoryType(forIdentifier: .mindfulSession) {
             types.insert(mindful)
