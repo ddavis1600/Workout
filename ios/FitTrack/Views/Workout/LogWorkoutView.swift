@@ -473,11 +473,10 @@ struct LogWorkoutView: View {
         heartRateService.stopMonitoring()
         WatchConnectivityManager.shared.sendStopWorkout()
 
-        let workoutEndDate = Date()
+        let workoutEndDate   = Date()
         let workoutStartDate = workoutEndDate.addingTimeInterval(-Double(max(elapsedSeconds, 1)))
-        Task { await HealthKitManager.shared.saveWorkoutToHealth(startDate: workoutStartDate, endDate: workoutEndDate) }
+        let durationMin      = max(1, Int(round(Double(elapsedSeconds) / 60.0)))
 
-        let durationMin = max(1, Int(round(Double(elapsedSeconds) / 60.0)))
         let workout = Workout(
             name: workoutName,
             date: workoutDate,
@@ -503,12 +502,10 @@ struct LogWorkoutView: View {
         modelContext.insert(workout)
 
         for group in exerciseGroups {
-            // Ensure exercise is in the context
             let exercise = group.exercise
             if exercise.modelContext == nil {
                 modelContext.insert(exercise)
             }
-
             for (index, setEntry) in group.sets.enumerated() {
                 let workoutSet = WorkoutSet(
                     exercise: exercise,
@@ -528,6 +525,17 @@ struct LogWorkoutView: View {
         } catch {
             print("Failed to save workout: \(error)")
         }
+
+        // Write to Apple Health after local save succeeds.
+        // requestAuthorization() is a no-op if permission was already granted;
+        // first-time users see the HK system sheet. If they deny, we skip silently.
+        Task {
+            let hk = HealthKitManager.shared
+            guard hk.isAvailable else { return }
+            _ = await hk.requestAuthorization()
+            await hk.saveWorkoutToHealth(startDate: workoutStartDate, endDate: workoutEndDate)
+        }
+
         viewModel.fetchWorkouts()
         dismiss()
     }
