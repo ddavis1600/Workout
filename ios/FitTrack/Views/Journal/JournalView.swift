@@ -9,6 +9,9 @@ struct JournalView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \JournalEntry.date, order: .reverse) private var entries: [JournalEntry]
     @State private var showingNewEntry = false
+    @State private var entryToEdit: JournalEntry?
+    @State private var entryToDelete: JournalEntry?
+    @State private var showingDeleteAlert = false
 
     var body: some View {
         NavigationStack {
@@ -25,8 +28,23 @@ struct JournalView: View {
                         .listRowBackground(Color.slateBackground)
                         .listRowSeparator(.hidden)
                         .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+                        .swipeActions(edge: .trailing) {
+                            Button(role: .destructive) {
+                                entryToDelete = entry
+                                showingDeleteAlert = true
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
+                        .swipeActions(edge: .leading) {
+                            Button {
+                                entryToEdit = entry
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                            }
+                            .tint(.emerald)
+                        }
                     }
-                    .onDelete(perform: deleteEntries)
                 }
             }
             .listStyle(.plain)
@@ -47,18 +65,30 @@ struct JournalView: View {
             .sheet(isPresented: $showingNewEntry) {
                 NewJournalEntryView()
             }
+            .sheet(item: $entryToEdit) { entry in
+                NewJournalEntryView(entry: entry)
+            }
+            .alert("Delete Entry?", isPresented: $showingDeleteAlert) {
+                Button("Delete", role: .destructive) {
+                    if let entry = entryToDelete {
+                        performDelete(entry)
+                    }
+                    entryToDelete = nil
+                }
+                Button("Cancel", role: .cancel) {
+                    entryToDelete = nil
+                }
+            } message: {
+                Text("This entry will be permanently deleted.")
+            }
         }
     }
 
-    private func deleteEntries(at offsets: IndexSet) {
-        for index in offsets {
-            let entry = entries[index]
-            // Delete audio file if exists
-            if let url = entry.audioURL {
-                try? FileManager.default.removeItem(at: url)
-            }
-            modelContext.delete(entry)
+    private func performDelete(_ entry: JournalEntry) {
+        if let url = entry.audioURL {
+            try? FileManager.default.removeItem(at: url)
         }
+        modelContext.delete(entry)
         try? modelContext.save()
     }
 
@@ -128,21 +158,35 @@ struct NewJournalEntryView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
-    @State private var title = ""
-    @State private var content = ""
-    @State private var selectedMood = ""
-    @State private var selectedPhotoItem: PhotosPickerItem?
-    @State private var photoData: Data?
-    @State private var audioRecorder: AVAudioRecorder?
+    private let entryToEdit: JournalEntry?
+    private let initialAudioFileName: String?
+
+    @State private var title: String
+    @State private var content: String
+    @State private var selectedMood: String
+    @State private var selectedPhotoItem: PhotosPickerItem? = nil
+    @State private var photoData: Data? = nil
+    @State private var audioRecorder: AVAudioRecorder? = nil
     @State private var isRecording = false
-    @State private var audioFileName: String?
-    @State private var audioDuration: Double?
-    @State private var audioPlayer: AVAudioPlayer?
+    @State private var audioFileName: String? = nil
+    @State private var audioDuration: Double? = nil
+    @State private var audioPlayer: AVAudioPlayer? = nil
     @State private var isPlaying = false
     @State private var recordingSeconds: Int = 0
-    @State private var recordingTimer: Timer?
+    @State private var recordingTimer: Timer? = nil
 
     private let moods = ["", "\u{1F60A}", "\u{1F4AA}", "\u{1F60C}", "\u{1F914}", "\u{1F622}", "\u{1F621}", "\u{1F634}", "\u{1F525}", "\u{2764}\u{FE0F}", "\u{2B50}"]
+
+    init(entry: JournalEntry? = nil) {
+        self.entryToEdit = entry
+        self.initialAudioFileName = entry?.audioFileName
+        _title = State(initialValue: entry?.title ?? "")
+        _content = State(initialValue: entry?.content ?? "")
+        _selectedMood = State(initialValue: entry?.mood ?? "")
+        _photoData = State(initialValue: entry?.photoData)
+        _audioFileName = State(initialValue: entry?.audioFileName)
+        _audioDuration = State(initialValue: entry?.audioDuration)
+    }
 
     var body: some View {
         NavigationStack {
@@ -186,7 +230,7 @@ struct NewJournalEntryView: View {
                     .padding()
                 }
             }
-            .navigationTitle("New Entry")
+            .navigationTitle(entryToEdit == nil ? "New Entry" : "Edit Entry")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -472,23 +516,36 @@ struct NewJournalEntryView: View {
 
     private func cleanupUnsavedAudio() {
         stopRecording()
-        deleteAudio()
+        // In edit mode, only delete audio that was newly recorded — not the entry's original file
+        if audioFileName != initialAudioFileName {
+            deleteAudio()
+        }
     }
 
     // MARK: - Save
 
     private func saveEntry() {
         stopRecording()
-        let entry = JournalEntry(
-            date: Date(),
-            title: title,
-            content: content,
-            mood: selectedMood,
-            photoData: photoData,
-            audioFileName: audioFileName,
-            audioDuration: audioDuration
-        )
-        modelContext.insert(entry)
+        if let entry = entryToEdit {
+            entry.title = title
+            entry.content = content
+            entry.mood = selectedMood
+            entry.photoData = photoData
+            entry.audioFileName = audioFileName
+            entry.audioDuration = audioDuration
+            entry.updatedAt = Date()
+        } else {
+            let entry = JournalEntry(
+                date: Date(),
+                title: title,
+                content: content,
+                mood: selectedMood,
+                photoData: photoData,
+                audioFileName: audioFileName,
+                audioDuration: audioDuration
+            )
+            modelContext.insert(entry)
+        }
         try? modelContext.save()
         dismiss()
     }
@@ -504,10 +561,14 @@ struct NewJournalEntryView: View {
 
 struct JournalDetailView: View {
     let entry: JournalEntry
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
     @State private var audioPlayer: AVAudioPlayer?
     @State private var isPlaying = false
     @State private var showingExport = false
     @State private var exportURL: URL?
+    @State private var showingEditEntry = false
+    @State private var showingDeleteAlert = false
 
     var body: some View {
         ZStack {
@@ -588,6 +649,17 @@ struct JournalDetailView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
                     Button {
+                        showingEditEntry = true
+                    } label: {
+                        Label("Edit Entry", systemImage: "pencil")
+                    }
+                    Button(role: .destructive) {
+                        showingDeleteAlert = true
+                    } label: {
+                        Label("Delete Entry", systemImage: "trash")
+                    }
+                    Divider()
+                    Button {
                         exportAsPDF()
                     } label: {
                         Label("Export as PDF", systemImage: "doc.richtext")
@@ -598,7 +670,7 @@ struct JournalDetailView: View {
                         Label("Export as Text", systemImage: "doc.plaintext")
                     }
                 } label: {
-                    Image(systemName: "square.and.arrow.up")
+                    Image(systemName: "ellipsis.circle")
                         .foregroundColor(.emerald)
                 }
             }
@@ -608,9 +680,29 @@ struct JournalDetailView: View {
                 ShareSheet(activityItems: [url])
             }
         }
+        .sheet(isPresented: $showingEditEntry) {
+            NewJournalEntryView(entry: entry)
+        }
+        .alert("Delete Entry?", isPresented: $showingDeleteAlert) {
+            Button("Delete", role: .destructive) {
+                deleteEntry()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("This entry will be permanently deleted.")
+        }
         .onDisappear {
             stopPlaying()
         }
+    }
+
+    private func deleteEntry() {
+        if let url = entry.audioURL {
+            try? FileManager.default.removeItem(at: url)
+        }
+        modelContext.delete(entry)
+        try? modelContext.save()
+        dismiss()
     }
 
     private func playAudio() {
