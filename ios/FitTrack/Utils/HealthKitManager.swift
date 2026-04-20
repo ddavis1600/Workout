@@ -47,7 +47,6 @@ class HealthKitManager {
             HKQuantityType(.dietaryCarbohydrates),
             HKQuantityType(.dietaryFatTotal),
             HKQuantityType(.dietaryFiber),
-            HKCorrelationType(.food),
         ]
         do {
             try await healthStore.requestAuthorization(toShare: shareTypes, read: allReadTypes)
