@@ -25,6 +25,7 @@ class HealthKitManager {
             HKQuantityType(.dietaryCarbohydrates),
             HKQuantityType(.dietaryFatTotal),
             HKWorkoutType.workoutType(),
+            HKCorrelationType(.food),
         ]
         if let mindful = HKObjectType.categoryType(forIdentifier: .mindfulSession) {
             types.insert(mindful)
@@ -41,6 +42,12 @@ class HealthKitManager {
             HKQuantityType(.bodyMass),
             HKQuantityType(.dietaryWater),
             HKWorkoutType.workoutType(),
+            HKQuantityType(.dietaryEnergyConsumed),
+            HKQuantityType(.dietaryProtein),
+            HKQuantityType(.dietaryCarbohydrates),
+            HKQuantityType(.dietaryFatTotal),
+            HKQuantityType(.dietaryFiber),
+            HKCorrelationType(.food),
         ]
         do {
             try await healthStore.requestAuthorization(toShare: shareTypes, read: allReadTypes)
@@ -330,6 +337,89 @@ class HealthKitManager {
             return sample.quantity.doubleValue(for: .gramUnit(with: .kilo))
         } catch {
             return 0
+        }
+    }
+
+    // MARK: - Food Diary
+
+    /// Saves a food diary entry as an HKCorrelation of type .food containing individual macro samples.
+    /// Returns the correlation UUID, which should be stored on DiaryEntry.healthKitCorrelationID.
+    @discardableResult
+    func saveFoodEntry(
+        date: Date,
+        mealType: String,
+        foodName: String,
+        calories: Double,
+        protein: Double,
+        carbs: Double,
+        fat: Double,
+        fiber: Double
+    ) async -> UUID? {
+        guard isAvailable else { return nil }
+
+        var samples: [HKQuantitySample] = []
+
+        let typeValuePairs: [(HKQuantityTypeIdentifier, HKUnit, Double)] = [
+            (.dietaryEnergyConsumed, .kilocalorie(), calories),
+            (.dietaryProtein,        .gram(),         protein),
+            (.dietaryCarbohydrates,  .gram(),         carbs),
+            (.dietaryFatTotal,       .gram(),         fat),
+            (.dietaryFiber,          .gram(),         fiber),
+        ]
+        for (identifier, unit, value) in typeValuePairs where value > 0 {
+            let qty = HKQuantity(unit: unit, doubleValue: value)
+            samples.append(HKQuantitySample(type: HKQuantityType(identifier), quantity: qty, start: date, end: date))
+        }
+
+        guard !samples.isEmpty else { return nil }
+
+        let correlation = HKCorrelation(
+            type: HKCorrelationType(.food),
+            start: date,
+            end: date,
+            objects: Set(samples),
+            metadata: [HKMetadataKeyFoodType: foodName, "HKMealSlot": mealType]
+        )
+        do {
+            try await healthStore.save(correlation)
+            return correlation.uuid
+        } catch {
+            print("[HealthKit] Failed to save food correlation: \(error)")
+            return nil
+        }
+    }
+
+    func updateFoodEntry(
+        existingCorrelationID: UUID?,
+        date: Date,
+        mealType: String,
+        foodName: String,
+        calories: Double,
+        protein: Double,
+        carbs: Double,
+        fat: Double,
+        fiber: Double
+    ) async -> UUID? {
+        if let id = existingCorrelationID { await deleteFoodEntry(correlationID: id) }
+        return await saveFoodEntry(
+            date: date, mealType: mealType, foodName: foodName,
+            calories: calories, protein: protein, carbs: carbs, fat: fat, fiber: fiber
+        )
+    }
+
+    func deleteFoodEntry(correlationID: UUID) async {
+        guard isAvailable else { return }
+        let predicate = HKQuery.predicateForObject(with: correlationID)
+        let descriptor = HKSampleQueryDescriptor(
+            predicates: [.correlation(type: HKCorrelationType(.food), predicate: predicate)],
+            sortDescriptors: []
+        )
+        do {
+            let results = try await descriptor.result(for: healthStore)
+            guard let correlation = results.first else { return }
+            try await healthStore.delete(correlation)
+        } catch {
+            print("[HealthKit] Failed to delete food correlation: \(error)")
         }
     }
 }

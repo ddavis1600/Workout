@@ -8,6 +8,7 @@ final class DiaryEntry {
     var food: Food?
     var servings: Double = 1.0
     var createdAt: Date = Date()
+    var healthKitCorrelationID: UUID?
 
     var totalCalories: Double {
         (food?.calories ?? 0) * servings

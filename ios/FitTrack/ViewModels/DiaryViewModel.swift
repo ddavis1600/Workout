@@ -63,18 +63,45 @@ final class DiaryViewModel {
         modelContext.insert(entry)
         try? modelContext.save()
         fetchEntries()
+        writeToHealthKit(entry: entry)
     }
 
     func deleteEntry(_ entry: DiaryEntry) {
+        let correlationID = entry.healthKitCorrelationID
         modelContext.delete(entry)
         try? modelContext.save()
         fetchEntries()
+        if let id = correlationID {
+            Task { await HealthKitManager.shared.deleteFoodEntry(correlationID: id) }
+        }
     }
 
     func updateServings(_ entry: DiaryEntry, servings: Double) {
         entry.servings = servings
         try? modelContext.save()
         fetchEntries()
+        writeToHealthKit(entry: entry, existingCorrelationID: entry.healthKitCorrelationID)
+    }
+
+    private func writeToHealthKit(entry: DiaryEntry, existingCorrelationID: UUID? = nil) {
+        let date = entry.date
+        let mealType = entry.mealType
+        let foodName = entry.food?.name ?? ""
+        let calories = entry.totalCalories
+        let protein = entry.totalProtein
+        let carbs = entry.totalCarbs
+        let fat = entry.totalFat
+        let fiber = entry.totalFiber
+
+        Task { @MainActor in
+            let newID = await HealthKitManager.shared.updateFoodEntry(
+                existingCorrelationID: existingCorrelationID,
+                date: date, mealType: mealType, foodName: foodName,
+                calories: calories, protein: protein, carbs: carbs, fat: fat, fiber: fiber
+            )
+            entry.healthKitCorrelationID = newID
+            try? modelContext.save()
+        }
     }
 
     // MARK: - Search
