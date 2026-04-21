@@ -9,11 +9,11 @@ struct RecentWorkoutsCard: View {
     }
 
     private var exerciseCount: Int {
-        Set(workout.sets.compactMap { $0.exercise?.name }).count
+        Set((workout.sets ?? []).compactMap { $0.exercise?.name }).count
     }
 
     private var setCount: Int {
-        workout.sets.count
+        (workout.sets ?? []).count
     }
 
     var body: some View {

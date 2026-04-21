@@ -3,7 +3,7 @@ import SwiftData
 
 @Model
 final class FoodFavorite {
-    var food: Food?
+    @Relationship(inverse: \Food.foodFavorites) var food: Food?
     var createdAt: Date = Date()
 
     init(food: Food) {

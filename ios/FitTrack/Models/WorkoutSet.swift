@@ -3,7 +3,7 @@ import SwiftData
 
 @Model
 final class WorkoutSet {
-    var exercise: Exercise?
+    @Relationship(inverse: \Exercise.workoutSets) var exercise: Exercise?
     var setNumber: Int = 1
     var reps: Int?
     var weight: Double?

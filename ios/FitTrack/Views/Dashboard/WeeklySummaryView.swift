@@ -65,7 +65,7 @@ struct WeeklySummaryView: View {
         let days = max(1, calendar.dateComponents([.day], from: thisWeekStart, to: Date()).day ?? 1)
         let totalPossible = allHabits.count * days
         let completed = allHabits.reduce(0) { count, habit in
-            let weekCompletions = habit.completions.filter { $0.date >= thisWeekStart }.count
+            let weekCompletions = (habit.completions ?? []).filter { $0.date >= thisWeekStart }.count
             return count + weekCompletions
         }
         return Int(round(Double(completed) / Double(totalPossible) * 100))

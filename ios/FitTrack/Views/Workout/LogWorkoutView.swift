@@ -447,7 +447,7 @@ struct LogWorkoutView: View {
         guard let template = template, exerciseGroups.isEmpty else { return }
         workoutName = template.name
 
-        for te in template.exercises.sorted(by: { $0.sortOrder < $1.sortOrder }) {
+        for te in (template.exercises ?? []).sorted(by: { $0.sortOrder < $1.sortOrder }) {
             let searchName = te.exerciseName
             let descriptor = FetchDescriptor<Exercise>()
             let allExercises = (try? modelContext.fetch(descriptor)) ?? []
@@ -515,7 +515,7 @@ struct LogWorkoutView: View {
                     rpe: Double(setEntry.rpe),
                     notes: setEntry.notes
                 )
-                workout.sets.append(workoutSet)
+                if workout.sets != nil { workout.sets!.append(workoutSet) } else { workout.sets = [workoutSet] }
                 modelContext.insert(workoutSet)
             }
         }

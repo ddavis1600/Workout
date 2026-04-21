@@ -38,7 +38,7 @@ struct TemplateListView: View {
                                     Text(template.name)
                                         .font(.subheadline.weight(.semibold))
                                         .foregroundStyle(Color.ink)
-                                    let exerciseNames = template.exercises
+                                    let exerciseNames = (template.exercises ?? [])
                                         .sorted { $0.sortOrder < $1.sortOrder }
                                         .map(\.exerciseName)
                                         .joined(separator: ", ")
@@ -46,7 +46,7 @@ struct TemplateListView: View {
                                         .font(.caption)
                                         .foregroundStyle(Color.slateText)
                                         .lineLimit(2)
-                                    Text("\(template.exercises.count) exercises")
+                                    Text("\((template.exercises ?? []).count) exercises")
                                         .font(.caption)
                                         .foregroundStyle(Color.emerald)
                                 }

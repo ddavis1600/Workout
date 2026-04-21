@@ -51,7 +51,7 @@ enum DataExportService {
             dict["notes"] = w.notes
             dict["durationMinutes"] = w.durationMinutes as Any
 
-            let setsArray: [[String: Any]] = w.sets.sorted(by: { $0.setNumber < $1.setNumber }).map { s in
+            let setsArray: [[String: Any]] = (w.sets ?? []).sorted(by: { $0.setNumber < $1.setNumber }).map { s in
                 var setDict: [String: Any] = [:]
                 setDict["exercise"] = s.exercise?.name ?? ""
                 setDict["setNumber"] = s.setNumber
@@ -72,7 +72,7 @@ enum DataExportService {
 
         var csv = "Date,Workout Name,Exercise,Set,Reps,Weight,RPE,Notes\n"
         for w in workouts {
-            for s in w.sets.sorted(by: { $0.setNumber < $1.setNumber }) {
+            for s in (w.sets ?? []).sorted(by: { $0.setNumber < $1.setNumber }) {
                 let dateStr = w.date.formatted(as: "yyyy-MM-dd")
                 let nameStr = escapeCSV(w.name)
                 let exStr = escapeCSV(s.exercise?.name ?? "")
@@ -140,7 +140,7 @@ enum DataExportService {
             var dict: [String: Any] = [:]
             dict["name"] = h.name
             dict["icon"] = h.icon
-            let completionDates: [[String: String]] = h.completions.map { c in
+            let completionDates: [[String: String]] = (h.completions ?? []).map { c in
                 ["date": ISO8601DateFormatter().string(from: c.date)]
             }
             dict["completions"] = completionDates

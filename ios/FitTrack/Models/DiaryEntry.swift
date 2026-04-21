@@ -5,10 +5,10 @@ import SwiftData
 final class DiaryEntry {
     var date: Date = Date()
     var mealType: String = "breakfast"
-    var food: Food?
+    @Relationship(inverse: \Food.diaryEntries) var food: Food?
     var servings: Double = 1.0
     var createdAt: Date = Date()
-    var healthKitCorrelationID: UUID?
+    var healthKitCorrelationID: UUID? = nil
 
     var totalCalories: Double {
         (food?.calories ?? 0) * servings

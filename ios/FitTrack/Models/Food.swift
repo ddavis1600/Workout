@@ -13,6 +13,9 @@ final class Food {
     var fat: Double = 0
     var fiber: Double = 0
     var isCustom: Bool = false
+    // Inverse relationships required by CloudKit
+    @Relationship(deleteRule: .nullify) var diaryEntries: [DiaryEntry]?
+    @Relationship(deleteRule: .nullify) var foodFavorites: [FoodFavorite]?
 
     init(
         name: String,

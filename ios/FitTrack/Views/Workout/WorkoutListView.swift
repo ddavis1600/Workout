@@ -9,6 +9,7 @@ struct WorkoutListView: View {
     @ObservedObject private var watchManager = WatchConnectivityManager.shared
     @State private var showingTemplates = false
     @State private var showingPRHistory = false
+    @State private var showingProgress = false
     @State private var selectedTemplate: WorkoutTemplate?
 
     var body: some View {
@@ -26,8 +27,8 @@ struct WorkoutListView: View {
                 }
             }
             .background(Color.slateBackground)
-            .toolbarBackground(Color.slateBackground, for: .navigationBar)
-            .navigationTitle("Workouts")
+            .navigationTitle("")
+            .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     HStack(spacing: 16) {
@@ -42,6 +43,12 @@ struct WorkoutListView: View {
                         } label: {
                             Image(systemName: "trophy.fill")
                                 .foregroundStyle(.yellow)
+                        }
+                        Button {
+                            showingProgress = true
+                        } label: {
+                            Image(systemName: "chart.line.uptrend.xyaxis")
+                                .foregroundStyle(Color.emerald)
                         }
                     }
                 }
@@ -74,6 +81,17 @@ struct WorkoutListView: View {
                         .toolbar {
                             ToolbarItem(placement: .topBarTrailing) {
                                 Button("Done") { showingPRHistory = false }
+                                    .foregroundStyle(Color.emerald)
+                            }
+                        }
+                }
+            }
+            .sheet(isPresented: $showingProgress) {
+                NavigationStack {
+                    ProgressChartView()
+                        .toolbar {
+                            ToolbarItem(placement: .topBarTrailing) {
+                                Button("Done") { showingProgress = false }
                                     .foregroundStyle(Color.emerald)
                             }
                         }
@@ -140,8 +158,8 @@ struct WorkoutListView: View {
 
     private func workoutRow(_ workout: Workout) -> some View {
         let displayName = workout.name.isEmpty ? "Workout" : workout.name
-        let exerciseCount = Set(workout.sets.compactMap { $0.exercise?.name }).count
-        let setCount = workout.sets.count
+        let exerciseCount = Set((workout.sets ?? []).compactMap { $0.exercise?.name }).count
+        let setCount = (workout.sets ?? []).count
 
         return HStack(spacing: 14) {
             RoundedRectangle(cornerRadius: 4)

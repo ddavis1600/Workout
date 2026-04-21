@@ -78,7 +78,7 @@ struct SaveTemplateSheet: View {
                 sortOrder: index
             )
             te.template = template
-            template.exercises.append(te)
+            if template.exercises != nil { template.exercises!.append(te) } else { template.exercises = [te] }
             modelContext.insert(te)
         }
 

@@ -16,7 +16,7 @@ final class Workout {
     var hrZone3Seconds: Double?
     var hrZone4Seconds: Double?
     var hrZone5Seconds: Double?
-    @Relationship(deleteRule: .cascade) var sets: [WorkoutSet] = []
+    @Relationship(deleteRule: .cascade) var sets: [WorkoutSet]?
     var createdAt: Date = Date()
 
     init(name: String = "", date: Date = Date(), notes: String = "", durationMinutes: Int? = nil, photoData: Data? = nil) {
@@ -25,7 +25,6 @@ final class Workout {
         self.notes = notes
         self.durationMinutes = durationMinutes
         self.photoData = photoData
-        self.sets = []
         self.createdAt = Date()
     }
 }

@@ -20,7 +20,7 @@ final class Habit {
     var earnedBadges: [Int] = []        // milestone days: 7, 30, 100
     var freezeAppliedDates: [Date] = [] // dates where streak freeze was applied
 
-    @Relationship(deleteRule: .cascade) var completions: [HabitCompletion]
+    @Relationship(deleteRule: .cascade) var completions: [HabitCompletion]?
 
     init(name: String, icon: String = "checkmark.circle", color: String = "emerald",
          healthKitTrigger: String? = nil, healthKitThreshold: Double = 0,
@@ -32,7 +32,6 @@ final class Habit {
         self.healthKitTrigger = healthKitTrigger
         self.healthKitThreshold = healthKitThreshold
         self.createdAt = .now
-        self.completions = []
         self.scheduledDays = scheduledDays
         self.reminderTime = reminderTime
         self.weeklyTarget = weeklyTarget
@@ -45,18 +44,18 @@ final class Habit {
     // MARK: - Completion
 
     func isCompleted(on date: Date) -> Bool {
-        let inCompletions = completions.contains { Calendar.current.isDate($0.date, inSameDayAs: date) }
+        let inCompletions = (completions ?? []).contains { Calendar.current.isDate($0.date, inSameDayAs: date) }
         if inCompletions { return true }
         return freezeAppliedDates.contains { Calendar.current.isDate($0, inSameDayAs: date) }
     }
 
     func toggle(on date: Date, context: ModelContext) {
-        if let existing = completions.first(where: { Calendar.current.isDate($0.date, inSameDayAs: date) }) {
+        if let existing = (completions ?? []).first(where: { Calendar.current.isDate($0.date, inSameDayAs: date) }) {
             context.delete(existing)
         } else {
             let completion = HabitCompletion(date: date)
             completion.habit = self
-            completions.append(completion)
+            if completions != nil { completions!.append(completion) } else { completions = [completion] }
             context.insert(completion)
         }
         try? context.save()
@@ -83,7 +82,7 @@ final class Habit {
     }
 
     func longestStreak() -> Int {
-        var allDates = Set(completions.map { $0.date.startOfDay })
+        var allDates = Set((completions ?? []).map { $0.date.startOfDay })
         for d in freezeAppliedDates { allDates.insert(d.startOfDay) }
         let sorted = allDates.sorted()
         guard !sorted.isEmpty else { return 0 }
@@ -153,7 +152,7 @@ final class Habit {
 
     func allTimeCompletionRate() -> Double {
         let days = max(1, Calendar.current.dateComponents([.day], from: createdAt.startOfDay, to: Date.now.startOfDay).day ?? 1)
-        return Double(completions.count + freezeAppliedDates.count) / Double(days)
+        return Double((completions ?? []).count + freezeAppliedDates.count) / Double(days)
     }
 
     func newlyEarnedMilestones() -> [Int] {

@@ -13,7 +13,7 @@ struct WorkoutDetailView: View {
         var groups: [String: [WorkoutSet]] = [:]
         var order: [String] = []
 
-        for set in workout.sets.sorted(by: { $0.setNumber < $1.setNumber }) {
+        for set in (workout.sets ?? []).sorted(by: { $0.setNumber < $1.setNumber }) {
             let name = set.exercise?.name ?? "Unknown"
             if groups[name] == nil {
                 order.append(name)

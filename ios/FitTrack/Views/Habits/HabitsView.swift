@@ -354,8 +354,8 @@ struct HabitsView: View {
             .scrollContentBackground(.hidden)
             .background(Color.slateBackground)
             .environment(\.editMode, $editMode)
-            .toolbarBackground(Color.slateBackground, for: .navigationBar)
-            .navigationTitle("Habits")
+            .navigationTitle("")
+            .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     if !habits.isEmpty {
@@ -658,7 +658,7 @@ struct HabitsView: View {
 
     private func completionPercentage(for habit: Habit) -> Int {
         let days = max(1, calendar.dateComponents([.day], from: habit.createdAt.startOfDay, to: Date.now.startOfDay).day ?? 1)
-        return min(100, Int(round(Double(habit.completions.count) / Double(days) * 100)))
+        return min(100, Int(round(Double((habit.completions ?? []).count) / Double(days) * 100)))
     }
 
     private func habitRow(_ habit: Habit) -> some View {
