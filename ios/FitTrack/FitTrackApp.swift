@@ -14,20 +14,30 @@ struct FitTrackApp: App {
         // Falls back to local storage if CloudKit is unavailable (entitlement not yet provisioned,
         // no iCloud account, or airplane mode on first launch). App always launches either way.
         let cloudConfig = ModelConfiguration(cloudKitDatabase: .automatic)
-        if let c = try? ModelContainer(
-            for:
-                Exercise.self, Workout.self, WorkoutSet.self,
-                UserProfile.self, Food.self, DiaryEntry.self,
-                Habit.self, HabitCompletion.self,
-                WeightEntry.self, JournalEntry.self,
-                WorkoutTemplate.self, TemplateExercise.self,
-                BodyMeasurement.self, FoodFavorite.self, ProgressPhoto.self,
-            configurations: cloudConfig) {
+        var cloudKitError: Error? = nil
+        let cloudContainer: ModelContainer? = {
+            do {
+                return try ModelContainer(
+                    for:
+                        Exercise.self, Workout.self, WorkoutSet.self,
+                        UserProfile.self, Food.self, DiaryEntry.self,
+                        Habit.self, HabitCompletion.self,
+                        WeightEntry.self, JournalEntry.self,
+                        WorkoutTemplate.self, TemplateExercise.self,
+                        BodyMeasurement.self, FoodFavorite.self, ProgressPhoto.self,
+                    configurations: cloudConfig)
+            } catch {
+                cloudKitError = error
+                return nil
+            }
+        }()
+
+        if let c = cloudContainer {
             log.info("✅ ModelContainer initialised with CloudKit sync")
             container = c
         } else {
             // CloudKit unavailable — fall back to local store so the app always launches.
-            log.warning("⚠️ CloudKit ModelContainer unavailable — using local store (check iCloud entitlement in provisioning profile)")
+            log.warning("⚠️ CloudKit ModelContainer failed: \(String(describing: cloudKitError)) — falling back to local store")
             let localConfig = ModelConfiguration(cloudKitDatabase: .none)
             do {
                 container = try ModelContainer(
