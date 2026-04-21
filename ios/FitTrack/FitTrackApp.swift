@@ -8,7 +8,7 @@ struct FitTrackApp: App {
     let container: ModelContainer
 
     init() {
-        let config = ModelConfiguration(cloudKitDatabase: .none)
+        let config = ModelConfiguration(cloudKitDatabase: .automatic)
 
         do {
             container = try ModelContainer(

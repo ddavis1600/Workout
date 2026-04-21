@@ -3,19 +3,19 @@ import SwiftData
 
 @Model
 final class UserProfile {
-    var weight: Double
-    var height: Double
-    var age: Int
-    var gender: String
-    var activityLevel: String
-    var goal: String
-    var tdee: Double
-    var proteinTarget: Double
-    var carbTarget: Double
-    var fatTarget: Double
-    var calorieTarget: Double
-    var unitSystem: String
-    var updatedAt: Date
+    var weight: Double = 70.0
+    var height: Double = 175.0
+    var age: Int = 25
+    var gender: String = "male"
+    var activityLevel: String = "moderate"
+    var goal: String = "maintain"
+    var tdee: Double = 0
+    var proteinTarget: Double = 0
+    var carbTarget: Double = 0
+    var fatTarget: Double = 0
+    var calorieTarget: Double = 0
+    var unitSystem: String = "imperial"
+    var updatedAt: Date = Date()
 
     init() {
         self.weight = 70.0
