@@ -4,11 +4,20 @@ import SwiftData
 struct DashboardView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var viewModel: DashboardViewModel?
+    @ObservedObject private var session = WorkoutSessionManager.shared
 
     var body: some View {
         NavigationStack {
             List {
                     welcomeHeader
+                        .listRowBackground(Color.slateBackground)
+                        .listRowSeparator(.hidden)
+
+                    // Start-Workout quick action (item 8). Routes through
+                    // WorkoutSessionManager so ContentView's fullScreenCover
+                    // handles presentation — same flow as the Workouts-tab +
+                    // button and the watch trigger.
+                    startWorkoutButton
                         .listRowBackground(Color.slateBackground)
                         .listRowSeparator(.hidden)
 
@@ -40,8 +49,8 @@ struct DashboardView: View {
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
             .background(Color.slateBackground)
-            .toolbarBackground(Color.slateBackground, for: .navigationBar)
-            .navigationTitle("Dashboard")
+            .toolbarBackground(.hidden, for: .navigationBar)
+            .navigationBarHidden(true)
             .task {
                 if viewModel == nil {
                     viewModel = DashboardViewModel(modelContext: modelContext)
@@ -50,6 +59,47 @@ struct DashboardView: View {
                 }
             }
         }
+    }
+
+    // MARK: - Start Workout
+
+    private var startWorkoutButton: some View {
+        Button {
+            session.start()
+        } label: {
+            HStack(spacing: 14) {
+                ZStack {
+                    Circle()
+                        .fill(Color.emerald.opacity(0.15))
+                        .frame(width: 48, height: 48)
+                    Image(systemName: "figure.strengthtraining.traditional")
+                        .font(.title3)
+                        .foregroundStyle(Color.emerald)
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(session.isActive ? "Continue Workout" : "Start Workout")
+                        .font(.headline)
+                        .foregroundStyle(Color.ink)
+                    Text(session.isActive
+                         ? "In progress — tap to resume"
+                         : "Log strength, cardio, or a template")
+                        .font(.caption)
+                        .foregroundStyle(Color.slateText)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color.slateText)
+            }
+            .padding(14)
+            .background(Color.slateCard)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(Color.emerald.opacity(0.3), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Welcome Header

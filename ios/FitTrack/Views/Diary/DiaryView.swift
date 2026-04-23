@@ -24,6 +24,7 @@ struct DiaryView: View {
     }
 
     @State private var mealSheet: MealSheet? = nil
+    @State private var showMacros = false
     @State private var libraryPickerMeal: String? = nil
     @State private var libraryPickerItem: PhotosPickerItem? = nil
     // Token per meal: MealSectionView reloads its photo whenever this UUID changes
@@ -51,8 +52,21 @@ struct DiaryView: View {
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
             .background(Color.slateBackground)
-            .toolbarBackground(Color.slateBackground, for: .navigationBar)
-            .navigationTitle("Food Diary")
+            .navigationTitle("")
+            .toolbarBackground(.hidden, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showMacros = true
+                    } label: {
+                        Image(systemName: "chart.pie.fill")
+                            .foregroundStyle(Color.emerald)
+                    }
+                }
+            }
+            .sheet(isPresented: $showMacros) {
+                MacrosView()
+            }
             .task {
                 if viewModel == nil {
                     viewModel = DiaryViewModel(modelContext: modelContext)
@@ -177,36 +191,59 @@ struct DiaryView: View {
     // MARK: - Summary
 
     private var summarySection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Daily Summary")
-                .font(.headline)
-                .foregroundStyle(Color.ink)
+        // Tapping anywhere on the summary card jumps to the full MacrosView
+        // so the affordance to "see / edit all my targets" is one tap away
+        // (item 3 from beta feedback).
+        NavigationLink {
+            MacrosView()
+        } label: {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Text("Daily Targets")
+                        .font(.headline)
+                        .foregroundStyle(Color.ink)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Color.slateText)
+                }
+                .padding(.bottom, 2)
 
-            if let vm = viewModel {
-                let calorieTarget = profile?.calorieTarget ?? 2000
-                let proteinTarget = profile?.proteinTarget ?? 150
-                let carbTarget = profile?.carbTarget ?? 200
-                let fatTarget = profile?.fatTarget ?? 65
+                if let vm = viewModel {
+                    let calorieTarget = profile?.calorieTarget ?? 2000
+                    let proteinTarget = profile?.proteinTarget ?? 150
+                    let carbTarget = profile?.carbTarget ?? 200
+                    let fatTarget = profile?.fatTarget ?? 65
 
-                MacroProgressBar(label: "Calories", current: vm.totalCalories, target: calorieTarget, unit: "kcal", color: .emerald)
-                MacroProgressBar(label: "Protein", current: vm.totalProtein, target: proteinTarget, unit: "g", color: .blue)
-                MacroProgressBar(
-                    label: showNetCarbs ? "Net Carbs" : "Carbs",
-                    current: showNetCarbs ? vm.totalNetCarbs : vm.totalCarbs,
-                    target: carbTarget,
-                    unit: "g",
-                    color: .orange
-                )
-                MacroProgressBar(label: "Fat", current: vm.totalFat, target: fatTarget, unit: "g", color: .pink)
+                    MacroProgressBar(label: "Calories", current: vm.totalCalories, target: calorieTarget, unit: "kcal", color: .emerald)
+                    MacroProgressBar(label: "Protein", current: vm.totalProtein, target: proteinTarget, unit: "g", color: .blue)
+                    MacroProgressBar(
+                        label: showNetCarbs ? "Net Carbs" : "Carbs",
+                        current: showNetCarbs ? vm.totalNetCarbs : vm.totalCarbs,
+                        target: carbTarget,
+                        unit: "g",
+                        color: .orange
+                    )
+                    MacroProgressBar(label: "Fat", current: vm.totalFat, target: fatTarget, unit: "g", color: .pink)
+                }
+
+                Text("Tap to view full macros →")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(Color.emerald)
+                    .padding(.top, 4)
             }
+            .padding(.horizontal, 16)
+            .padding(.top, 14)
+            .padding(.bottom, 12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.slateCard)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(Color.slateBorder, lineWidth: 1)
+            )
         }
-        .padding()
-        .background(Color.slateCard)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-        .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .stroke(Color.slateBorder, lineWidth: 1)
-        )
+        .buttonStyle(.plain)
     }
 
     // MARK: - Meal Sections

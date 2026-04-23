@@ -1,8 +1,13 @@
 import SwiftUI
+import SwiftData
 
 struct SettingsView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Query private var profiles: [UserProfile]
+
     // Theme
-    @AppStorage("appTheme") private var appTheme = "light"
+    @AppStorage("appTheme")   private var appTheme   = "system"
+    @AppStorage("colorTheme") private var colorTheme = "fieldNotes"
 
     // Rest timer
     @AppStorage("restTimerEnabled") private var restTimerEnabled = true
@@ -42,6 +47,25 @@ struct SettingsView: View {
 
     private var enabledCount: Int {
         [showDashboard, showWorkouts, showProgress, showHabits, showWeight, showMacros, showDiary, showJournal, showHeartRate, showMeasurements, showPhotos].filter { $0 }.count
+    }
+
+    /// Read/write binding to the current UserProfile's unitSystem. If no
+    /// profile exists yet, creating one on first write is cleaner than
+    /// showing an empty picker.
+    private var unitSystemBinding: Binding<String> {
+        Binding(
+            get: { profiles.first?.unitSystem ?? "imperial" },
+            set: { newValue in
+                if let existing = profiles.first {
+                    existing.unitSystem = newValue
+                } else {
+                    let p = UserProfile()
+                    p.unitSystem = newValue
+                    modelContext.insert(p)
+                }
+                try? modelContext.save()
+            }
+        )
     }
 
     var body: some View {
@@ -130,17 +154,71 @@ struct SettingsView: View {
                         .foregroundColor(.slateText)
                 }
 
+                // Units section (item 1).
+                // Binds directly to the UserProfile.unitSystem string.
+                // UserProfile's displayWeight / setWeight(fromDisplay:) helpers
+                // (UserProfile.swift:81-98) handle the kg↔lb / cm↔in conversions
+                // downstream — flipping this control updates every view that
+                // uses those helpers on the next render.
                 Section {
-                    Picker(selection: $appTheme) {
-                        Text("System").tag("system")
-                        Text("Dark").tag("dark")
-                        Text("Light").tag("light")
+                    Picker(selection: unitSystemBinding) {
+                        Text("Imperial (lb, in)").tag("imperial")
+                        Text("Metric (kg, cm)").tag("metric")
                     } label: {
                         HStack(spacing: 12) {
-                            Image(systemName: appTheme == "dark" ? "moon.fill" : appTheme == "light" ? "sun.max.fill" : "circle.lefthalf.filled")
+                            Image(systemName: "scalemass")
                                 .foregroundColor(.emerald)
                                 .frame(width: 24)
-                            Text("Theme")
+                            Text("Units")
+                                .foregroundColor(Color.ink)
+                        }
+                    }
+                    .tint(.emerald)
+                    .listRowBackground(Color.slateCard)
+                } header: {
+                    Text("Units")
+                        .foregroundColor(.slateText)
+                } footer: {
+                    Text("Applies to weight entries, body measurements, and macro calculator inputs.")
+                        .foregroundColor(.slateText)
+                }
+
+                Section {
+                    // Colour palette grid
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Colour Palette")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(Color.ink)
+
+                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()),
+                                            GridItem(.flexible())], spacing: 10) {
+                            ForEach(ThemePalette.allCases) { palette in
+                                ThemeSwatchButton(
+                                    palette: palette,
+                                    isSelected: colorTheme == palette.rawValue
+                                ) {
+                                    colorTheme = palette.rawValue
+                                    applyAlternateIcon(for: palette)
+                                }
+                            }
+                        }
+                    }
+                    .listRowBackground(Color.slateCard)
+                    .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
+
+                    // Brightness picker
+                    Picker(selection: $appTheme) {
+                        Label("Light",  systemImage: "sun.max.fill").tag("light")
+                        Label("System", systemImage: "circle.lefthalf.filled").tag("system")
+                        Label("Dark",   systemImage: "moon.fill").tag("dark")
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: appTheme == "dark" ? "moon.fill"
+                                           : appTheme == "light" ? "sun.max.fill"
+                                           : "circle.lefthalf.filled")
+                                .foregroundColor(.emerald)
+                                .frame(width: 24)
+                            Text("Brightness")
                                 .foregroundColor(Color.ink)
                         }
                     }
@@ -199,9 +277,72 @@ struct SettingsView: View {
             .listStyle(.insetGrouped)
             .scrollContentBackground(.hidden)
             .background(Color.slateBackground)
-            .toolbarBackground(Color.slateBackground, for: .navigationBar)
-            .navigationTitle("Settings")
+            .navigationTitle("")
+            .toolbarBackground(.hidden, for: .navigationBar)
         }
+    }
+
+    private func applyAlternateIcon(for palette: ThemePalette) {
+        let iconName: String? = palette == .fieldNotes ? nil : "AppIcon-\(palette.rawValue)"
+        guard UIApplication.shared.supportsAlternateIcons else { return }
+        UIApplication.shared.setAlternateIconName(iconName)
+    }
+}
+
+// MARK: - Theme Swatch Button
+
+struct ThemeSwatchButton: View {
+    let palette: ThemePalette
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 6) {
+                // Mini colour swatch
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color(palette.bgLight))
+                        .frame(height: 52)
+                        .overlay(
+                            VStack(spacing: 3) {
+                                RoundedRectangle(cornerRadius: 3)
+                                    .fill(Color(palette.accentLight))
+                                    .frame(height: 8)
+                                    .padding(.horizontal, 8)
+                                HStack(spacing: 3) {
+                                    RoundedRectangle(cornerRadius: 2)
+                                        .fill(Color(palette.cardLight))
+                                        .frame(height: 14)
+                                    RoundedRectangle(cornerRadius: 2)
+                                        .fill(Color(palette.cardLight))
+                                        .frame(height: 14)
+                                }
+                                .padding(.horizontal, 8)
+                            }
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(isSelected ? Color(palette.accentLight) : Color(palette.borderLight),
+                                        lineWidth: isSelected ? 2 : 1)
+                        )
+
+                    if isSelected {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(Color(palette.accentLight))
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                            .padding(4)
+                    }
+                }
+
+                Text(palette.displayName)
+                    .font(.caption2.weight(.medium))
+                    .foregroundStyle(isSelected ? Color.emerald : Color.slateText)
+                    .lineLimit(1)
+            }
+        }
+        .buttonStyle(.plain)
     }
 }
 
