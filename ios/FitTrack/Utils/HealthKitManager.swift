@@ -250,9 +250,44 @@ class HealthKitManager {
             return await fetchDailySumQuantity(typeIdentifier: .dietaryCarbohydrates, unit: .gram(), date: date)
         case "dietaryFatTotal":
             return await fetchDailySumQuantity(typeIdentifier: .dietaryFatTotal, unit: .gram(), date: date)
+        case "zoneTwoMinutes":
+            return await fetchZone2Minutes(on: date)
         default:
             return 0
         }
+    }
+
+    /// Daily total minutes spent in heart-rate Zone 2 (60–70% of max HR).
+    /// Uses the same zone-classification helper as HeartRateService so
+    /// in-workout and all-day math stay consistent. Max HR is derived from
+    /// `heartRateUserAge` UserDefaults (220 − age), falling back to 180 if
+    /// the user hasn't set their age yet.
+    func fetchZone2Minutes(on date: Date) async -> Double {
+        let start = date.startOfDay
+        guard let end = Calendar.current.date(byAdding: .day, value: 1, to: start) else { return 0 }
+        let samples = await fetchHeartRateSamples(from: start, to: end)
+        guard samples.count >= 2 else { return 0 }
+
+        let age = UserDefaults.standard.integer(forKey: "heartRateUserAge")
+        let maxHR = age > 0 ? (220 - age) : 180
+
+        var totalSeconds: Double = 0
+        for i in 0..<(samples.count - 1) {
+            let (t1, bpm) = samples[i]
+            let (t2, _)   = samples[i + 1]
+            // Cap to 60s so gaps (watch off, sleep) don't inflate the total.
+            let interval = min(t2.timeIntervalSince(t1), 60.0)
+            if HeartRateZone.zone(for: bpm, maxHR: maxHR).number == 2 {
+                totalSeconds += interval
+            }
+        }
+        // Attribute ~30s for the trailing sample.
+        if let last = samples.last,
+           HeartRateZone.zone(for: last.1, maxHR: maxHR).number == 2 {
+            totalSeconds += 30.0
+        }
+
+        return totalSeconds / 60.0
     }
 
     // MARK: - Private Helpers
@@ -460,5 +495,6 @@ struct HKHabitTrigger: Identifiable, Hashable {
         HKHabitTrigger(id: "dietaryProtein",         displayName: "Dietary Protein",      unit: "g",       defaultThreshold: 100,   icon: "fork.knife"),
         HKHabitTrigger(id: "dietaryCarbohydrates",   displayName: "Dietary Carbs",        unit: "g",       defaultThreshold: 150,   icon: "leaf.fill"),
         HKHabitTrigger(id: "dietaryFatTotal",        displayName: "Dietary Fat",          unit: "g",       defaultThreshold: 50,    icon: "drop.circle.fill"),
+        HKHabitTrigger(id: "zoneTwoMinutes",         displayName: "Zone 2 Cardio",        unit: "min",     defaultThreshold: 30,    icon: "heart.fill"),
     ]
 }
