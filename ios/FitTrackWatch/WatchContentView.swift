@@ -135,6 +135,17 @@ struct WatchContentView: View {
                             .font(.system(size: 10))
                             .foregroundColor(.gray)
                     }
+
+                    // Surface any session error (HK auth denied / session
+                    // couldn't start). Without this the user just sees the
+                    // watch app suspend with no indication of what went wrong.
+                    if let msg = workoutSession.errorMessage {
+                        Text(msg)
+                            .font(.caption2)
+                            .foregroundColor(.orange)
+                            .multilineTextAlignment(.center)
+                            .padding(.top, 4)
+                    }
                 }
                 .padding(8)
             }

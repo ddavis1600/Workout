@@ -52,6 +52,15 @@ class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
                 applyLiveData(payload)
             case "finalWorkoutData":
                 applyFinalData(payload)
+            case "trackingFailed":
+                // Watch couldn't start GPS tracking (HK auth missing, session
+                // init failed, etc.). Clear the tracking flag so the save
+                // flow doesn't wait 1.5s for data that will never arrive.
+                let reason = (payload["reason"] as? String) ?? "unknown"
+                print("[WatchConnectivity] watch GPS tracking failed: \(reason)")
+                Task { @MainActor in
+                    WorkoutSessionManager.shared.watchTrackingActive = false
+                }
             default:
                 break
             }

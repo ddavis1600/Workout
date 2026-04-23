@@ -32,6 +32,8 @@ final class WatchWorkoutSession: NSObject, ObservableObject {
     @Published var currentDistanceMeters: Double = 0
     @Published var currentElevationGain: Double = 0
     @Published var hasFirstFix: Bool = false
+    /// Last error message, for display in the watch UI. nil when healthy.
+    @Published var errorMessage: String? = nil
 
     // MARK: - Private state
     private let healthStore = HKHealthStore()
@@ -69,37 +71,97 @@ final class WatchWorkoutSession: NSObject, ObservableObject {
 
     /// Start a workout. Safe to call with any activity type — GPS is only
     /// enabled for distance activities.
+    ///
+    /// Flow (fixing the "watch app shuts down mid-workout" bug):
+    ///   1. Request HealthKit authorization for HKWorkoutType.workoutType()
+    ///      plus the distance quantity types we'd emit samples against.
+    ///      Without this share permission, `HKWorkoutSession.init` throws
+    ///      and the session never actually runs — which means watchOS
+    ///      grants NO background runtime, CLLocationManager's
+    ///      allowsBackgroundLocationUpdates has no effect, and the app is
+    ///      suspended the moment the screen turns off.
+    ///   2. Once authorized, create the HKWorkoutSession + builder and
+    ///      start them. Only now does `workout-processing` in
+    ///      WKBackgroundModes actually provide background time.
+    ///   3. For GPS activities, start CLLocationManager. We rely on the
+    ///      active HKWorkoutSession to keep the process alive.
     func start(activityType: HKWorkoutActivityType) {
         guard !isActive else { return }
         reset()
         self.activityType = activityType
 
-        // HKWorkoutSession keeps the watch awake for HR sampling even when
-        // the screen is off. We deliberately DON'T call
-        // builder.finishWorkout at the end — the iPhone writes the workout
-        // so there's only one record in Apple Health.
+        let typesToShare: Set<HKSampleType> = [
+            HKWorkoutType.workoutType(),
+            HKQuantityType(.distanceWalkingRunning),
+            HKQuantityType(.distanceCycling),
+            HKQuantityType(.distanceSwimming),
+            HKQuantityType(.activeEnergyBurned),
+        ]
+        let typesToRead: Set<HKObjectType> = [
+            HKQuantityType(.heartRate),
+        ]
+
+        healthStore.requestAuthorization(toShare: typesToShare, read: typesToRead) { [weak self] granted, error in
+            Task { @MainActor in
+                guard let self else { return }
+                if let error {
+                    self.errorMessage = "Health access error: \(error.localizedDescription)"
+                    self.notifyPhoneTrackingFailed(reason: "auth-error")
+                    return
+                }
+                guard granted else {
+                    self.errorMessage = "Health access denied — grant workout permission in Settings."
+                    self.notifyPhoneTrackingFailed(reason: "auth-denied")
+                    return
+                }
+                self.beginSession(activityType: activityType)
+            }
+        }
+    }
+
+    /// Actually start the session after auth is confirmed.
+    private func beginSession(activityType: HKWorkoutActivityType) {
         let config = HKWorkoutConfiguration()
         config.activityType = activityType
         config.locationType  = Self.usesGPS(activityType) ? .outdoor : .indoor
+
         do {
             let session = try HKWorkoutSession(healthStore: healthStore, configuration: config)
             let builder = session.associatedWorkoutBuilder()
             builder.dataSource = HKLiveWorkoutDataSource(healthStore: healthStore, workoutConfiguration: config)
+            session.delegate = self
+            builder.delegate = self
             session.startActivity(with: Date())
-            builder.beginCollection(withStart: Date()) { _, _ in }
+            builder.beginCollection(withStart: Date()) { success, error in
+                if let error {
+                    print("[WatchWorkoutSession] beginCollection failed: \(error)")
+                }
+                _ = success
+            }
             self.workoutSession = session
             self.liveBuilder = builder
+            self.isActive = true
+
+            if Self.usesGPS(activityType) {
+                locationManager.requestWhenInUseAuthorization()
+                locationManager.startUpdatingLocation()
+            }
         } catch {
             print("[WatchWorkoutSession] HKWorkoutSession start failed: \(error)")
-            // Non-fatal — location tracking can still work without it.
+            errorMessage = "Could not start workout session: \(error.localizedDescription)"
+            notifyPhoneTrackingFailed(reason: "session-init-failed")
         }
+    }
 
-        if Self.usesGPS(activityType) {
-            locationManager.requestWhenInUseAuthorization()
-            locationManager.startUpdatingLocation()
-        }
-
-        isActive = true
+    /// Tell the iPhone we couldn't start GPS tracking so its LogWorkoutView
+    /// doesn't sit waiting for liveWorkoutData messages that will never
+    /// arrive — and its save flow doesn't pause for the 1.5s watch-stop
+    /// window either.
+    private func notifyPhoneTrackingFailed(reason: String) {
+        WatchSessionManager.shared.sendMessage([
+            "action": "trackingFailed",
+            "reason": reason,
+        ])
     }
 
     /// End the workout. Discards the HKLiveWorkoutBuilder (we don't write to
@@ -111,9 +173,11 @@ final class WatchWorkoutSession: NSObject, ObservableObject {
         locationManager.stopUpdatingLocation()
 
         if let session = workoutSession {
+            session.delegate = nil
             session.end()
         }
         if let builder = liveBuilder {
+            builder.delegate = nil
             builder.endCollection(withEnd: Date()) { _, _ in }
             // No finishWorkout — the iPhone is the source of truth.
             builder.discardWorkout()
@@ -205,5 +269,44 @@ extension WatchWorkoutSession: CLLocationManagerDelegate {
     nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         // Non-fatal — CoreLocation will retry.
         print("[WatchWorkoutSession] location error: \(error)")
+    }
+}
+
+// MARK: - HKWorkoutSessionDelegate
+
+extension WatchWorkoutSession: HKWorkoutSessionDelegate {
+    nonisolated func workoutSession(_ workoutSession: HKWorkoutSession,
+                                    didChangeTo toState: HKWorkoutSessionState,
+                                    from fromState: HKWorkoutSessionState,
+                                    date: Date) {
+        print("[WatchWorkoutSession] state: \(fromState.rawValue) → \(toState.rawValue)")
+    }
+
+    nonisolated func workoutSession(_ workoutSession: HKWorkoutSession,
+                                    didFailWithError error: Error) {
+        print("[WatchWorkoutSession] session failed: \(error)")
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            // Session dying without our say-so means watchOS killed it — we
+            // tell the phone to stop waiting and surface the error locally.
+            self.errorMessage = "Session ended unexpectedly: \(error.localizedDescription)"
+            self.notifyPhoneTrackingFailed(reason: "session-failed")
+        }
+    }
+}
+
+// MARK: - HKLiveWorkoutBuilderDelegate
+// Required for the builder's data source even though we never write —
+// without a delegate the builder logs warnings and may skip some sensor
+// setup paths.
+
+extension WatchWorkoutSession: HKLiveWorkoutBuilderDelegate {
+    nonisolated func workoutBuilder(_ workoutBuilder: HKLiveWorkoutBuilder,
+                                    didCollectDataOf collectedTypes: Set<HKSampleType>) {
+        // HR is streamed separately via WatchHeartRateService — ignore.
+    }
+
+    nonisolated func workoutBuilderDidCollectEvent(_ workoutBuilder: HKLiveWorkoutBuilder) {
+        // We don't use workout events (lap / pause markers) — ignore.
     }
 }
