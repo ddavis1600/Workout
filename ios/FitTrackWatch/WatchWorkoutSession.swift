@@ -212,18 +212,47 @@ final class WatchWorkoutSession: NSObject, ObservableObject {
     // MARK: - Phone messaging
 
     /// Throttled live update (≈ every 5s) while the workout is in progress.
+    /// Also sends the accumulated route so far — if the watch app dies or
+    /// gets killed before we reach `sendFinalPayloadToPhone`, the iPhone
+    /// already has the route up to the last tick.
     private func sendLiveUpdateIfDue() {
         guard Date().timeIntervalSince(lastLiveUpdateSent) >= 5.0 else { return }
         lastLiveUpdateSent = Date()
-        WatchSessionManager.shared.sendMessage([
+
+        var msg: [String: Any] = [
             "action":        "liveWorkoutData",
             "distance":      currentDistanceMeters,
             "elevationGain": currentElevationGain,
-        ])
+        ]
+        if let data = encodedRouteData() {
+            msg["routeData"] = data
+        }
+        // Use reliable delivery even for live updates so long-run routes
+        // (which can exceed sendMessage's ~65 KB limit) still arrive.
+        WatchSessionManager.shared.sendReliable(msg)
     }
 
-    /// Final workout data sent at stop — includes the encoded route array.
+    /// Final workout data sent at stop — full distance/elevation snapshot
+    /// plus the complete encoded route. Goes via transferUserInfo so it's
+    /// queued and delivered reliably even if the phone is momentarily
+    /// unreachable.
     private func sendFinalPayloadToPhone() {
+        var msg: [String: Any] = [
+            "action":        "finalWorkoutData",
+            "distance":      currentDistanceMeters,
+            "elevationGain": currentElevationGain,
+        ]
+        if let data = encodedRouteData() {
+            msg["routeData"] = data
+        }
+        WatchSessionManager.shared.sendReliable(msg)
+    }
+
+    /// Encode the currently-buffered CLLocations into the compact RoutePoint
+    /// JSON the iPhone decodes at save time. Returns nil if there are no
+    /// points yet.
+    private func encodedRouteData() -> Data? {
+        guard !routeLocations.isEmpty else { return nil }
         let points = routeLocations.map {
             WatchRoutePoint(
                 lat: $0.coordinate.latitude,
@@ -232,15 +261,7 @@ final class WatchWorkoutSession: NSObject, ObservableObject {
                 t:   $0.timestamp.timeIntervalSince1970
             )
         }
-        var msg: [String: Any] = [
-            "action":        "finalWorkoutData",
-            "distance":      currentDistanceMeters,
-            "elevationGain": currentElevationGain,
-        ]
-        if let data = try? JSONEncoder().encode(points) {
-            msg["routeData"] = data
-        }
-        WatchSessionManager.shared.sendMessage(msg)
+        return try? JSONEncoder().encode(points)
     }
 }
 

@@ -168,12 +168,18 @@ struct WatchContentView: View {
     // MARK: - Start/Stop
 
     /// Start HR monitoring, send the start signal to the phone, and
-    /// kick off GPS tracking for distance activities.
+    /// kick off GPS tracking for distance activities. The `startDate` is
+    /// included in the message so the iPhone can set its own session
+    /// startDate to the same absolute instant — otherwise the phone's
+    /// timer is behind by the round-trip latency of the WatchConnectivity
+    /// delivery (often hundreds of ms, sometimes seconds).
     private func startAll() {
+        let startInstant = Date()
         service.startMonitoring()
         WatchSessionManager.shared.sendMessage([
-            "action": "startWorkout",
-            "type":   selectedType,
+            "action":    "startWorkout",
+            "type":      selectedType,
+            "startDate": startInstant.timeIntervalSince1970,
         ])
         workoutSession.start(activityType: hkType(for: selectedType))
     }

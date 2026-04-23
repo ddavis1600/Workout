@@ -152,12 +152,9 @@ struct LogWorkoutView: View {
             .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { now in
                 timerTick = now
             }
-            .onChange(of: watchManager.pendingWorkoutStop) { _, stop in
-                if stop {
-                    watchManager.pendingWorkoutStop = false
-                    saveWorkout()
-                }
-            }
+            // watchManager.pendingWorkoutStop is now handled globally in
+            // ContentView so that watch-initiated stops save even when this
+            // view isn't mounted (minimized / different tab).
             .onChange(of: selectedPhotoItem) { _, newItem in
                 Task {
                     if let data = try? await newItem?.loadTransferable(type: Data.self) {
@@ -552,131 +549,13 @@ struct LogWorkoutView: View {
 
     // MARK: - Save
 
+    /// Delegate to the shared WorkoutPersistence helper so the watch-stop
+    /// auto-save path in ContentView and the phone Save-button path here
+    /// run the exact same flow (including the brief wait for the watch's
+    /// final GPS payload).
     private func saveWorkout() {
-        // If the watch is live-tracking, give it a brief window to send its
-        // final GPS payload (distance / elevation / route) BEFORE we write
-        // the Workout. Without this, tapping Save on the phone before the
-        // watch processes its stop would drop the elevation and the whole
-        // route map — they'd arrive in WatchConnectivityManager moments
-        // after the Workout was already persisted.
-        if session.watchTrackingActive {
-            Task { await performSaveAfterWatchStop() }
-        } else {
-            performSave()
-        }
-    }
-
-    /// Send the stop message, poll briefly for watch's finalWorkoutData
-    /// (which flips watchTrackingActive → false), then commit the save.
-    /// 1.5 s upper bound so the user isn't stuck staring at an unresponsive
-    /// button if the watch can't reply.
-    private func performSaveAfterWatchStop() async {
-        WatchConnectivityManager.shared.sendStopWorkout()
-        let deadline = Date().addingTimeInterval(1.5)
-        while session.watchTrackingActive && Date() < deadline {
-            try? await Task.sleep(for: .milliseconds(50))
-        }
-        performSave()
-    }
-
-    private func performSave() {
-        WatchConnectivityManager.shared.sendStopWorkout()
-
-        let elapsed = session.elapsedSeconds
-        let workoutEndDate = Date()
-        let workoutStartDate = session.startDate ?? workoutEndDate.addingTimeInterval(-Double(max(elapsed, 1)))
-        let durationMin = max(1, Int(round(Double(elapsed) / 60.0)))
-
-        // Resolve final distance. Prefer live GPS distance from the watch
-        // (always accurate) over any manually-typed value. Falls back to the
-        // typed input if watch wasn't tracking. Only stored for distance
-        // activities.
-        let distanceMeters: Double? = {
-            guard Workout.isDistanceType(session.workoutType) else { return nil }
-            if session.liveDistanceMeters > 0 { return session.liveDistanceMeters }
-            guard let value = Double(session.distanceInput.trimmingCharacters(in: .whitespaces)),
-                  value > 0 else { return nil }
-            return unitSystem == "imperial" ? value / 0.000621371 : value * 1000.0
-        }()
-
-        // Elevation gain only ever comes from the live GPS stream.
-        let elevationGain: Double? = {
-            guard Workout.isDistanceType(session.workoutType),
-                  session.liveElevationGain > 0 else { return nil }
-            return session.liveElevationGain
-        }()
-
-        let workout = Workout(
-            name: session.workoutName,
-            date: session.workoutDate,
-            notes: session.workoutNotes,
-            durationMinutes: elapsed > 0 ? durationMin : nil,
-            photoData: session.selectedPhotoData,
-            workoutType: session.workoutType,
-            distanceMeters: distanceMeters,
-            elevationGainMeters: elevationGain,
-            routeData: session.liveRouteData
-        )
-
-        // Save heart rate data if available
-        let hrService = session.heartRateService
-        if hrService.sessionAvgBPM > 0 {
-            workout.avgHeartRate = hrService.sessionAvgBPM
-            workout.maxHeartRate = hrService.sessionMaxBPM
-            workout.minHeartRate = hrService.sessionMinBPM
-            let maxHR = 220 - userAge
-            let durations = hrService.zoneDurations(maxHR: maxHR)
-            workout.hrZone1Seconds = durations[1]
-            workout.hrZone2Seconds = durations[2]
-            workout.hrZone3Seconds = durations[3]
-            workout.hrZone4Seconds = durations[4]
-            workout.hrZone5Seconds = durations[5]
-        }
-
-        modelContext.insert(workout)
-
-        for group in session.exerciseGroups {
-            let exercise = group.exercise
-            if exercise.modelContext == nil {
-                modelContext.insert(exercise)
-            }
-            for (index, setEntry) in group.sets.enumerated() {
-                let workoutSet = WorkoutSet(
-                    exercise: exercise,
-                    setNumber: index + 1,
-                    reps: Int(setEntry.reps),
-                    weight: Double(setEntry.weight),
-                    rpe: Double(setEntry.rpe),
-                    notes: setEntry.notes
-                )
-                if workout.sets != nil { workout.sets!.append(workoutSet) } else { workout.sets = [workoutSet] }
-                modelContext.insert(workoutSet)
-            }
-        }
-
-        do {
-            try modelContext.save()
-        } catch {
-            print("Failed to save workout: \(error)")
-        }
-
-        // Write to Apple Health after local save succeeds.
-        // Passes user-selected activity type (item 10) and distance if any (r2 item 1).
-        let activityType = HealthKitManager.hkActivityType(from: session.workoutType)
         Task {
-            let hk = HealthKitManager.shared
-            guard hk.isAvailable else { return }
-            _ = await hk.requestAuthorization()
-            await hk.saveWorkoutToHealth(
-                startDate: workoutStartDate,
-                endDate: workoutEndDate,
-                activityType: activityType,
-                distanceMeters: distanceMeters
-            )
+            await WorkoutPersistence.saveAndEnd(context: modelContext, unitSystem: unitSystem)
         }
-
-        // Ends the session, stops HR monitoring, and triggers the
-        // fullScreenCover in ContentView to dismiss.
-        session.end()
     }
 }

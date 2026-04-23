@@ -11,6 +11,10 @@ class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
     /// ContentView reads this after `pendingWorkoutStart` fires so the
     /// iPhone session picks up the watch-selected type (running, cycling, …).
     @Published var pendingWorkoutType: String? = nil
+    /// Absolute start instant the watch stamped when it tapped Start. The
+    /// iPhone uses this as its session.startDate so both timers count from
+    /// the same wall-clock time — no drift from WatchConnectivity latency.
+    @Published var pendingWorkoutStartDate: Date? = nil
 
     private override init() { super.init() }
 
@@ -46,6 +50,11 @@ class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
                 pendingWorkoutStart = true
                 // Captured for ContentView to apply after session.start().
                 pendingWorkoutType = payload["type"] as? String
+                if let startInterval = payload["startDate"] as? TimeInterval {
+                    pendingWorkoutStartDate = Date(timeIntervalSince1970: startInterval)
+                } else {
+                    pendingWorkoutStartDate = nil
+                }
             case "stopWorkout":
                 pendingWorkoutStop = true
             case "liveWorkoutData":
@@ -70,28 +79,37 @@ class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
         }
     }
 
-    /// Apply a throttled mid-workout update (distance + elevation) from
-    /// the watch onto the active WorkoutSessionManager. Does nothing if
-    /// no session is in progress. Hops to @MainActor because the session
-    /// manager is main-actor-isolated.
+    /// Apply a mid-workout update (distance + elevation + running route
+    /// snapshot) from the watch onto the active WorkoutSessionManager.
+    /// Does nothing if no session is in progress. Hops to @MainActor
+    /// because the session manager is main-actor-isolated.
+    ///
+    /// Route data is included in every live update now (not just the
+    /// final payload) so a watch-app crash mid-workout doesn't lose the
+    /// route — the phone always has the latest snapshot.
     private func applyLiveData(_ payload: [String: Any]) {
         let distance = payload["distance"] as? Double
         let gain     = payload["elevationGain"] as? Double
+        let data     = payload["routeData"] as? Data
+        print("[WatchConnectivity] live: distance=\(distance ?? 0) gain=\(gain ?? 0) routeBytes=\(data?.count ?? 0)")
         Task { @MainActor in
             let session = WorkoutSessionManager.shared
             guard session.isActive else { return }
             if let distance { session.liveDistanceMeters = distance; session.watchTrackingActive = true }
             if let gain     { session.liveElevationGain = gain }
+            if let data     { session.liveRouteData = data }
         }
     }
 
     /// Apply the final payload sent at end-of-workout: distance, elevation,
     /// and the encoded route array. After this arrives the user typically
-    /// just taps Save in the logger.
+    /// just taps Save in the logger (or ContentView auto-saves on the
+    /// watch-triggered stop path).
     private func applyFinalData(_ payload: [String: Any]) {
         let distance = payload["distance"] as? Double
         let gain     = payload["elevationGain"] as? Double
         let data     = payload["routeData"] as? Data
+        print("[WatchConnectivity] final: distance=\(distance ?? 0) gain=\(gain ?? 0) routeBytes=\(data?.count ?? 0)")
         Task { @MainActor in
             let session = WorkoutSessionManager.shared
             if let distance { session.liveDistanceMeters = distance }

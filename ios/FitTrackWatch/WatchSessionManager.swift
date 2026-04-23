@@ -43,6 +43,17 @@ class WatchSessionManager: NSObject, ObservableObject, WCSessionDelegate {
         }
     }
 
+    /// Send a payload that MUST eventually arrive even if the other side is
+    /// asleep or the payload is large. Used for the final workout data at
+    /// end-of-workout — sendMessage's ~65 KB limit would truncate long-run
+    /// route arrays, and sendMessage silently drops if the iPhone isn't
+    /// reachable. transferUserInfo queues, persists across reboots, and
+    /// supports much larger payloads.
+    func sendReliable(_ message: [String: Any]) {
+        guard WCSession.default.activationState == .activated else { return }
+        WCSession.default.transferUserInfo(message)
+    }
+
     func sendStopWorkout() {
         sendMessage(["action": "stopWorkout"])
     }

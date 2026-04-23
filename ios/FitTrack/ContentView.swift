@@ -4,6 +4,8 @@ import WatchConnectivity
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
+    @Query private var userProfiles: [UserProfile]
+    private var unitSystem: String { userProfiles.first?.unitSystem ?? "imperial" }
 
     enum Tab: String, CaseIterable {
         case dashboard, workouts, habits, weight, diary, journal, heartRate, measurements, photos, settings
@@ -175,6 +177,33 @@ struct ContentView: View {
                 if let t = watchManager.pendingWorkoutType, !t.isEmpty {
                     session.workoutType = t
                     watchManager.pendingWorkoutType = nil
+                }
+                // Align phone's startDate to the watch's timestamp so both
+                // timers compute identical elapsed times. Otherwise the
+                // phone lags by the WatchConnectivity delivery latency
+                // (often hundreds of ms).
+                if let watchStart = watchManager.pendingWorkoutStartDate {
+                    session.startDate = watchStart
+                    watchManager.pendingWorkoutStartDate = nil
+                }
+            }
+        }
+        // The watch tapped Stop → auto-save the phone session even if the
+        // full-screen LogWorkoutView isn't mounted (minimized to the mini
+        // bar, or user is on a different tab). Previously this was handled
+        // inside LogWorkoutView's body, which meant a minimized workout
+        // never actually stopped when the watch did — the mini bar kept
+        // ticking.
+        .onChange(of: watchManager.pendingWorkoutStop) { _, stop in
+            if stop {
+                watchManager.pendingWorkoutStop = false
+                if session.isActive {
+                    Task {
+                        await WorkoutPersistence.saveAndEnd(
+                            context: modelContext,
+                            unitSystem: unitSystem
+                        )
+                    }
                 }
             }
         }
