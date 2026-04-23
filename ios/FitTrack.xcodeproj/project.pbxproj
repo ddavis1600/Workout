@@ -88,6 +88,7 @@
 		F10000000000000000000001 /* HeartRateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000001 /* HeartRateService.swift */; };
 		WSM100000000000000000001 /* WorkoutSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = WSM200000000000000000001 /* WorkoutSessionManager.swift */; };
 		MWB100000000000000000001 /* MiniWorkoutBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = MWB200000000000000000001 /* MiniWorkoutBar.swift */; };
+		ISV100000000000000000001 /* IntroSplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ISV200000000000000000001 /* IntroSplashView.swift */; };
 		F10000000000000000000002 /* WorkoutHeartRateCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000002 /* WorkoutHeartRateCard.swift */; };
 		G10000000000000000000001 /* JournalEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = G20000000000000000000001 /* JournalEntry.swift */; };
 		G10000000000000000000002 /* JournalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = G20000000000000000000002 /* JournalView.swift */; };
@@ -213,6 +214,7 @@
 		F20000000000000000000001 /* HeartRateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartRateService.swift; sourceTree = "<group>"; };
 		WSM200000000000000000001 /* WorkoutSessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutSessionManager.swift; sourceTree = "<group>"; };
 		MWB200000000000000000001 /* MiniWorkoutBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniWorkoutBar.swift; sourceTree = "<group>"; };
+		ISV200000000000000000001 /* IntroSplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntroSplashView.swift; sourceTree = "<group>"; };
 		F20000000000000000000002 /* WorkoutHeartRateCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutHeartRateCard.swift; sourceTree = "<group>"; };
 		FFA64365D10993F43A4738C5 /* FitTrack Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "FitTrack Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		G20000000000000000000001 /* JournalEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntry.swift; sourceTree = "<group>"; };
@@ -425,6 +427,7 @@
 			isa = PBXGroup;
 			children = (
 				E20000000000000000000003 /* OnboardingView.swift */,
+				ISV200000000000000000001 /* IntroSplashView.swift */,
 			);
 			path = Onboarding;
 			sourceTree = "<group>";
@@ -738,6 +741,7 @@
 				A1000000000000000000001E /* LogWorkoutView.swift in Sources */,
 				WSM100000000000000000001 /* WorkoutSessionManager.swift in Sources */,
 				MWB100000000000000000001 /* MiniWorkoutBar.swift in Sources */,
+				ISV100000000000000000001 /* IntroSplashView.swift in Sources */,
 				A1000000000000000000001F /* ProgressChartView.swift in Sources */,
 				A10000000000000000000020 /* SetRowView.swift in Sources */,
 				A10000000000000000000021 /* WorkoutDetailView.swift in Sources */,

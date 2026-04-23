@@ -42,6 +42,7 @@ struct ContentView: View {
     }
 
     @State private var selectedTab: Tab = .dashboard
+    @State private var showSplash = true
     @AppStorage("appTheme")               private var appTheme     = "system"
     @AppStorage("colorTheme")             private var colorTheme   = "fieldNotes"
     @AppStorage("hasCompletedOnboarding") private var hasCompleted = false
@@ -75,6 +76,27 @@ struct ContentView: View {
     }
 
     var body: some View {
+        ZStack {
+            tabBody
+
+            // Intro splash (item 9): shown on every launch, auto-dismisses
+            // after 2.5s. Sits above everything including the tab bar so
+            // the first-launch experience is just icon → app.
+            if showSplash {
+                IntroSplashView()
+                    .transition(.opacity)
+                    .task {
+                        try? await Task.sleep(for: .seconds(2.5))
+                        withAnimation(.easeInOut(duration: 0.35)) {
+                            showSplash = false
+                        }
+                    }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var tabBody: some View {
         VStack(spacing: 0) {
             tabContent(for: selectedTab)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
