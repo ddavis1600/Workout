@@ -12,6 +12,9 @@ struct LogWorkoutView: View {
     @Environment(\.modelContext) private var modelContext
     @ObservedObject private var session = WorkoutSessionManager.shared
     @ObservedObject private var watchManager = WatchConnectivityManager.shared
+    @Query private var userProfiles: [UserProfile]
+    private var unitSystem: String { userProfiles.first?.unitSystem ?? "imperial" }
+    private var distanceUnitLabel: String { unitSystem == "imperial" ? "mi" : "km" }
 
     // Transient view state (not worth persisting across minimize):
     @State private var showingExercisePicker = false
@@ -264,6 +267,31 @@ struct LogWorkoutView: View {
             .background(Color.slateCard)
             .clipShape(RoundedRectangle(cornerRadius: 10))
 
+            // Distance field — only relevant for running / cycling / walking / swimming.
+            // Stored in meters on the model; user types in mi or km based on their
+            // unit preference.
+            if Workout.isDistanceType(session.workoutType) {
+                HStack {
+                    Text("Distance")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.slateText)
+                    Spacer()
+                    TextField("0.0", text: $session.distanceInput)
+                        .textFieldStyle(.plain)
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(maxWidth: 100)
+                        .foregroundStyle(Color.ink)
+                    Text(distanceUnitLabel)
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(Color.slateText)
+                        .frame(width: 24, alignment: .leading)
+                }
+                .padding(12)
+                .background(Color.slateCard)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+            }
+
             DatePicker("Date", selection: $session.workoutDate, displayedComponents: .date)
                 .datePickerStyle(.compact)
                 .tint(.emerald)
@@ -487,13 +515,23 @@ struct LogWorkoutView: View {
         let workoutStartDate = session.startDate ?? workoutEndDate.addingTimeInterval(-Double(max(elapsed, 1)))
         let durationMin = max(1, Int(round(Double(elapsed) / 60.0)))
 
+        // Parse distance from the user's input (mi or km) into meters.
+        // Only stored if the workout type actually uses distance.
+        let distanceMeters: Double? = {
+            guard Workout.isDistanceType(session.workoutType),
+                  let value = Double(session.distanceInput.trimmingCharacters(in: .whitespaces)),
+                  value > 0 else { return nil }
+            return unitSystem == "imperial" ? value / 0.000621371 : value * 1000.0
+        }()
+
         let workout = Workout(
             name: session.workoutName,
             date: session.workoutDate,
             notes: session.workoutNotes,
             durationMinutes: elapsed > 0 ? durationMin : nil,
             photoData: session.selectedPhotoData,
-            workoutType: session.workoutType
+            workoutType: session.workoutType,
+            distanceMeters: distanceMeters
         )
 
         // Save heart rate data if available
@@ -539,13 +577,18 @@ struct LogWorkoutView: View {
         }
 
         // Write to Apple Health after local save succeeds.
-        // Now passes the user-selected activity type (item 10).
+        // Passes user-selected activity type (item 10) and distance if any (r2 item 1).
         let activityType = HealthKitManager.hkActivityType(from: session.workoutType)
         Task {
             let hk = HealthKitManager.shared
             guard hk.isAvailable else { return }
             _ = await hk.requestAuthorization()
-            await hk.saveWorkoutToHealth(startDate: workoutStartDate, endDate: workoutEndDate, activityType: activityType)
+            await hk.saveWorkoutToHealth(
+                startDate: workoutStartDate,
+                endDate: workoutEndDate,
+                activityType: activityType,
+                distanceMeters: distanceMeters
+            )
         }
 
         // Ends the session, stops HR monitoring, and triggers the

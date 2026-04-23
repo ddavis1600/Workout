@@ -32,6 +32,12 @@ final class WorkoutSessionManager: ObservableObject {
     @Published var workoutDate: Date = .now
     @Published var workoutNotes = ""
     @Published var workoutType: String = "strength"
+    /// Raw user input (e.g. "3.1"). Interpreted as miles when
+    /// UserProfile.unitSystem == "imperial", kilometres otherwise. Converted
+    /// to meters at save time and stored on Workout.distanceMeters. Only
+    /// meaningful when workoutType is a distance activity — see
+    /// Workout.isDistanceType(_:).
+    @Published var distanceInput: String = ""
     @Published var selectedPhotoData: Data? = nil
     @Published var exerciseGroups: [ExerciseGroup] = []
     /// Effective start date — shifted forward on resume so that
@@ -145,6 +151,7 @@ final class WorkoutSessionManager: ObservableObject {
         workoutDate = .now
         workoutNotes = ""
         workoutType = "strength"
+        distanceInput = ""
         selectedPhotoData = nil
         exerciseGroups = []
         startDate = nil

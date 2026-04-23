@@ -169,6 +169,13 @@ struct ContentView: View {
                 // Kick off the logger so the watch trigger opens the same
                 // session UI as the in-app "+" button.
                 session.start()
+                // Apply the workout type that came from the watch (if any),
+                // so the distance field in LogWorkoutView is already set up
+                // correctly when the user opens it.
+                if let t = watchManager.pendingWorkoutType, !t.isEmpty {
+                    session.workoutType = t
+                    watchManager.pendingWorkoutType = nil
+                }
             }
         }
     }

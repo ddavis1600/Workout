@@ -7,6 +7,10 @@ class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
     @Published var liveHeartRate: Double? = nil
     @Published var pendingWorkoutStart = false
     @Published var pendingWorkoutStop = false
+    /// Workout-type string sent by the watch alongside `startWorkout`.
+    /// ContentView reads this after `pendingWorkoutStart` fires so the
+    /// iPhone session picks up the watch-selected type (running, cycling, …).
+    @Published var pendingWorkoutType: String? = nil
 
     private override init() { super.init() }
 
@@ -23,7 +27,12 @@ class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
     func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
         DispatchQueue.main.async {
             if let action = message["action"] as? String {
-                if action == "startWorkout" { self.pendingWorkoutStart = true }
+                if action == "startWorkout" {
+                    self.pendingWorkoutStart = true
+                    // Capture the watch-selected type so ContentView can
+                    // apply it to the iPhone session when it opens the logger.
+                    self.pendingWorkoutType = message["type"] as? String
+                }
                 if action == "stopWorkout"  { self.pendingWorkoutStop  = true }
             }
             if let bpm = message["heartRate"] as? Double {
@@ -36,7 +45,10 @@ class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
     func session(_ session: WCSession, didReceiveUserInfo userInfo: [String: Any]) {
         DispatchQueue.main.async {
             if let action = userInfo["action"] as? String {
-                if action == "startWorkout" { self.pendingWorkoutStart = true }
+                if action == "startWorkout" {
+                    self.pendingWorkoutStart = true
+                    self.pendingWorkoutType = userInfo["type"] as? String
+                }
                 if action == "stopWorkout"  { self.pendingWorkoutStop  = true }
             }
         }

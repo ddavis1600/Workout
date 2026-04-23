@@ -75,18 +75,55 @@ class HealthKitManager {
         }
     }
 
+    /// HealthKit distance sample type that corresponds to an activity type.
+    /// `nil` when the activity isn't distance-based (strength, yoga, hiit…).
+    private static func distanceQuantityType(for activityType: HKWorkoutActivityType) -> HKQuantityType? {
+        switch activityType {
+        case .running, .walking, .hiking:
+            return HKQuantityType(.distanceWalkingRunning)
+        case .cycling:
+            return HKQuantityType(.distanceCycling)
+        case .swimming:
+            return HKQuantityType(.distanceSwimming)
+        default:
+            return nil
+        }
+    }
+
     /// Saves a completed workout to Apple Health / Fitness app.
+    /// If `distanceMeters` is provided and the activity type supports it,
+    /// also writes a paired HKQuantitySample so Apple Health shows the
+    /// distance alongside the workout (and Fitness app computes pace).
     func saveWorkoutToHealth(
         startDate: Date,
         endDate: Date,
-        activityType: HKWorkoutActivityType = .traditionalStrengthTraining
+        activityType: HKWorkoutActivityType = .traditionalStrengthTraining,
+        distanceMeters: Double? = nil
     ) async {
         guard isAvailable else { return }
         let config = HKWorkoutConfiguration()
         config.activityType = activityType
-        config.locationType = .indoor
+        // Outdoor for distance activities so Apple Health classifies correctly
+        // (matters for things like the Fitness app's auto-map view).
+        config.locationType = Self.distanceQuantityType(for: activityType) != nil ? .outdoor : .indoor
 
         let builder = HKWorkoutBuilder(healthStore: healthStore, configuration: config, device: .local())
+
+        // Build a distance sample up-front so we can add it inside the
+        // collection window. Only runs when the activity type supports it
+        // AND the caller actually passed a non-zero distance.
+        var distanceSamples: [HKSample] = []
+        if let meters = distanceMeters, meters > 0,
+           let distanceType = Self.distanceQuantityType(for: activityType) {
+            let quantity = HKQuantity(unit: .meter(), doubleValue: meters)
+            let sample = HKQuantitySample(
+                type: distanceType,
+                quantity: quantity,
+                start: startDate,
+                end: endDate
+            )
+            distanceSamples.append(sample)
+        }
 
         await withCheckedContinuation { continuation in
             builder.beginCollection(withStart: startDate) { success, error in
@@ -95,15 +132,29 @@ class HealthKitManager {
                     continuation.resume()
                     return
                 }
-                builder.endCollection(withEnd: endDate) { success, error in
-                    guard success else {
-                        print("[HealthKit] endCollection failed: \(String(describing: error))")
-                        continuation.resume()
-                        return
+
+                // Closure that ends the collection & finishes the workout.
+                let finish = {
+                    builder.endCollection(withEnd: endDate) { success, error in
+                        guard success else {
+                            print("[HealthKit] endCollection failed: \(String(describing: error))")
+                            continuation.resume()
+                            return
+                        }
+                        builder.finishWorkout { _, error in
+                            if let error { print("[HealthKit] finishWorkout failed: \(error)") }
+                            continuation.resume()
+                        }
                     }
-                    builder.finishWorkout { _, error in
-                        if let error { print("[HealthKit] finishWorkout failed: \(error)") }
-                        continuation.resume()
+                }
+
+                if distanceSamples.isEmpty {
+                    finish()
+                } else {
+                    builder.add(distanceSamples) { success, error in
+                        if let error { print("[HealthKit] add distance sample failed: \(error)") }
+                        _ = success
+                        finish()
                     }
                 }
             }
