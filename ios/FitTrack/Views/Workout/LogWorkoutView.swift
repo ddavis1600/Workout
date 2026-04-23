@@ -553,6 +553,33 @@ struct LogWorkoutView: View {
     // MARK: - Save
 
     private func saveWorkout() {
+        // If the watch is live-tracking, give it a brief window to send its
+        // final GPS payload (distance / elevation / route) BEFORE we write
+        // the Workout. Without this, tapping Save on the phone before the
+        // watch processes its stop would drop the elevation and the whole
+        // route map — they'd arrive in WatchConnectivityManager moments
+        // after the Workout was already persisted.
+        if session.watchTrackingActive {
+            Task { await performSaveAfterWatchStop() }
+        } else {
+            performSave()
+        }
+    }
+
+    /// Send the stop message, poll briefly for watch's finalWorkoutData
+    /// (which flips watchTrackingActive → false), then commit the save.
+    /// 1.5 s upper bound so the user isn't stuck staring at an unresponsive
+    /// button if the watch can't reply.
+    private func performSaveAfterWatchStop() async {
+        WatchConnectivityManager.shared.sendStopWorkout()
+        let deadline = Date().addingTimeInterval(1.5)
+        while session.watchTrackingActive && Date() < deadline {
+            try? await Task.sleep(for: .milliseconds(50))
+        }
+        performSave()
+    }
+
+    private func performSave() {
         WatchConnectivityManager.shared.sendStopWorkout()
 
         let elapsed = session.elapsedSeconds

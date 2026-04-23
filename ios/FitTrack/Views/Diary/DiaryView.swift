@@ -5,7 +5,11 @@ import PhotosUI
 struct DiaryView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var profiles: [UserProfile]
+    // Favorites live-update as the user toggles star in the search view
+    // (swipe-to-unfavorite or long-press in FoodSearchView).
+    @Query(sort: \FoodFavorite.createdAt, order: .reverse) private var favorites: [FoodFavorite]
     @State private var viewModel: DiaryViewModel?
+    @State private var favoriteToAdd: FoodFavorite? = nil
 
     // Net carbs toggle
     @AppStorage("showNetCarbs") private var showNetCarbs = false
@@ -45,6 +49,12 @@ struct DiaryView: View {
                 summarySection
                     .listRowBackground(Color.slateBackground)
                     .listRowSeparator(.hidden)
+                if !favorites.isEmpty {
+                    favoritesStrip
+                        .listRowBackground(Color.slateBackground)
+                        .listRowSeparator(.hidden)
+                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                }
                 mealSections
                     .listRowBackground(Color.slateBackground)
                     .listRowSeparator(.hidden)
@@ -81,6 +91,15 @@ struct DiaryView: View {
             }
             .sheet(isPresented: $showMacros) {
                 MacrosView()
+            }
+            // Favorite-chip → quick-add sheet. Lets the user pick meal +
+            // servings without going through the full food-search flow.
+            .sheet(item: $favoriteToAdd) { fav in
+                if let food = fav.food {
+                    FavoriteQuickAddSheet(food: food) { mealType, servings in
+                        viewModel?.addEntry(food: food, mealType: mealType, servings: servings)
+                    }
+                }
             }
             .task {
                 if viewModel == nil {
@@ -261,6 +280,80 @@ struct DiaryView: View {
         .buttonStyle(.plain)
     }
 
+    // MARK: - Favorites Strip
+
+    /// Horizontal scrollable row of favorite foods, surfaced on the Diary
+    /// page itself so users don't have to open food search → favorites tab
+    /// to reuse their common foods. Tap a chip to open a small picker
+    /// (meal + servings) and add to today's diary in two taps.
+    ///
+    /// Favorites are still managed via FoodSearchView (long-press a food
+    /// in search to favorite it, swipe to unfavorite). That UI continues
+    /// to be the source of truth — this strip is a shortcut, not a
+    /// replacement.
+    private var favoritesStrip: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: "star.fill")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.yellow)
+                Text("Favorites")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color.slateText)
+                    .textCase(.uppercase)
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(favorites, id: \.self) { fav in
+                        if let food = fav.food {
+                            favoriteChip(food: food, favorite: fav)
+                        }
+                    }
+                }
+                .padding(.horizontal, 16)
+            }
+        }
+        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func favoriteChip(food: Food, favorite: FoodFavorite) -> some View {
+        Button {
+            favoriteToAdd = favorite
+        } label: {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(food.name)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color.ink)
+                    .lineLimit(1)
+                Text("\(Int(food.calories.rounded())) kcal")
+                    .font(.caption2)
+                    .foregroundStyle(Color.slateText)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .frame(minWidth: 110, alignment: .leading)
+            .background(Color.slateCard)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.slateBorder, lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .contextMenu {
+            Button(role: .destructive) {
+                modelContext.delete(favorite)
+                try? modelContext.save()
+            } label: {
+                Label("Remove from Favorites", systemImage: "star.slash")
+            }
+        }
+    }
+
     // MARK: - Meal Sections
 
     private var mealSections: some View {
@@ -309,5 +402,160 @@ struct DiaryView: View {
             vm.selectedDate = newDate.startOfDay
             vm.fetchEntries()
         }
+    }
+}
+
+// MARK: - Favorite Quick-Add Sheet
+
+/// Small presentation-detent sheet for adding a favorited food to the
+/// diary in one pass: pick a meal, adjust servings, tap Add. Picks the
+/// time-of-day appropriate meal by default.
+private struct FavoriteQuickAddSheet: View {
+    let food: Food
+    let onAdd: (_ mealType: String, _ servings: Double) -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var mealType: String = defaultMealForNow()
+    @State private var servings: Double = 1.0
+
+    private static let mealOptions: [(id: String, label: String, icon: String)] = [
+        ("breakfast", "Breakfast", "sunrise.fill"),
+        ("lunch",     "Lunch",     "sun.max.fill"),
+        ("dinner",    "Dinner",    "moon.stars.fill"),
+        ("snack",     "Snack",     "leaf.fill"),
+    ]
+
+    /// Default meal slot based on current hour — most users add their
+    /// current meal, so skip a tap when we can infer it.
+    private static func defaultMealForNow() -> String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch hour {
+        case 4..<11:  return "breakfast"
+        case 11..<15: return "lunch"
+        case 15..<18: return "snack"
+        default:      return "dinner"
+        }
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.slateBackground.ignoresSafeArea()
+                VStack(alignment: .leading, spacing: 18) {
+                    // Food summary header
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(food.name)
+                            .font(.headline)
+                            .foregroundStyle(Color.ink)
+                        if let brand = food.brand, !brand.isEmpty {
+                            Text(brand)
+                                .font(.caption)
+                                .foregroundStyle(Color.slateText)
+                        }
+                        HStack(spacing: 12) {
+                            macroTag("\(Int((food.calories * servings).rounded())) kcal", .emerald)
+                            macroTag("P \(Int((food.protein * servings).rounded()))g", .blue)
+                            macroTag("C \(Int((food.carbs * servings).rounded()))g", .orange)
+                            macroTag("F \(Int((food.fat * servings).rounded()))g", .pink)
+                        }
+                        .padding(.top, 4)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                    .background(Color.slateCard)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                    // Meal picker
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Meal")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(Color.slateText)
+                            .textCase(.uppercase)
+                        HStack(spacing: 6) {
+                            ForEach(Self.mealOptions, id: \.id) { opt in
+                                Button { mealType = opt.id } label: {
+                                    VStack(spacing: 4) {
+                                        Image(systemName: opt.icon)
+                                            .font(.subheadline)
+                                        Text(opt.label)
+                                            .font(.caption.weight(.medium))
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 10)
+                                    .background(mealType == opt.id ? Color.emerald.opacity(0.2) : Color.slateCard)
+                                    .foregroundStyle(mealType == opt.id ? Color.emerald : Color.slateText)
+                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(mealType == opt.id ? Color.emerald : Color.slateBorder, lineWidth: 1)
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+
+                    // Servings stepper
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Servings")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(Color.slateText)
+                            .textCase(.uppercase)
+                        HStack {
+                            Button { servings = max(0.25, servings - 0.25) } label: {
+                                Image(systemName: "minus.circle.fill")
+                                    .font(.title2)
+                                    .foregroundStyle(Color.emerald)
+                            }
+                            .buttonStyle(.plain)
+                            Spacer()
+                            Text(String(format: servings.truncatingRemainder(dividingBy: 1) == 0 ? "%.0f" : "%.2f", servings))
+                                .font(.title2.weight(.bold).monospacedDigit())
+                                .foregroundStyle(Color.ink)
+                            Spacer()
+                            Button { servings += 0.25 } label: {
+                                Image(systemName: "plus.circle.fill")
+                                    .font(.title2)
+                                    .foregroundStyle(Color.emerald)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        .padding()
+                        .background(Color.slateCard)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                    }
+
+                    Spacer()
+                }
+                .padding()
+            }
+            .navigationTitle("Add Favorite")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") { dismiss() }
+                        .foregroundStyle(Color.slateText)
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Add") {
+                        onAdd(mealType, servings)
+                        dismiss()
+                    }
+                    .foregroundStyle(Color.emerald)
+                    .fontWeight(.semibold)
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+
+    private func macroTag(_ text: String, _ color: Color) -> some View {
+        Text(text)
+            .font(.caption2.weight(.semibold))
+            .foregroundStyle(color)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(color.opacity(0.15))
+            .clipShape(Capsule())
     }
 }

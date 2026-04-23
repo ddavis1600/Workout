@@ -54,7 +54,10 @@ final class HeartRateService {
     var lastUpdated: Date?
     var isMonitoring: Bool = false
 
-    // Session tracking
+    // Session tracking — only samples from `sessionStartDate` forward count
+    // toward `sessionSamples` and therefore toward zone durations / min / max
+    // / avg. Everything before the workout begins is ignored.
+    private(set) var sessionStartDate: Date = .distantPast
     private(set) var sessionSamples: [(timestamp: Date, bpm: Int)] = []
 
     private var heartRateQuery: HKAnchoredObjectQuery?
@@ -107,6 +110,7 @@ final class HeartRateService {
 
     func resetSession() {
         sessionSamples = []
+        sessionStartDate = Date()   // from now on, count samples toward this session
         currentBPM = 0
         lastUpdated = nil
     }
@@ -118,9 +122,28 @@ final class HeartRateService {
         let authorized = await manager.requestAuthorization()
         guard authorized else { return }
 
+        // If resetSession() wasn't called (rare), stamp a start date now.
+        if sessionStartDate == .distantPast {
+            sessionStartDate = Date()
+        }
+
         let heartRateType = HKQuantityType(.heartRate)
 
-        // Fetch most recent sample
+        // Scope every query to samples after the session began. Without this,
+        // HKAnchoredObjectQuery's initial batch would return the user's
+        // ENTIRE heart-rate history — flooding sessionSamples with days or
+        // months of data and producing nonsense zone-duration numbers on
+        // the workout screen (the "random numbers" bug).
+        let sessionPredicate = HKQuery.predicateForSamples(
+            withStart: sessionStartDate,
+            end:       nil,
+            options:   []
+        )
+
+        // Seed the currentBPM display with the most-recent sample from any
+        // time — useful for immediate feedback. We deliberately DO NOT
+        // append this to sessionSamples, because it may be arbitrarily old
+        // and would skew zone math.
         let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
         let recentQuery = HKSampleQuery(
             sampleType: heartRateType,
@@ -134,17 +157,17 @@ final class HeartRateService {
             Task { @MainActor [weak self] in
                 self?.currentBPM = bpm
                 self?.lastUpdated = date
-                self?.sessionSamples.append((timestamp: date, bpm: bpm))
+                // Intentionally NOT appending to sessionSamples.
             }
         }
         manager.healthStore.execute(recentQuery)
 
-        // Live monitoring
+        // Live monitoring — scoped to session start via the predicate above.
         let anchorQuery = HKAnchoredObjectQuery(
-            type: heartRateType,
-            predicate: nil,
-            anchor: nil,
-            limit: HKObjectQueryNoLimit
+            type:      heartRateType,
+            predicate: sessionPredicate,
+            anchor:    nil,
+            limit:     HKObjectQueryNoLimit
         ) { [weak self] _, samples, _, _, _ in
             self?.handleSamples(samples)
         }
@@ -236,9 +259,14 @@ final class HeartRateService {
         guard let mostRecent = processed.last else { return }
 
         Task { @MainActor [weak self] in
-            self?.currentBPM = mostRecent.bpm
-            self?.lastUpdated = mostRecent.timestamp
-            self?.sessionSamples.append(contentsOf: processed)
+            guard let self else { return }
+            // Belt-and-suspenders: even if the anchored query's predicate
+            // somehow leaks older samples, drop anything before the session
+            // started so zone math stays scoped to this workout.
+            let inSession = processed.filter { $0.timestamp >= self.sessionStartDate }
+            self.currentBPM = mostRecent.bpm
+            self.lastUpdated = mostRecent.timestamp
+            self.sessionSamples.append(contentsOf: inSession)
         }
     }
 }
