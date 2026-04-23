@@ -725,6 +725,23 @@ struct HabitsView: View {
 
                 Spacer()
 
+                // Visible note affordance (item 2 / r2 feedback).
+                // Filled icon when a note already exists, outline otherwise —
+                // so the note for today's date is one tap away, no long-press.
+                let existingNote = (habit.completions ?? []).first {
+                    calendar.isDate($0.date, inSameDayAs: selectedDate)
+                }?.note
+                Button {
+                    noteTarget = (habit, selectedDate)
+                } label: {
+                    Image(systemName: (existingNote?.isEmpty == false) ? "note.text" : "square.and.pencil")
+                        .font(.title3)
+                        .foregroundColor((existingNote?.isEmpty == false) ? colorValue(habit.color) : .slateText)
+                        .frame(width: 32, height: 32)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+
                 Button {
                     completeHabit(habit, on: selectedDate)
                 } label: {
@@ -735,16 +752,14 @@ struct HabitsView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(isHKHabit && calendar.isDateInToday(selectedDate))
-                // Long-press / right-click the circle → add or edit a note
-                // for the selected date (item 7).
+                // Long-press stays as a bonus path (also matches what a power
+                // user might try).
                 .contextMenu {
                     Button {
                         noteTarget = (habit, selectedDate)
                     } label: {
                         Label(
-                            (habit.completions ?? []).first(where: { calendar.isDate($0.date, inSameDayAs: selectedDate) })?.note?.isEmpty == false
-                                ? "Edit Note"
-                                : "Add Note",
+                            (existingNote?.isEmpty == false) ? "Edit Note" : "Add Note",
                             systemImage: "note.text"
                         )
                     }

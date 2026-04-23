@@ -56,11 +56,26 @@ struct DiaryView: View {
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
+                    // Labeled pill instead of a bare icon (r2 feedback item 3)
+                    // — users were missing it when it was just chart.pie.fill.
                     Button {
                         showMacros = true
                     } label: {
-                        Image(systemName: "chart.pie.fill")
-                            .foregroundStyle(Color.emerald)
+                        HStack(spacing: 4) {
+                            Image(systemName: "chart.pie.fill")
+                                .font(.caption.weight(.semibold))
+                            Text("Macros")
+                                .font(.caption.weight(.semibold))
+                        }
+                        .foregroundStyle(Color.emerald)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color.emerald.opacity(0.12))
+                        .clipShape(Capsule())
+                        .overlay(
+                            Capsule()
+                                .stroke(Color.emerald.opacity(0.35), lineWidth: 1)
+                        )
                     }
                 }
             }
