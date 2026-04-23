@@ -46,7 +46,19 @@ final class WatchWorkoutSession: NSObject, ObservableObject {
         m.desiredAccuracy = kCLLocationAccuracyBest
         m.activityType = .fitness
         m.distanceFilter = 5         // metres — ignore jitter below this
-        m.allowsBackgroundLocationUpdates = true
+        // NOTE: `allowsBackgroundLocationUpdates = true` is an iOS-style
+        // opt-in that requires `UIBackgroundModes: ["location"]`. On
+        // watchOS that key (WKBackgroundModes) doesn't accept "location"
+        // (App Store Connect rejects it, error 90362) — and enabling the
+        // property without the declared mode causes a runtime assertion
+        // that crashes the watch app mid-workout.
+        //
+        // On watchOS background location is tied to an active
+        // HKWorkoutSession under `workout-processing`. Because we always
+        // start the session *before* calling startUpdatingLocation, the
+        // CLLocationManager runs under the session's background grant and
+        // continues streaming locations with the screen off without needing
+        // this flag.
         return m
     }()
 
