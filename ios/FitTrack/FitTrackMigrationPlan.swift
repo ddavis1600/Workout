@@ -51,31 +51,26 @@ enum SchemaV1: VersionedSchema {
     }
 }
 
-// MARK: - V2 Schema
-// Habit gains `uuid: UUID = UUID()`.
+// MARK: - V2 Schema (current)
+// Habit gains `uuid: UUID = UUID()`. Also picks up any additive optional
+// fields added to the top-level @Model classes since V2 was minted — the
+// current ones being:
+//   • HabitCompletion.note: String?
+//   • Workout.workoutType: String?
+//   • Workout.distanceMeters: Double?
+//   • Workout.elevationGainMeters: Double?
+//   • Workout.routeData: Data?
+// SwiftData's automatic inferred lightweight migration handles adding
+// these columns to on-disk stores that were last written with an earlier
+// shape of SchemaV2 — no explicit migration stage required.
+//
+// We previously also declared SchemaV3 for "clarity"; that caused a
+// `Duplicate version checksums detected` crash at launch because V2 and
+// V3 referenced the same live classes and therefore hashed identically.
+// Schemas must differ structurally to co-exist in a SchemaMigrationPlan.
 
 enum SchemaV2: VersionedSchema {
     static let versionIdentifier = Schema.Version(2, 0, 0)
-
-    static let models: [any PersistentModel.Type] = [
-        Habit.self, HabitCompletion.self,
-        Workout.self, WorkoutSet.self, Exercise.self,
-        UserProfile.self, Food.self, DiaryEntry.self,
-        WeightEntry.self, JournalEntry.self,
-        WorkoutTemplate.self, TemplateExercise.self,
-        BodyMeasurement.self, FoodFavorite.self, ProgressPhoto.self,
-    ]
-}
-
-// MARK: - V3 Schema
-// Current schema — adds two optional properties (lightweight migration):
-//   • HabitCompletion.note: String?  (per-day note on a habit check-in)
-//   • Workout.workoutType: String?   (maps to HKWorkoutActivityType on save)
-// Both additions are Optional, so they're CloudKit-safe and handled by
-// SwiftData's automatic lightweight migration from V2.
-
-enum SchemaV3: VersionedSchema {
-    static let versionIdentifier = Schema.Version(3, 0, 0)
 
     static let models: [any PersistentModel.Type] = [
         Habit.self, HabitCompletion.self,
@@ -91,19 +86,13 @@ enum SchemaV3: VersionedSchema {
 
 enum FitTrackMigrationPlan: SchemaMigrationPlan {
     static let schemas: [any VersionedSchema.Type] = [
-        SchemaV1.self, SchemaV2.self, SchemaV3.self,
+        SchemaV1.self, SchemaV2.self,
     ]
-    static let stages: [MigrationStage] = [migrateV1toV2, migrateV2toV3]
+    static let stages: [MigrationStage] = [migrateV1toV2]
 
     // Adding a property with a default value is a lightweight (automatic) migration.
     static let migrateV1toV2 = MigrationStage.lightweight(
         fromVersion: SchemaV1.self,
         toVersion:   SchemaV2.self
-    )
-
-    // Adds HabitCompletion.note and Workout.workoutType — both optional.
-    static let migrateV2toV3 = MigrationStage.lightweight(
-        fromVersion: SchemaV2.self,
-        toVersion:   SchemaV3.self
     )
 }
