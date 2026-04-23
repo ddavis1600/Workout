@@ -219,6 +219,8 @@ struct HabitsView: View {
     @State private var pendingMilestones: (Habit, [Int])? = nil
     @State private var showingMilestone = false
     @State private var libraryPrefill: LibraryHabitTemplate? = nil
+    // Per-day note sheet (item 7)
+    @State private var noteTarget: (habit: Habit, date: Date)? = nil
 
     private var calendar: Calendar { Calendar.current }
 
@@ -390,6 +392,17 @@ struct HabitsView: View {
             }
             .sheet(item: $habitToEdit) { habit in
                 EditHabitSheet(habit: habit)
+            }
+            // Note sheet (item 7) — reuses HabitNoteSheet from HabitDetailView.swift.
+            .sheet(item: Binding(
+                get: {
+                    noteTarget.map { NoteTarget(habit: $0.habit, date: $0.date) }
+                },
+                set: { wrapper in
+                    noteTarget = wrapper.map { ($0.habit, $0.date) }
+                }
+            )) { target in
+                HabitNoteSheet(habit: target.habit, date: target.date)
             }
             .sheet(isPresented: $showingLibrary) {
                 HabitLibrarySheet { template in
@@ -722,6 +735,20 @@ struct HabitsView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(isHKHabit && calendar.isDateInToday(selectedDate))
+                // Long-press / right-click the circle → add or edit a note
+                // for the selected date (item 7).
+                .contextMenu {
+                    Button {
+                        noteTarget = (habit, selectedDate)
+                    } label: {
+                        Label(
+                            (habit.completions ?? []).first(where: { calendar.isDate($0.date, inSameDayAs: selectedDate) })?.note?.isEmpty == false
+                                ? "Edit Note"
+                                : "Add Note",
+                            systemImage: "note.text"
+                        )
+                    }
+                }
             }
 
             let pct = Double(completionPercentage(for: habit)) / 100.0
@@ -1574,4 +1601,12 @@ struct IconPickerView: View {
 #Preview {
     HabitsView()
         .modelContainer(for: [Habit.self, HabitCompletion.self], inMemory: true)
+}
+
+// MARK: - Note-sheet target wrapper (item 7)
+// `.sheet(item:)` requires an Identifiable, and a bare tuple isn't one.
+private struct NoteTarget: Identifiable {
+    let habit: Habit
+    let date: Date
+    var id: String { "\(habit.persistentModelID)-\(date.timeIntervalSince1970)" }
 }
