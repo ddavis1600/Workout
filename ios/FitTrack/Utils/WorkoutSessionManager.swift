@@ -34,18 +34,33 @@ final class WorkoutSessionManager: ObservableObject {
     @Published var workoutType: String = "strength"
     @Published var selectedPhotoData: Data? = nil
     @Published var exerciseGroups: [ExerciseGroup] = []
+    /// Effective start date — shifted forward on resume so that
+    /// `Date().timeIntervalSince(startDate)` always yields the correct
+    /// running elapsed value. Nil until the first `start()`.
     @Published var startDate: Date? = nil
+    /// When `true`, `elapsedSeconds` returns `frozenSeconds` instead of
+    /// computing from `startDate`.
+    @Published var isPaused: Bool = false
+    /// Snapshot of elapsed seconds at the moment of pause. Nil while running.
+    @Published private var frozenSeconds: Int? = nil
     /// Set when a workout is started from a template so LogWorkoutView can
     /// populate its exercise groups on first appear.
     @Published var pendingTemplate: WorkoutTemplate? = nil
+
+    /// Lives on the session (not in LogWorkoutView) so it keeps monitoring
+    /// across minimize/expand cycles — otherwise HR session data is reset
+    /// every time the user expands the workout.
+    let heartRateService = HeartRateService()
 
     private init() {}
 
     // MARK: - Computed
 
-    /// Seconds elapsed since `startDate`. Derived on every access so it's
-    /// always correct regardless of how long the view has been off-screen.
+    /// Always-correct elapsed time — derived from `startDate` (while running)
+    /// or the frozen snapshot (while paused). Survives view dismiss/reopen
+    /// because nothing needs to keep ticking: each read computes fresh.
     var elapsedSeconds: Int {
+        if isPaused, let frozen = frozenSeconds { return frozen }
         guard let s = startDate else { return 0 }
         return max(0, Int(Date().timeIntervalSince(s)))
     }
@@ -64,32 +79,62 @@ final class WorkoutSessionManager: ObservableObject {
 
     // MARK: - Lifecycle
 
-    /// Start a fresh workout (no template). Safe to call even if a workout
-    /// is already active — asks the caller to end() first; no-ops otherwise.
+    /// Start a fresh workout (no template). If one is already active, expand
+    /// it rather than starting a new one.
     func start() {
-        guard !isActive else { return }
+        if isActive { isMinimized = false; return }
         reset()
         isActive = true
         isMinimized = false
         startDate = .now
+        heartRateService.resetSession()
+        Task { await heartRateService.startMonitoring() }
     }
 
     /// Start a workout pre-loaded from a saved template.
     func start(template: WorkoutTemplate) {
-        guard !isActive else { return }
+        if isActive { isMinimized = false; return }
         reset()
         isActive = true
         isMinimized = false
         startDate = .now
         workoutName = template.name
         pendingTemplate = template
+        heartRateService.resetSession()
+        Task { await heartRateService.startMonitoring() }
     }
 
     func minimize() { isMinimized = true }
     func expand()   { isMinimized = false }
 
+    /// Freeze the timer. elapsedSeconds will return the captured value until
+    /// resume() is called.
+    func pause() {
+        guard !isPaused else { return }
+        frozenSeconds = elapsedSeconds
+        isPaused = true
+    }
+
+    /// Un-freeze the timer. Shift `startDate` forward so the computed elapsed
+    /// resumes from the frozen value rather than jumping ahead.
+    func resume() {
+        guard isPaused else { return }
+        let frozen = frozenSeconds ?? 0
+        startDate = Date().addingTimeInterval(-Double(frozen))
+        frozenSeconds = nil
+        isPaused = false
+    }
+
+    /// Zero the timer (keeps session active, just restarts the clock).
+    func resetTimer() {
+        startDate = .now
+        frozenSeconds = nil
+        isPaused = false
+    }
+
     /// Clear all state and mark the session inactive. Call after save or discard.
     func end() {
+        heartRateService.stopMonitoring()
         reset()
         isActive = false
         isMinimized = false
@@ -103,6 +148,8 @@ final class WorkoutSessionManager: ObservableObject {
         selectedPhotoData = nil
         exerciseGroups = []
         startDate = nil
+        isPaused = false
+        frozenSeconds = nil
         pendingTemplate = nil
     }
 }
