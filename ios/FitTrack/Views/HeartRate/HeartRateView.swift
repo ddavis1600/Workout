@@ -24,6 +24,9 @@ enum HeartRatePeriod: String, CaseIterable {
 struct HeartRateView: View {
     @StateObject private var viewModel = HeartRateViewModel()
     @State private var showZoneSettings = false
+    /// Focus state for the Age field so we can dismiss its numberPad
+    /// keyboard from a "Done" toolbar button — numberPad has no Return key.
+    @FocusState private var ageFieldFocused: Bool
 
     private func zoneColor(_ colorName: String) -> Color {
         switch colorName {
@@ -88,6 +91,17 @@ struct HeartRateView: View {
                         Image(systemName: "gearshape")
                             .foregroundColor(.slateText)
                     }
+                }
+                // The Age field uses .numberPad — there's no Return / Done key
+                // on that keyboard, so without this toolbar the user has no
+                // way to dismiss it after editing.
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        ageFieldFocused = false
+                    }
+                    .foregroundStyle(Color.emerald)
+                    .fontWeight(.semibold)
                 }
             }
             .sheet(isPresented: $showZoneSettings) {
@@ -356,6 +370,7 @@ struct HeartRateView: View {
                     .multilineTextAlignment(.trailing)
                     .foregroundColor(.emerald)
                     .frame(width: 60)
+                    .focused($ageFieldFocused)
             }
 
             HStack {
