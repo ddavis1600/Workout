@@ -52,7 +52,7 @@ enum SchemaV1: VersionedSchema {
 }
 
 // MARK: - V2 Schema
-// Current schema — Habit gains `uuid: UUID = UUID()`.
+// Habit gains `uuid: UUID = UUID()`.
 
 enum SchemaV2: VersionedSchema {
     static let versionIdentifier = Schema.Version(2, 0, 0)
@@ -67,15 +67,43 @@ enum SchemaV2: VersionedSchema {
     ]
 }
 
+// MARK: - V3 Schema
+// Current schema — adds two optional properties (lightweight migration):
+//   • HabitCompletion.note: String?  (per-day note on a habit check-in)
+//   • Workout.workoutType: String?   (maps to HKWorkoutActivityType on save)
+// Both additions are Optional, so they're CloudKit-safe and handled by
+// SwiftData's automatic lightweight migration from V2.
+
+enum SchemaV3: VersionedSchema {
+    static let versionIdentifier = Schema.Version(3, 0, 0)
+
+    static let models: [any PersistentModel.Type] = [
+        Habit.self, HabitCompletion.self,
+        Workout.self, WorkoutSet.self, Exercise.self,
+        UserProfile.self, Food.self, DiaryEntry.self,
+        WeightEntry.self, JournalEntry.self,
+        WorkoutTemplate.self, TemplateExercise.self,
+        BodyMeasurement.self, FoodFavorite.self, ProgressPhoto.self,
+    ]
+}
+
 // MARK: - Migration Plan
 
 enum FitTrackMigrationPlan: SchemaMigrationPlan {
-    static let schemas: [any VersionedSchema.Type] = [SchemaV1.self, SchemaV2.self]
-    static let stages: [MigrationStage] = [migrateV1toV2]
+    static let schemas: [any VersionedSchema.Type] = [
+        SchemaV1.self, SchemaV2.self, SchemaV3.self,
+    ]
+    static let stages: [MigrationStage] = [migrateV1toV2, migrateV2toV3]
 
     // Adding a property with a default value is a lightweight (automatic) migration.
     static let migrateV1toV2 = MigrationStage.lightweight(
         fromVersion: SchemaV1.self,
         toVersion:   SchemaV2.self
+    )
+
+    // Adds HabitCompletion.note and Workout.workoutType — both optional.
+    static let migrateV2toV3 = MigrationStage.lightweight(
+        fromVersion: SchemaV2.self,
+        toVersion:   SchemaV3.self
     )
 }

@@ -18,13 +18,17 @@ final class Workout {
     var hrZone5Seconds: Double?
     @Relationship(deleteRule: .cascade) var sets: [WorkoutSet]?
     var createdAt: Date = Date()
+    /// Maps to HKWorkoutActivityType on save. See HealthKitManager.hkActivityType(from:).
+    /// Values: "strength" (default), "running", "cycling", "walking", "hiit", "yoga", "swimming", "other".
+    var workoutType: String? = nil
 
-    init(name: String = "", date: Date = Date(), notes: String = "", durationMinutes: Int? = nil, photoData: Data? = nil) {
+    init(name: String = "", date: Date = Date(), notes: String = "", durationMinutes: Int? = nil, photoData: Data? = nil, workoutType: String? = nil) {
         self.name = name
         self.date = date
         self.notes = notes
         self.durationMinutes = durationMinutes
         self.photoData = photoData
+        self.workoutType = workoutType
         self.createdAt = Date()
     }
 }

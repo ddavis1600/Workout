@@ -25,6 +25,7 @@ struct FitTrackApp: App {
                         WeightEntry.self, JournalEntry.self,
                         WorkoutTemplate.self, TemplateExercise.self,
                         BodyMeasurement.self, FoodFavorite.self, ProgressPhoto.self,
+                    migrationPlan: FitTrackMigrationPlan.self,
                     configurations: cloudConfig)
             } catch {
                 cloudKitError = error
@@ -48,6 +49,7 @@ struct FitTrackApp: App {
                         WeightEntry.self, JournalEntry.self,
                         WorkoutTemplate.self, TemplateExercise.self,
                         BodyMeasurement.self, FoodFavorite.self, ProgressPhoto.self,
+                    migrationPlan: FitTrackMigrationPlan.self,
                     configurations: localConfig
                 )
             } catch {
@@ -68,6 +70,7 @@ struct FitTrackApp: App {
                             WeightEntry.self, JournalEntry.self,
                             WorkoutTemplate.self, TemplateExercise.self,
                             BodyMeasurement.self, FoodFavorite.self, ProgressPhoto.self,
+                        migrationPlan: FitTrackMigrationPlan.self,
                         configurations: localConfig
                     )
                 } catch {
