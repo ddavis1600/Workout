@@ -26,31 +26,69 @@ class WatchConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
 
     func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
         DispatchQueue.main.async {
-            if let action = message["action"] as? String {
-                if action == "startWorkout" {
-                    self.pendingWorkoutStart = true
-                    // Capture the watch-selected type so ContentView can
-                    // apply it to the iPhone session when it opens the logger.
-                    self.pendingWorkoutType = message["type"] as? String
-                }
-                if action == "stopWorkout"  { self.pendingWorkoutStop  = true }
-            }
-            if let bpm = message["heartRate"] as? Double {
-                self.liveHeartRate = bpm
-            }
+            self.handleIncoming(message)
         }
     }
 
     // Also handle messages delivered while Watch screen was off
     func session(_ session: WCSession, didReceiveUserInfo userInfo: [String: Any]) {
         DispatchQueue.main.async {
-            if let action = userInfo["action"] as? String {
-                if action == "startWorkout" {
-                    self.pendingWorkoutStart = true
-                    self.pendingWorkoutType = userInfo["type"] as? String
-                }
-                if action == "stopWorkout"  { self.pendingWorkoutStop  = true }
+            self.handleIncoming(userInfo)
+        }
+    }
+
+    /// Unified handler for messages from the watch. Both live sendMessage
+    /// and queued transferUserInfo messages land here.
+    private func handleIncoming(_ payload: [String: Any]) {
+        if let action = payload["action"] as? String {
+            switch action {
+            case "startWorkout":
+                pendingWorkoutStart = true
+                // Captured for ContentView to apply after session.start().
+                pendingWorkoutType = payload["type"] as? String
+            case "stopWorkout":
+                pendingWorkoutStop = true
+            case "liveWorkoutData":
+                applyLiveData(payload)
+            case "finalWorkoutData":
+                applyFinalData(payload)
+            default:
+                break
             }
+        }
+        if let bpm = payload["heartRate"] as? Double {
+            liveHeartRate = bpm
+        }
+    }
+
+    /// Apply a throttled mid-workout update (distance + elevation) from
+    /// the watch onto the active WorkoutSessionManager. Does nothing if
+    /// no session is in progress. Hops to @MainActor because the session
+    /// manager is main-actor-isolated.
+    private func applyLiveData(_ payload: [String: Any]) {
+        let distance = payload["distance"] as? Double
+        let gain     = payload["elevationGain"] as? Double
+        Task { @MainActor in
+            let session = WorkoutSessionManager.shared
+            guard session.isActive else { return }
+            if let distance { session.liveDistanceMeters = distance; session.watchTrackingActive = true }
+            if let gain     { session.liveElevationGain = gain }
+        }
+    }
+
+    /// Apply the final payload sent at end-of-workout: distance, elevation,
+    /// and the encoded route array. After this arrives the user typically
+    /// just taps Save in the logger.
+    private func applyFinalData(_ payload: [String: Any]) {
+        let distance = payload["distance"] as? Double
+        let gain     = payload["elevationGain"] as? Double
+        let data     = payload["routeData"] as? Data
+        Task { @MainActor in
+            let session = WorkoutSessionManager.shared
+            if let distance { session.liveDistanceMeters = distance }
+            if let gain     { session.liveElevationGain = gain }
+            if let data     { session.liveRouteData = data }
+            session.watchTrackingActive = false
         }
     }
 

@@ -26,6 +26,13 @@
 	<string>FitTrack reads your heart rate to display real-time data on your Apple Watch.</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>FitTrack saves workout and health data to Apple Health.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>FitTrack uses your location during outdoor workouts to track distance, elevation, and your route.</string>
+	<key>WKBackgroundModes</key>
+	<array>
+		<string>workout-processing</string>
+		<string>location</string>
+	</array>
 	<key>WKApplication</key>
 	<true/>
 	<key>WKCompanionAppBundleIdentifier</key>

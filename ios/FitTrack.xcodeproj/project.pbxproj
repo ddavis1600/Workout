@@ -114,6 +114,7 @@
 		I10000000000000000000004 /* PRHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = I20000000000000000000004 /* PRHistoryView.swift */; };
 		J10000000000000000000001 /* WatchConnectivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000000000000000000001 /* WatchConnectivityManager.swift */; };
 		J10000000000000000000002 /* WatchSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000000000000000000002 /* WatchSessionManager.swift */; };
+		WWS100000000000000000001 /* WatchWorkoutSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = WWS200000000000000000001 /* WatchWorkoutSession.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -241,6 +242,7 @@
 		I20000000000000000000004 /* PRHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PRHistoryView.swift; sourceTree = "<group>"; };
 		J20000000000000000000001 /* WatchConnectivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConnectivityManager.swift; sourceTree = "<group>"; };
 		J20000000000000000000002 /* WatchSessionManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatchSessionManager.swift; sourceTree = "<group>"; };
+		WWS200000000000000000001 /* WatchWorkoutSession.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatchWorkoutSession.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -489,6 +491,7 @@
 				386ACDE9B9AE78D3BE830989 /* WatchContentView.swift */,
 				40F0807AFAE78D702353BD1B /* FitTrackWatchApp.swift */,
 				J20000000000000000000002 /* WatchSessionManager.swift */,
+				WWS200000000000000000001 /* WatchWorkoutSession.swift */,
 				82FC10748D15A43C3CCAE52C /* Info.plist */,
 				3C946087B78751B8870890B4 /* Assets.xcassets */,
 			);
@@ -698,6 +701,7 @@
 				B267CBA7DAFCBFFA4641AFB5 /* WatchContentView.swift in Sources */,
 				3DA3E8459EE68339AF3F2A63 /* FitTrackWatchApp.swift in Sources */,
 				J10000000000000000000002 /* WatchSessionManager.swift in Sources */,
+				WWS100000000000000000001 /* WatchWorkoutSession.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

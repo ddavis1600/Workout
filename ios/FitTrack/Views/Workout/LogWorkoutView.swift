@@ -33,6 +33,24 @@ struct LogWorkoutView: View {
         return age > 0 ? age : 25
     }
 
+    /// Formats the live GPS distance for the on-screen indicator.
+    private func formatLiveDistance() -> String {
+        let m = session.liveDistanceMeters
+        if unitSystem == "imperial" {
+            return String(format: "%.2f mi", m * 0.000621371)
+        }
+        return String(format: "%.2f km", m / 1000.0)
+    }
+
+    /// Formats the live elevation gain for the on-screen indicator.
+    private func formatLiveElevation() -> String {
+        let m = session.liveElevationGain
+        if unitSystem == "imperial" {
+            return "\(Int((m * 3.28084).rounded())) ft"
+        }
+        return "\(Int(m.rounded())) m"
+    }
+
     /// Workout type picker options. Kept here (not in the model) so the UI
     /// presentation labels can be changed without a schema migration.
     private static let workoutTypeOptions: [(id: String, label: String, icon: String)] = [
@@ -269,23 +287,50 @@ struct LogWorkoutView: View {
 
             // Distance field — only relevant for running / cycling / walking / swimming.
             // Stored in meters on the model; user types in mi or km based on their
-            // unit preference.
+            // unit preference. When the Watch is live-tracking GPS, the captured
+            // distance appears here as a read-only row that overrides any manual
+            // input at save time.
             if Workout.isDistanceType(session.workoutType) {
-                HStack {
-                    Text("Distance")
-                        .font(.subheadline)
-                        .foregroundStyle(Color.slateText)
-                    Spacer()
-                    TextField("0.0", text: $session.distanceInput)
-                        .textFieldStyle(.plain)
-                        .keyboardType(.decimalPad)
-                        .multilineTextAlignment(.trailing)
-                        .frame(maxWidth: 100)
-                        .foregroundStyle(Color.ink)
-                    Text(distanceUnitLabel)
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(Color.slateText)
-                        .frame(width: 24, alignment: .leading)
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Distance")
+                            .font(.subheadline)
+                            .foregroundStyle(Color.slateText)
+                        Spacer()
+                        TextField("0.0", text: $session.distanceInput)
+                            .textFieldStyle(.plain)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                            .frame(maxWidth: 100)
+                            .foregroundStyle(Color.ink)
+                            .disabled(session.liveDistanceMeters > 0)
+                        Text(distanceUnitLabel)
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(Color.slateText)
+                            .frame(width: 24, alignment: .leading)
+                    }
+                    if session.liveDistanceMeters > 0 {
+                        HStack(spacing: 6) {
+                            Image(systemName: "location.fill")
+                                .font(.caption2)
+                                .foregroundStyle(Color.emerald)
+                            Text("GPS: \(formatLiveDistance())")
+                                .font(.caption.monospacedDigit())
+                                .foregroundStyle(Color.emerald)
+                            if session.liveElevationGain > 0 {
+                                Text("•")
+                                    .font(.caption)
+                                    .foregroundStyle(Color.slateText)
+                                Image(systemName: "mountain.2.fill")
+                                    .font(.caption2)
+                                    .foregroundStyle(Color.emerald)
+                                Text(formatLiveElevation())
+                                    .font(.caption.monospacedDigit())
+                                    .foregroundStyle(Color.emerald)
+                            }
+                            Spacer()
+                        }
+                    }
                 }
                 .padding(12)
                 .background(Color.slateCard)
@@ -515,13 +560,23 @@ struct LogWorkoutView: View {
         let workoutStartDate = session.startDate ?? workoutEndDate.addingTimeInterval(-Double(max(elapsed, 1)))
         let durationMin = max(1, Int(round(Double(elapsed) / 60.0)))
 
-        // Parse distance from the user's input (mi or km) into meters.
-        // Only stored if the workout type actually uses distance.
+        // Resolve final distance. Prefer live GPS distance from the watch
+        // (always accurate) over any manually-typed value. Falls back to the
+        // typed input if watch wasn't tracking. Only stored for distance
+        // activities.
         let distanceMeters: Double? = {
-            guard Workout.isDistanceType(session.workoutType),
-                  let value = Double(session.distanceInput.trimmingCharacters(in: .whitespaces)),
+            guard Workout.isDistanceType(session.workoutType) else { return nil }
+            if session.liveDistanceMeters > 0 { return session.liveDistanceMeters }
+            guard let value = Double(session.distanceInput.trimmingCharacters(in: .whitespaces)),
                   value > 0 else { return nil }
             return unitSystem == "imperial" ? value / 0.000621371 : value * 1000.0
+        }()
+
+        // Elevation gain only ever comes from the live GPS stream.
+        let elevationGain: Double? = {
+            guard Workout.isDistanceType(session.workoutType),
+                  session.liveElevationGain > 0 else { return nil }
+            return session.liveElevationGain
         }()
 
         let workout = Workout(
@@ -531,7 +586,9 @@ struct LogWorkoutView: View {
             durationMinutes: elapsed > 0 ? durationMin : nil,
             photoData: session.selectedPhotoData,
             workoutType: session.workoutType,
-            distanceMeters: distanceMeters
+            distanceMeters: distanceMeters,
+            elevationGainMeters: elevationGain,
+            routeData: session.liveRouteData
         )
 
         // Save heart rate data if available

@@ -1,9 +1,13 @@
 import SwiftUI
 import SwiftData
+import MapKit
+import CoreLocation
 
 struct WorkoutDetailView: View {
     let workout: Workout
     @Query private var allSets: [WorkoutSet]
+    @Query private var userProfiles: [UserProfile]
+    private var unitSystem: String { userProfiles.first?.unitSystem ?? "imperial" }
 
     private var displayName: String {
         workout.name.isEmpty ? "Workout" : workout.name
@@ -39,6 +43,12 @@ struct WorkoutDetailView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
                     headerSection
+                    if workout.displayDistance(unitSystem: unitSystem) != nil {
+                        outdoorStatsSection
+                        if !workout.decodedRoute.isEmpty {
+                            routeMapSection
+                        }
+                    }
                     if workout.avgHeartRate != nil {
                         heartRateSection
                     }
@@ -90,6 +100,118 @@ struct WorkoutDetailView: View {
                 )
             }
         }
+    }
+
+    // MARK: - Outdoor Stats (distance / pace / elevation)
+
+    /// Summary card for distance-based workouts. Pulls distance, pace, and
+    /// elevation gain via the Workout model's display helpers — all
+    /// unit-aware via UserProfile.unitSystem.
+    private var outdoorStatsSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Outdoor Stats")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Color.slateText)
+                .textCase(.uppercase)
+
+            HStack(spacing: 10) {
+                if let dist = workout.displayDistance(unitSystem: unitSystem) {
+                    statTile(icon: "ruler", label: "Distance", value: dist)
+                }
+                if let pace = workout.displayPace(unitSystem: unitSystem) {
+                    statTile(icon: "speedometer", label: "Pace", value: pace)
+                }
+                if let gain = workout.displayElevationGain(unitSystem: unitSystem) {
+                    statTile(icon: "mountain.2", label: "Elev. Gain", value: gain)
+                }
+            }
+        }
+    }
+
+    private func statTile(icon: String, label: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.caption)
+                Text(label)
+                    .font(.caption)
+            }
+            .foregroundStyle(Color.slateText)
+            Text(value)
+                .font(.subheadline.weight(.semibold).monospacedDigit())
+                .foregroundStyle(Color.ink)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(Color.slateCard)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.slateBorder, lineWidth: 1)
+        )
+    }
+
+    // MARK: - Route Map
+
+    /// Renders the GPS-captured route on a Map with a polyline overlay.
+    /// Uses MapKit's modern SwiftUI Map API (iOS 17+).
+    @ViewBuilder
+    private var routeMapSection: some View {
+        let points = workout.decodedRoute
+        let coords = points.map { CLLocationCoordinate2D(latitude: $0.lat, longitude: $0.lon) }
+        let region = Self.region(enclosing: coords)
+
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Route")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Color.slateText)
+                .textCase(.uppercase)
+
+            Map(initialPosition: .region(region)) {
+                MapPolyline(coordinates: coords)
+                    .stroke(Color.emerald, lineWidth: 4)
+                if let start = coords.first {
+                    Marker("Start", systemImage: "flag.fill", coordinate: start)
+                        .tint(.green)
+                }
+                if let end = coords.last, coords.count > 1 {
+                    Marker("End", systemImage: "flag.checkered", coordinate: end)
+                        .tint(.red)
+                }
+            }
+            .frame(height: 220)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(Color.slateBorder, lineWidth: 1)
+            )
+            .allowsHitTesting(true)
+        }
+    }
+
+    /// Compute an MKCoordinateRegion that encloses all coordinates with
+    /// a small padding. Falls back to a default region if the route is empty.
+    private static func region(enclosing coords: [CLLocationCoordinate2D]) -> MKCoordinateRegion {
+        guard !coords.isEmpty else {
+            return MKCoordinateRegion(
+                center: CLLocationCoordinate2D(latitude: 0, longitude: 0),
+                span:  MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+            )
+        }
+        let lats = coords.map(\.latitude)
+        let lons = coords.map(\.longitude)
+        let minLat = lats.min() ?? 0, maxLat = lats.max() ?? 0
+        let minLon = lons.min() ?? 0, maxLon = lons.max() ?? 0
+        let center = CLLocationCoordinate2D(
+            latitude: (minLat + maxLat) / 2,
+            longitude: (minLon + maxLon) / 2
+        )
+        // 25% padding on each axis so the route isn't flush against the edges.
+        let span = MKCoordinateSpan(
+            latitudeDelta:  max((maxLat - minLat) * 1.25, 0.002),
+            longitudeDelta: max((maxLon - minLon) * 1.25, 0.002)
+        )
+        return MKCoordinateRegion(center: center, span: span)
     }
 
     // MARK: - Heart Rate Summary

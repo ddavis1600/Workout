@@ -38,6 +38,19 @@ final class WorkoutSessionManager: ObservableObject {
     /// meaningful when workoutType is a distance activity — see
     /// Workout.isDistanceType(_:).
     @Published var distanceInput: String = ""
+    /// Live distance in meters, streamed from the watch as CoreLocation
+    /// updates accumulate. Displayed alongside the user-typed input in
+    /// LogWorkoutView — the saved value prefers this when non-zero.
+    @Published var liveDistanceMeters: Double = 0
+    /// Live elevation gain in meters, streamed from the watch.
+    @Published var liveElevationGain: Double = 0
+    /// Encoded RoutePoint array received from the watch when the live
+    /// workout ends. Attached to the Workout on save.
+    @Published var liveRouteData: Data? = nil
+    /// Flag indicating the iPhone believes the watch is tracking live GPS.
+    /// Flipped on by the startWorkout message from the watch, off when the
+    /// watch sends its final workoutData message.
+    @Published var watchTrackingActive: Bool = false
     @Published var selectedPhotoData: Data? = nil
     @Published var exerciseGroups: [ExerciseGroup] = []
     /// Effective start date — shifted forward on resume so that
@@ -152,6 +165,10 @@ final class WorkoutSessionManager: ObservableObject {
         workoutNotes = ""
         workoutType = "strength"
         distanceInput = ""
+        liveDistanceMeters = 0
+        liveElevationGain = 0
+        liveRouteData = nil
+        watchTrackingActive = false
         selectedPhotoData = nil
         exerciseGroups = []
         startDate = nil
