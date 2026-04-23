@@ -78,8 +78,8 @@ struct HeartRateView: View {
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
             .background(Color.slateBackground)
-            .toolbarBackground(Color.slateBackground, for: .navigationBar)
-            .navigationTitle("Heart Rate")
+            .navigationTitle("")
+            .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -482,6 +482,20 @@ class HeartRateViewModel: ObservableObject {
         if userAge == 0 { userAge = 25 }
 
         guard HealthKitManager.shared.isAvailable else { return }
+
+        // Give UIKit a beat to attach this view's presentation host to the
+        // window before kicking off the HK auth request. `.task` fires the
+        // instant the view enters SwiftUI's tree, which can be slightly
+        // ahead of when the presenter is ready — especially when the user
+        // taps the Heart tab right after the launch splash dismisses, or
+        // when opening the tab from a minimized-workout state.
+        //
+        // Without this delay the system logs:
+        //   "Attempt to present … whose view is not in the window hierarchy"
+        // and the HK permission sheet silently times out — the user never
+        // sees the prompt and the app has no HR access for the session.
+        try? await Task.sleep(for: .milliseconds(500))
+
         let authorized = await HealthKitManager.shared.requestAuthorization()
         isAuthorized = authorized
         if authorized {
@@ -490,6 +504,8 @@ class HeartRateViewModel: ObservableObject {
         }
     }
 
+    /// User-initiated auth (from the "Grant Access" button). No delay needed
+    /// — a tap is always on a view that's fully in the hierarchy.
     func requestAccess() async {
         let authorized = await HealthKitManager.shared.requestAuthorization()
         isAuthorized = authorized
