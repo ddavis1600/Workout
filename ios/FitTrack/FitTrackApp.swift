@@ -84,6 +84,10 @@ struct FitTrackApp: App {
 
         let context = ModelContext(container)
         DataController.seedDataIfNeeded(context: context)
+        // CloudKit may re-sync exercises that were already seeded locally,
+        // producing duplicates. Collapse those on every launch so the
+        // exercise picker stays clean.
+        DataController.cleanupDuplicateExercises(context: context)
 
         WatchConnectivityManager.shared.activate()
     }
