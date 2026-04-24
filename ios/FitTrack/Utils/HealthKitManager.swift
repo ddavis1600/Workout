@@ -152,7 +152,16 @@ class HealthKitManager {
         }
     }
 
-    func fetchWeights(from startDate: Date, to endDate: Date) async -> [(date: Date, weight: Double)] {
+    /// Fetched bodyMass sample + the stable `HKQuantitySample.uuid` that
+    /// produced it. The UUID is what callers persist on `WeightEntry`
+    /// so that re-imports don't double-count and HK-side edits flow back.
+    struct FetchedWeightSample {
+        let uuid: UUID
+        let date: Date
+        let weightKg: Double
+    }
+
+    func fetchWeights(from startDate: Date, to endDate: Date) async -> [FetchedWeightSample] {
         guard isAvailable else { return [] }
         let weightType = HKQuantityType(.bodyMass)
         let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate)
@@ -163,7 +172,11 @@ class HealthKitManager {
         do {
             let results = try await descriptor.result(for: healthStore)
             return results.map { sample in
-                (date: sample.startDate, weight: sample.quantity.doubleValue(for: .gramUnit(with: .kilo)))
+                FetchedWeightSample(
+                    uuid: sample.uuid,
+                    date: sample.startDate,
+                    weightKg: sample.quantity.doubleValue(for: .gramUnit(with: .kilo))
+                )
             }
         } catch {
             print("Failed to fetch weights from HealthKit: \(error)")

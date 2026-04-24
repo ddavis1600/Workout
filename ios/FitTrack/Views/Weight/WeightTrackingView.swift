@@ -286,14 +286,47 @@ struct WeightTrackingView: View {
 
         guard !hkWeights.isEmpty else { return }
 
-        let existingDates = Set(entries.map { Calendar.current.startOfDay(for: $0.date) })
+        // Two-tier dedup (AUDIT H2):
+        //
+        // 1. Strong match on `healthKitUUID`. Every sample already imported
+        //    with a UUID is identified exactly, so:
+        //      - two weigh-ins on the same day both land (the old code
+        //        collapsed them via Calendar.startOfDay);
+        //      - if the user edits a weight in Apple Health, the updated
+        //        sample still has the same UUID and we skip (import is
+        //        idempotent — we don't overwrite local edits, but we also
+        //        don't duplicate).
+        // 2. Fallback date match for rows that have no UUID yet —
+        //    i.e. pre-migration rows created before `healthKitUUID` was
+        //    added, or manual in-app entries. Keeping the date check here
+        //    prevents re-importing a weight the user typed in manually
+        //    earlier this week.
+        //
+        // If you want HK edits to overwrite the local copy, swap the
+        // UUID-match branch to update-in-place. Deliberately not doing
+        // that here — treat the app-side row as authoritative once it
+        // exists, so notes/adjustments the user made in-app stick.
 
-        for hkEntry in hkWeights {
-            let entryDay = Calendar.current.startOfDay(for: hkEntry.date)
-            if !existingDates.contains(entryDay) {
-                let entry = WeightEntry(date: hkEntry.date, weight: hkEntry.weight, note: "From Health")
-                modelContext.insert(entry)
-            }
+        let existingUUIDs: Set<UUID> = Set(entries.compactMap { $0.healthKitUUID })
+        let datesWithNilUUID: Set<Date> = Set(
+            entries
+                .filter { $0.healthKitUUID == nil }
+                .map { Calendar.current.startOfDay(for: $0.date) }
+        )
+
+        for sample in hkWeights {
+            if existingUUIDs.contains(sample.uuid) { continue }
+
+            let sampleDay = Calendar.current.startOfDay(for: sample.date)
+            if datesWithNilUUID.contains(sampleDay) { continue }
+
+            let entry = WeightEntry(
+                date: sample.date,
+                weight: sample.weightKg,
+                note: "From Health",
+                healthKitUUID: sample.uuid
+            )
+            modelContext.insert(entry)
         }
 
         try? modelContext.save()
