@@ -385,15 +385,12 @@ struct LogWorkoutView: View {
             }
             .onChange(of: selectedPhotoItem) { _, newItem in
                 Task {
-                    if let data = try? await newItem?.loadTransferable(type: Data.self) {
-                        // Compress to JPEG to save space
-                        if let uiImage = UIImage(data: data),
-                           let compressed = uiImage.jpegData(compressionQuality: 0.7) {
-                            selectedPhotoData = compressed
-                        } else {
-                            selectedPhotoData = data
-                        }
-                    }
+                    guard let data = try? await newItem?.loadTransferable(type: Data.self) else { return }
+                    // Downscale + JPEG encode runs on a detached userInitiated
+                    // Task inside ImageCompression — keeps the PhotosPicker
+                    // callback from hitching the main actor while we chew on
+                    // a 12 MP capture (80–200 ms on A15).
+                    selectedPhotoData = await ImageCompression.compressedJPEG(from: data) ?? data
                 }
             }
         }
