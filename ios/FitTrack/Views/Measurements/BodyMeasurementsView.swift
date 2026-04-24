@@ -60,6 +60,7 @@ struct BodyMeasurementsView: View {
                         Image(systemName: "plus")
                             .foregroundStyle(Color.emerald)
                     }
+                    .accessibilityLabel("New measurement")
                 }
             }
             .sheet(isPresented: $showingAddSheet) {

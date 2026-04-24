@@ -60,6 +60,7 @@ struct JournalView: View {
                         Image(systemName: "plus.circle.fill")
                             .foregroundColor(.emerald)
                     }
+                    .accessibilityLabel("New journal entry")
                 }
             }
             .sheet(isPresented: $showingNewEntry) {
@@ -673,6 +674,7 @@ struct JournalDetailView: View {
                     Image(systemName: "ellipsis.circle")
                         .foregroundColor(.emerald)
                 }
+                .accessibilityLabel("More actions")
             }
         }
         .sheet(isPresented: $showingExport) {

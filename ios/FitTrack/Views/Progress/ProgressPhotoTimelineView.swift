@@ -40,6 +40,7 @@ struct ProgressPhotoTimelineView: View {
                         Image(systemName: "plus")
                             .foregroundStyle(Color.emerald)
                     }
+                    .accessibilityLabel("Add progress photo")
                 }
             }
             .sheet(isPresented: $showingAddSheet) {
@@ -305,6 +306,7 @@ struct ProgressPhotoFullscreenView: View {
                             .foregroundStyle(.white, Color.black.opacity(0.5))
                     }
                     .padding()
+                    .accessibilityLabel("Close")
 
                     Spacer()
 
@@ -316,6 +318,7 @@ struct ProgressPhotoFullscreenView: View {
                             .foregroundStyle(.red, Color.black.opacity(0.5))
                     }
                     .padding()
+                    .accessibilityLabel("Delete photo")
                 }
                 Spacer()
 

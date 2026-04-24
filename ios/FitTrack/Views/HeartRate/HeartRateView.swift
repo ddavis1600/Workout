@@ -127,6 +127,7 @@ struct HeartRateView: View {
                         Image(systemName: "gearshape")
                             .foregroundColor(.slateText)
                     }
+                    .accessibilityLabel("Heart rate zone settings")
                 }
                 // numberPad has no Return/Done key — without this toolbar
                 // the user can't dismiss the keyboard after editing Age.

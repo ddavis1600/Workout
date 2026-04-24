@@ -138,6 +138,7 @@ struct ManualWorkoutView: View {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundStyle(Color.slateText)
                     }
+                    .accessibilityLabel("Remove \(group.exercise.name)")
                 }
 
                 HStack(spacing: 10) {

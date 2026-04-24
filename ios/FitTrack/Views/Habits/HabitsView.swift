@@ -373,12 +373,14 @@ struct HabitsView: View {
                             Image(systemName: "books.vertical.fill")
                                 .foregroundColor(.emerald)
                         }
+                        .accessibilityLabel("Habit library")
                         Button {
                             showingAddSheet = true
                         } label: {
                             Image(systemName: "plus.circle.fill")
                                 .foregroundColor(.emerald)
                         }
+                        .accessibilityLabel("New habit")
                     }
                 }
             }

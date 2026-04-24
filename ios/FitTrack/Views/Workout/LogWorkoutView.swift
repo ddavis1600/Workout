@@ -368,6 +368,7 @@ struct LogWorkoutView: View {
                             .foregroundStyle(.white, .black.opacity(0.6))
                     }
                     .padding(8)
+                    .accessibilityLabel("Remove photo")
                 }
             }
 
@@ -418,6 +419,7 @@ struct LogWorkoutView: View {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundStyle(Color.slateText)
                     }
+                    .accessibilityLabel("Remove \(group.exercise.name)")
                 }
 
                 // Header row

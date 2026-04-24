@@ -53,11 +53,13 @@ struct SetRowView: View {
                     Image(systemName: notes.isEmpty ? "note.text.badge.plus" : "note.text")
                         .foregroundStyle(notes.isEmpty ? Color.slateText : Color.emerald)
                 }
+                .accessibilityLabel(notes.isEmpty ? "Add note to set" : "Edit set note")
 
                 Button(action: onDelete) {
                     Image(systemName: "minus.circle")
                         .foregroundStyle(.red)
                 }
+                .accessibilityLabel("Delete set")
             }
 
             if showNotes {

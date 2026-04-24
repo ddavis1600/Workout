@@ -112,6 +112,7 @@ struct WeightTrackingView: View {
                         Image(systemName: "plus.circle.fill")
                             .foregroundColor(.emerald)
                     }
+                    .accessibilityLabel("Log weight")
                 }
             }
             .sheet(isPresented: $showingLogSheet) {

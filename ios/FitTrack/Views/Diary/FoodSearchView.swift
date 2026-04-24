@@ -72,6 +72,7 @@ struct FoodSearchView: View {
                         Image(systemName: "barcode.viewfinder")
                             .foregroundStyle(Color.emerald)
                     }
+                    .accessibilityLabel("Scan barcode")
                 }
             }
             .sheet(isPresented: $showingBarcodeScanner) {

@@ -35,6 +35,7 @@ struct RestTimerView: View {
                         .font(.title3)
                         .foregroundStyle(Color.slateText)
                 }
+                .accessibilityLabel("Close rest timer")
             }
 
             ZStack {
