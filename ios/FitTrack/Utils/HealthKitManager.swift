@@ -21,9 +21,20 @@ class HealthKitManager {
             HKQuantityType(.activeEnergyBurned),
             HKQuantityType(.appleExerciseTime),
             HKQuantityType(.dietaryWater),
+            // Every macro that `saveFoodEntry` puts inside an
+            // HKCorrelation(.food) also needs to appear in the READ
+            // set. HealthKit's auth sheet treats a correlation as a
+            // composite — if any of its constituent sample types is
+            // missing from reads, iOS won't register the correlation
+            // type at all. That's why Daniel's earlier v2 re-auth
+            // left `.food` at `.notDetermined` and `deleteFoodEntry`
+            // kept crashing with "Authorization to read … is
+            // disallowed: HKCorrelationTypeIdentifierFood".
+            HKQuantityType(.dietaryEnergyConsumed),
             HKQuantityType(.dietaryProtein),
             HKQuantityType(.dietaryCarbohydrates),
             HKQuantityType(.dietaryFatTotal),
+            HKQuantityType(.dietaryFiber),
             HKWorkoutType.workoutType(),
             HKCorrelationType(.food),
         ]
@@ -82,49 +93,92 @@ class HealthKitManager {
     ///   v1 — original bundle: bodyMass, heartRate (+resting), stepCount,
     ///        activeEnergyBurned, appleExerciseTime, dietaryWater,
     ///        workoutType, mindfulSession, sleepAnalysis.
-    ///   v2 — **current**: adds the macro quantities
-    ///        (dietaryProtein/Carbs/Fat), HKCorrelationType(.food) read,
-    ///        and the matching share types for food-diary write-back.
-    ///        Food correlation reads landed with the diary HK-sync work;
-    ///        existing v1 users crashed in `deleteFoodEntry` because
-    ///        iOS had never collected a decision for `.food`.
+    ///   v2 — adds dietaryProtein/Carbs/Fat reads + HKCorrelationType(.food)
+    ///        + matching share types for food-diary writeback. **Was
+    ///        broken in practice**: HealthKit treats a correlation as a
+    ///        composite — every constituent sample type must be in the
+    ///        read set or iOS silently drops the correlation from the
+    ///        auth sheet. v2's read set was missing dietaryEnergyConsumed
+    ///        and dietaryFiber (which `saveFoodEntry` packs into the
+    ///        correlation), so the sheet never registered `.food` and
+    ///        existing users kept crashing in `deleteFoodEntry`.
+    ///   v3 — **current**: adds the missing dietaryEnergyConsumed and
+    ///        dietaryFiber reads. With every constituent of the food
+    ///        correlation now in the read set, iOS will surface `.food`
+    ///        in the v3 re-auth sheet and the user's decision finally
+    ///        gets recorded. Bumping the bundle version forces v2 users
+    ///        to flow through the sheet one more time — they only see
+    ///        the previously missing two macros + the correlation.
     ///
-    /// When Daniel bumps to v3 (e.g. to add .bodyFatPercentage read),
-    /// change the constant here and every install that opens the app
-    /// gets exactly one re-auth sheet covering only the newly added
-    /// types. Existing decisions are preserved — iOS does not re-prompt
-    /// for types the user has already allowed or denied.
-    static let currentAuthBundleVersion = 2
+    /// When future read-set expansions happen, change the constant here
+    /// and every install that opens the app gets exactly one re-auth
+    /// sheet covering only the newly added types. Existing decisions
+    /// are preserved.
+    static let currentAuthBundleVersion = 3
 
     private static let bundleVersionKey = "hkAuthBundleVersion"
 
     /// Idempotent. Call at app launch and at the top of any HK-touching
-    /// path that reads a type added after v1 (currently: food correlation).
-    /// Does nothing once the user's recorded bundle version matches
-    /// `currentAuthBundleVersion`.
+    /// path that reads a type added after v1. Does nothing once the
+    /// user's recorded bundle version matches `currentAuthBundleVersion`.
     ///
-    /// This is what makes `deleteFoodEntry` crash-safe for users who
-    /// originally granted auth on v1 — by the time the query fires,
-    /// `requestAuthorization` has already run with the v2 read set, so
-    /// `.food` is in a valid per-type state (authorized or explicitly
-    /// denied, not `.notDetermined`).
+    /// Concurrent callers share a single in-flight request via
+    /// `inFlightEnsureTask` so we don't fire two `requestAuthorization`
+    /// calls in a row (one from `.task` on the root view, one from a
+    /// per-query guard like `deleteFoodEntry` — both would race to
+    /// bump the flag and could leave iOS in an inconsistent state).
+    ///
+    /// The stored bundle version is only bumped if `requestAuthorization`
+    /// actually completed without throwing. If the call fails (e.g.
+    /// HealthKit unavailable mid-call), the next caller retries — better
+    /// than silently marking as "current" while the user still has
+    /// `.notDetermined` types.
+    @MainActor
     func ensureAuthorizationCurrent() async {
         guard isAvailable else { return }
         let stored = UserDefaults.standard.integer(forKey: Self.bundleVersionKey)
         if stored >= Self.currentAuthBundleVersion { return }
 
-        _ = await requestAuthorization()
-        UserDefaults.standard.set(Self.currentAuthBundleVersion, forKey: Self.bundleVersionKey)
-
-        // The v1 per-site gating flags (introduced in P3) would otherwise
-        // fire duplicate prompts at the Weight toggle / workout-save /
-        // HR view sites right after this bundle-level prompt. Mark them
-        // as already-asked — the system sheet we just showed covers all
-        // their types.
-        for key in ["hasRequestedHRAuth", "hasRequestedWeightAuth", "hasRequestedWorkoutAuth"] {
-            UserDefaults.standard.set(true, forKey: key)
+        // Coalesce concurrent callers onto a single in-flight Task.
+        if let existing = Self.inFlightEnsureTask {
+            await existing.value
+            return
         }
+        let task = Task { @MainActor [weak self] in
+            guard let self else { return }
+            // Re-check inside the task in case another caller already
+            // completed between the early-return and here.
+            let latest = UserDefaults.standard.integer(forKey: Self.bundleVersionKey)
+            if latest >= Self.currentAuthBundleVersion { return }
+
+            let succeeded = await self.requestAuthorization()
+            // Only bump the version if the request itself actually went
+            // through. A `false` result means HealthKit threw — pretending
+            // the bundle is current would re-strand us.
+            guard succeeded else { return }
+
+            UserDefaults.standard.set(Self.currentAuthBundleVersion, forKey: Self.bundleVersionKey)
+            // The per-site gating flags (introduced in P3) would
+            // otherwise fire duplicate prompts at the Weight toggle /
+            // workout-save / HR view sites right after this bundle-
+            // level prompt. Mark them as already-asked — the system
+            // sheet just covered all their types.
+            for key in ["hasRequestedHRAuth", "hasRequestedWeightAuth", "hasRequestedWorkoutAuth"] {
+                UserDefaults.standard.set(true, forKey: key)
+            }
+        }
+        Self.inFlightEnsureTask = task
+        await task.value
+        // Clear so a future bundle-version bump can re-run cleanly.
+        // On success this is a no-op (early-return guards it next time);
+        // on failure it lets the next caller retry.
+        Self.inFlightEnsureTask = nil
     }
+
+    /// Coalesces concurrent ensureAuthorizationCurrent callers. MainActor-
+    /// confined access via `ensureAuthorizationCurrent`'s `@MainActor`.
+    @MainActor
+    private static var inFlightEnsureTask: Task<Void, Never>?
 
     // MARK: - Workout
 
@@ -280,6 +334,13 @@ class HealthKitManager {
     /// Trigger identifiers match `HKHabitTrigger.identifier`.
     func fetchDailyValue(for trigger: String, on date: Date) async -> Double {
         guard isAvailable else { return 0 }
+        // The dietary-macro habit triggers (.dietaryProtein/Carbs/Fat)
+        // resolve to v2/v3 read types. If the user is still on a stored
+        // bundle version that predates those types, the underlying
+        // HKStatisticsQuery would throw "Authorization to read … is
+        // disallowed". Block on the bundle ensure first so the per-type
+        // decision is recorded before any query fires.
+        await ensureAuthorizationCurrent()
         switch trigger {
         case "stepCount":
             return await fetchDailySumQuantity(typeIdentifier: .stepCount, unit: .count(), date: date)
