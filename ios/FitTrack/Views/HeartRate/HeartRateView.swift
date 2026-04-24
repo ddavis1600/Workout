@@ -544,9 +544,39 @@ class HeartRateViewModel: ObservableObject {
         }
 
         guard HealthKitManager.shared.isAvailable else { return }
-        let authorized = await HealthKitManager.shared.requestAuthorization()
-        isAuthorized = authorized
-        if authorized {
+
+        // Only prompt the FIRST time the user visits Heart Rate. Previously
+        // setup() unconditionally called requestAuthorization on every
+        // view appear — even when auth was already decided, iOS would
+        // briefly flash the system sheet (especially after HealthKitManager
+        // recently added new types to the request set, which keeps some
+        // tuples in .notDetermined state).
+        //
+        // Gate strategy:
+        //   - UserDefaults flag "hasRequestedHRAuth" tracks whether we've
+        //     ever called requestAuthorization. Belt-and-suspenders: for
+        //     read types, HKHealthStore.authorizationStatus always reports
+        //     .sharingDenied, so we can't rely on a status check alone.
+        //   - We also check workoutType share status — workouts are a
+        //     write type, so status DOES reflect the user's decision. If
+        //     the flag was set but workout status is still .notDetermined
+        //     (e.g. user killed the sheet mid-prompt last time), re-ask.
+        let hasAskedBefore = UserDefaults.standard.bool(forKey: "hasRequestedHRAuth")
+        let workoutStatus = HealthKitManager.shared.healthStore
+            .authorizationStatus(for: HKWorkoutType.workoutType())
+
+        if !hasAskedBefore || workoutStatus == .notDetermined {
+            let authorized = await HealthKitManager.shared.requestAuthorization()
+            isAuthorized = authorized
+            UserDefaults.standard.set(true, forKey: "hasRequestedHRAuth")
+        } else {
+            // Already asked. Treat as authorized unless the user explicitly
+            // denied (workoutStatus == .sharingDenied). The "Enable Access"
+            // button still drives requestAccess() for a manual retry.
+            isAuthorized = (workoutStatus != .sharingDenied)
+        }
+
+        if isAuthorized {
             await service.startMonitoring()
             await fetchStats()
         }
@@ -555,6 +585,7 @@ class HeartRateViewModel: ObservableObject {
     func requestAccess() async {
         let authorized = await HealthKitManager.shared.requestAuthorization()
         isAuthorized = authorized
+        UserDefaults.standard.set(true, forKey: "hasRequestedHRAuth")
         if authorized {
             await service.startMonitoring()
             await fetchStats()
