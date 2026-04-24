@@ -38,6 +38,21 @@ class HealthKitManager {
 
     func requestAuthorization() async -> Bool {
         guard isAvailable else { return false }
+        // HKCorrelationType is deliberately NOT in shareTypes. HealthKit
+        // throws an uncaught NSInvalidArgumentException —
+        //   "Authorization to share the following types is disallowed:
+        //    HKCorrelationTypeIdentifierFood"
+        // — the moment `requestAuthorization(toShare:read:)` sees a
+        // correlation type in its share set. Apple only allows sharing
+        // the underlying sample types; the correlation is synthesized
+        // from those at save time via `healthStore.save(correlation)`.
+        //
+        // Food correlation writes still work: the macro `HKQuantityType`s
+        // below grant share access to the individual samples, and
+        // `saveFoodEntry` wraps them in an HKCorrelation that HealthKit
+        // persists as long as every sample it contains is shareable.
+        // Reading correlations is separately allowed and is requested
+        // via `allReadTypes` (which still includes the correlation type).
         let shareTypes: Set<HKSampleType> = [
             HKQuantityType(.bodyMass),
             HKQuantityType(.dietaryWater),
@@ -47,7 +62,6 @@ class HealthKitManager {
             HKQuantityType(.dietaryCarbohydrates),
             HKQuantityType(.dietaryFatTotal),
             HKQuantityType(.dietaryFiber),
-            HKCorrelationType(.food),
         ]
         do {
             try await healthStore.requestAuthorization(toShare: shareTypes, read: allReadTypes)
