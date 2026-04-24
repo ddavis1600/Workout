@@ -80,6 +80,7 @@ struct MacrosView: View {
             .background(Color.slateBackground)
             .toolbarBackground(Color.slateBackground, for: .navigationBar)
             .navigationTitle("Macros")
+            .keyboardDoneToolbar()
             .task {
                 if viewModel == nil {
                     let vm = MacrosViewModel(modelContext: modelContext)
