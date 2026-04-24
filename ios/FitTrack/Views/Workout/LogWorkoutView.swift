@@ -3,6 +3,7 @@ import SwiftData
 import Combine
 import PhotosUI
 import WatchConnectivity
+import HealthKit
 
 struct LogWorkoutView: View {
     @Environment(\.dismiss) private var dismiss
@@ -607,12 +608,31 @@ struct LogWorkoutView: View {
         }
 
         // Write to Apple Health after local save succeeds.
-        // requestAuthorization() is a no-op if permission was already granted;
-        // first-time users see the HK system sheet. If they deny, we skip silently.
+        //
+        // The old code called `requestAuthorization()` unconditionally on
+        // every save, with a misleading comment claiming it was a no-op
+        // after first grant. It's technically non-interactive but still
+        // trips the XPC round-trip to healthd — and more importantly,
+        // there are paths where iOS does show the sheet on repeat calls,
+        // same class of flash HeartRateView already fixed for reads.
+        //
+        // Gate the same way as the HR + Weight surfaces: use
+        // `shouldRequestAuthorization` with the workout write type, and
+        // bail silently if the user has already denied.
         Task {
             let hk = HealthKitManager.shared
             guard hk.isAvailable else { return }
-            _ = await hk.requestAuthorization()
+            if hk.shouldRequestAuthorization(
+                writeType: HKWorkoutType.workoutType(),
+                flagKey: "hasRequestedWorkoutAuth"
+            ) {
+                _ = await hk.requestAuthorization()
+                hk.markAuthorizationRequested(flagKey: "hasRequestedWorkoutAuth")
+            }
+            // Status check: skip the write cleanly if the user denied —
+            // saveWorkoutToHealth would otherwise log a non-fatal error.
+            let status = hk.healthStore.authorizationStatus(for: HKWorkoutType.workoutType())
+            guard status == .sharingAuthorized else { return }
             await hk.saveWorkoutToHealth(startDate: workoutStartDate, endDate: workoutEndDate)
         }
 
