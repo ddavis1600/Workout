@@ -8,6 +8,8 @@ struct TemplateListView: View {
 
     var onSelect: (WorkoutTemplate) -> Void
 
+    @State private var pendingDelete: WorkoutTemplate?
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -54,12 +56,13 @@ struct TemplateListView: View {
                             }
                             .buttonStyle(.plain)
                             .listRowBackground(Color.slateCard)
-                        }
-                        .onDelete { offsets in
-                            for index in offsets {
-                                modelContext.delete(templates[index])
+                            .swipeActions(edge: .trailing) {
+                                Button(role: .destructive) {
+                                    pendingDelete = template
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
                             }
-                            try? modelContext.save()
                         }
                     }
                     .listStyle(.insetGrouped)
@@ -73,6 +76,18 @@ struct TemplateListView: View {
                     Button("Cancel") { dismiss() }
                         .foregroundStyle(Color.slateText)
                 }
+            }
+            .confirmDestructive(
+                item: $pendingDelete,
+                title: "Delete template?",
+                message: { template in
+                    let count = (template.exercises ?? []).count
+                    let exStr = count == 1 ? "1 exercise" : "\(count) exercises"
+                    return "Removes “\(template.name)” (\(exStr)). Previously logged workouts built from this template are unaffected."
+                }
+            ) { template in
+                modelContext.delete(template)
+                try? modelContext.save()
             }
         }
     }
