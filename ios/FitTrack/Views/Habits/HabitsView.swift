@@ -219,6 +219,7 @@ struct HabitsView: View {
     @State private var pendingMilestones: (Habit, [Int])? = nil
     @State private var showingMilestone = false
     @State private var libraryPrefill: LibraryHabitTemplate? = nil
+    @State private var pendingDelete: Habit? = nil
 
     private var calendar: Calendar { Calendar.current }
 
@@ -307,8 +308,7 @@ struct HabitsView: View {
                                 }
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                     Button(role: .destructive) {
-                                        modelContext.delete(habit)
-                                        try? modelContext.save()
+                                        pendingDelete = habit
                                     } label: {
                                         Label("Delete", systemImage: "trash")
                                     }
@@ -331,8 +331,7 @@ struct HabitsView: View {
                                         }
                                     }
                                     Button(role: .destructive) {
-                                        modelContext.delete(habit)
-                                        try? modelContext.save()
+                                        pendingDelete = habit
                                     } label: {
                                         Label("Delete", systemImage: "trash")
                                     }
@@ -406,6 +405,18 @@ struct HabitsView: View {
                 }
             }
             .task(id: selectedDate) { await refreshHKValues() }
+            .confirmDestructive(
+                item: $pendingDelete,
+                title: "Delete habit?",
+                message: { habit in
+                    let count = habit.completions?.count ?? 0
+                    let checkIns = count == 1 ? "1 check-in" : "\(count) check-ins"
+                    return "Removes “\(habit.name)” and \(checkIns). This can't be undone."
+                }
+            ) { habit in
+                modelContext.delete(habit)
+                try? modelContext.save()
+            }
         }
     }
 
@@ -816,6 +827,7 @@ struct AddHabitSheet: View {
                         .foregroundColor(.emerald)
                 }
             }
+            .keyboardDoneToolbar()
             .sheet(isPresented: $showingHKPicker) {
                 HKTriggerPickerSheet(selected: $selectedTrigger, thresholdText: $thresholdText)
             }
@@ -1203,6 +1215,7 @@ struct EditHabitSheet: View {
                         .foregroundColor(.emerald)
                 }
             }
+            .keyboardDoneToolbar()
             .sheet(isPresented: $showingHKPicker) {
                 HKTriggerPickerSheet(selected: $selectedTrigger, thresholdText: $thresholdText)
             }
