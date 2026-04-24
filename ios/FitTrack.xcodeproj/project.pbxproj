@@ -23,6 +23,7 @@
 		A10000000000000000000008 /* Workout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* Workout.swift */; };
 		A10000000000000000000009 /* WorkoutSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000009 /* WorkoutSet.swift */; };
 		A1000000000000000000000A /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000A /* Extensions.swift */; };
+		L10000000000000000000001 /* AppLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = L20000000000000000000001 /* AppLogger.swift */; };
 		A1000000000000000000000B /* MacroCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000B /* MacroCalculator.swift */; };
 		A1000000000000000000000C /* SeedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000C /* SeedData.swift */; };
 		A1000000000000000000000D /* DashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000D /* DashboardViewModel.swift */; };
@@ -144,6 +145,7 @@
 		A20000000000000000000008 /* Workout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Workout.swift; sourceTree = "<group>"; };
 		A20000000000000000000009 /* WorkoutSet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutSet.swift; sourceTree = "<group>"; };
 		A2000000000000000000000A /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		L20000000000000000000001 /* AppLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLogger.swift; sourceTree = "<group>"; };
 		A2000000000000000000000B /* MacroCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroCalculator.swift; sourceTree = "<group>"; };
 		A2000000000000000000000C /* SeedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeedData.swift; sourceTree = "<group>"; };
 		A2000000000000000000000D /* DashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
@@ -350,6 +352,7 @@
 			children = (
 				H20000000000000000000014 /* DataExportService.swift */,
 				A2000000000000000000000A /* Extensions.swift */,
+				L20000000000000000000001 /* AppLogger.swift */,
 				D10000000000000000000001 /* FoodAPIService.swift */,
 				C20000000000000000000006 /* HealthKitManager.swift */,
 				F20000000000000000000001 /* HeartRateService.swift */,
@@ -697,6 +700,7 @@
 				A10000000000000000000008 /* Workout.swift in Sources */,
 				A10000000000000000000009 /* WorkoutSet.swift in Sources */,
 				A1000000000000000000000A /* Extensions.swift in Sources */,
+				L10000000000000000000001 /* AppLogger.swift in Sources */,
 				A1000000000000000000000B /* MacroCalculator.swift in Sources */,
 				A1000000000000000000000C /* SeedData.swift in Sources */,
 				A1000000000000000000000D /* DashboardViewModel.swift in Sources */,
