@@ -6,6 +6,7 @@ struct BodyMeasurementsView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \BodyMeasurement.date, order: .reverse) private var measurements: [BodyMeasurement]
     @State private var showingAddSheet = false
+    @State private var pendingDelete: BodyMeasurement?
 
     var body: some View {
         NavigationStack {
@@ -38,12 +39,13 @@ struct BodyMeasurementsView: View {
                             measurementRow(m)
                                 .listRowBackground(Color.slateBackground)
                                 .listRowSeparator(.hidden)
-                        }
-                        .onDelete { offsets in
-                            for i in offsets {
-                                modelContext.delete(measurements[i])
-                            }
-                            try? modelContext.save()
+                                .swipeActions(edge: .trailing) {
+                                    Button(role: .destructive) {
+                                        pendingDelete = m
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                }
                         }
                     }
                     .listStyle(.plain)
@@ -62,6 +64,17 @@ struct BodyMeasurementsView: View {
             }
             .sheet(isPresented: $showingAddSheet) {
                 AddMeasurementSheet()
+            }
+            .confirmDestructive(
+                item: $pendingDelete,
+                title: "Delete measurement?",
+                message: { m in
+                    let formatted = m.date.formatted(as: "MMM d, yyyy")
+                    return "Removes the measurement logged on \(formatted). This can't be undone."
+                }
+            ) { m in
+                modelContext.delete(m)
+                try? modelContext.save()
             }
         }
     }
@@ -216,6 +229,7 @@ struct AddMeasurementSheet: View {
                         .fontWeight(.semibold)
                 }
             }
+            .keyboardDoneToolbar()
         }
     }
 
