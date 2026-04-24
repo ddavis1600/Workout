@@ -23,8 +23,6 @@
 		A10000000000000000000008 /* Workout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* Workout.swift */; };
 		A10000000000000000000009 /* WorkoutSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000009 /* WorkoutSet.swift */; };
 		A1000000000000000000000A /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000A /* Extensions.swift */; };
-		E10000000000000000000002 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000000000000000000002 /* AppTheme.swift */; };
-		E10000000000000000000003 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000000000000000000003 /* OnboardingView.swift */; };
 		A1000000000000000000000B /* MacroCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000B /* MacroCalculator.swift */; };
 		A1000000000000000000000C /* SeedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000C /* SeedData.swift */; };
 		A1000000000000000000000D /* DashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000D /* DashboardViewModel.swift */; };
@@ -146,8 +144,6 @@
 		A20000000000000000000008 /* Workout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Workout.swift; sourceTree = "<group>"; };
 		A20000000000000000000009 /* WorkoutSet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutSet.swift; sourceTree = "<group>"; };
 		A2000000000000000000000A /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
-		E20000000000000000000002 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
-		E20000000000000000000003 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		A2000000000000000000000B /* MacroCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroCalculator.swift; sourceTree = "<group>"; };
 		A2000000000000000000000C /* SeedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeedData.swift; sourceTree = "<group>"; };
 		A2000000000000000000000D /* DashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
@@ -354,7 +350,6 @@
 			children = (
 				H20000000000000000000014 /* DataExportService.swift */,
 				A2000000000000000000000A /* Extensions.swift */,
-				E20000000000000000000002 /* AppTheme.swift */,
 				D10000000000000000000001 /* FoodAPIService.swift */,
 				C20000000000000000000006 /* HealthKitManager.swift */,
 				F20000000000000000000001 /* HeartRateService.swift */,
@@ -383,7 +378,6 @@
 			children = (
 				A40000000000000000000008 /* Components */,
 				A40000000000000000000009 /* Dashboard */,
-				E40000000000000000000002 /* Onboarding */,
 				A4000000000000000000000A /* Diary */,
 				C4000000000000000000000D /* Habits */,
 				E40000000000000000000001 /* HeartRate */,
@@ -416,14 +410,6 @@
 				H20000000000000000000010 /* WeeklySummaryView.swift */,
 			);
 			path = Dashboard;
-			sourceTree = "<group>";
-		};
-		E40000000000000000000002 /* Onboarding */ = {
-			isa = PBXGroup;
-			children = (
-				E20000000000000000000003 /* OnboardingView.swift */,
-			);
-			path = Onboarding;
 			sourceTree = "<group>";
 		};
 		A4000000000000000000000A /* Diary */ = {
@@ -711,8 +697,6 @@
 				A10000000000000000000008 /* Workout.swift in Sources */,
 				A10000000000000000000009 /* WorkoutSet.swift in Sources */,
 				A1000000000000000000000A /* Extensions.swift in Sources */,
-				E10000000000000000000002 /* AppTheme.swift in Sources */,
-				E10000000000000000000003 /* OnboardingView.swift in Sources */,
 				A1000000000000000000000B /* MacroCalculator.swift in Sources */,
 				A1000000000000000000000C /* SeedData.swift in Sources */,
 				A1000000000000000000000D /* DashboardViewModel.swift in Sources */,
