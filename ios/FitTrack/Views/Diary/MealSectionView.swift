@@ -23,6 +23,7 @@ struct MealSectionView: View {
     @State private var fullscreenPhoto: UIImage?
     @State private var showFullscreen = false
     @State private var showPhotoOptions = false
+    @State private var pendingDelete: DiaryEntry?
 
     private var mealCalories: Double {
         entries.reduce(0) { $0 + $1.totalCalories }
@@ -106,7 +107,7 @@ struct MealSectionView: View {
                     .contentShape(Rectangle())
                     .swipeActions(edge: .trailing) {
                         Button(role: .destructive) {
-                            onDelete(entry)
+                            pendingDelete = entry
                         } label: {
                             Label("Delete", systemImage: "trash")
                         }
@@ -152,6 +153,16 @@ struct MealSectionView: View {
             if let photo = fullscreenPhoto {
                 MealPhotoFullscreenView(image: photo)
             }
+        }
+        .confirmDestructive(
+            item: $pendingDelete,
+            title: "Remove food?",
+            message: { entry in
+                let name = entry.food?.name ?? "this entry"
+                return "Removes \(name) from \(mealType.capitalized)."
+            }
+        ) { entry in
+            onDelete(entry)
         }
         .onAppear { loadPhoto() }
         .onChange(of: photoLoadToken) { _, _ in loadPhoto() }
