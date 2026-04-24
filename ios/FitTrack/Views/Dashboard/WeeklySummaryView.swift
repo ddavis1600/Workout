@@ -2,10 +2,51 @@ import SwiftUI
 import SwiftData
 
 struct WeeklySummaryView: View {
-    @Query private var allWorkouts: [Workout]
-    @Query private var allDiaryEntries: [DiaryEntry]
+    // Bounded @Query fetches (AUDIT H3).
+    //
+    // The previous implementation did `@Query var allWorkouts: [Workout]`
+    // and three more unbounded fetches, then filtered in-memory to the
+    // current week. On an account with months of history that loads
+    // every row into SwiftUI diffing just to show two numbers. With
+    // CloudKit sync turned on it also pulls full records from the
+    // store on every refresh.
+    //
+    // Strategy: scope each query to the minimum window any computed
+    // property needs. Everything except `streak` only looks at the
+    // trailing 14 days (this-week + last-week comparisons); streak is
+    // the outlier — bounded at 90 days, which is plenty of headroom
+    // (>90-day streak is already out-of-spec content for this card).
+    //
+    // The #Predicate DSL blocks global functions like
+    // `Date(timeIntervalSinceNow:)`, so the cutoffs are computed in
+    // `init()` and captured as locals. SwiftUI re-instantiates the
+    // view on every refresh, so the window slides with wall clock.
+    @Query private var recentWorkouts: [Workout]
+    @Query private var recentDiaryEntries: [DiaryEntry]
+    @Query private var recentWeightEntries: [WeightEntry]
+
+    // Habits themselves are few (< ~30). Keep unbounded — the weekly
+    // completion rate math walks the relationship, so we can't bound
+    // the habit list by completion date here anyway.
     @Query private var allHabits: [Habit]
-    @Query private var allWeightEntries: [WeightEntry]
+
+    init() {
+        let now = Date()
+        let workoutCutoff = now.addingTimeInterval(-90 * 24 * 3600)
+        let twoWeekCutoff = now.addingTimeInterval(-14 * 24 * 3600)
+
+        _recentWorkouts = Query(
+            filter: #Predicate<Workout> { $0.date >= workoutCutoff },
+            sort: \Workout.date,
+            order: .reverse
+        )
+        _recentDiaryEntries = Query(
+            filter: #Predicate<DiaryEntry> { $0.date >= twoWeekCutoff }
+        )
+        _recentWeightEntries = Query(
+            filter: #Predicate<WeightEntry> { $0.date >= twoWeekCutoff }
+        )
+    }
 
     private var calendar: Calendar { Calendar.current }
 
@@ -18,11 +59,11 @@ struct WeeklySummaryView: View {
     }
 
     private var thisWeekWorkouts: [Workout] {
-        allWorkouts.filter { $0.date >= thisWeekStart }
+        recentWorkouts.filter { $0.date >= thisWeekStart }
     }
 
     private var lastWeekWorkouts: [Workout] {
-        allWorkouts.filter { $0.date >= lastWeekStart && $0.date < thisWeekStart }
+        recentWorkouts.filter { $0.date >= lastWeekStart && $0.date < thisWeekStart }
     }
 
     private var thisWeekDuration: Int {
@@ -36,7 +77,7 @@ struct WeeklySummaryView: View {
     // MARK: - Calories
 
     private var thisWeekDiaryEntries: [DiaryEntry] {
-        allDiaryEntries.filter { $0.date >= thisWeekStart }
+        recentDiaryEntries.filter { $0.date >= thisWeekStart }
     }
 
     private var avgDailyCalories: Int {
@@ -48,7 +89,7 @@ struct WeeklySummaryView: View {
     // MARK: - Weight change
 
     private var thisWeekWeightEntries: [WeightEntry] {
-        allWeightEntries.filter { $0.date >= thisWeekStart }.sorted { $0.date < $1.date }
+        recentWeightEntries.filter { $0.date >= thisWeekStart }.sorted { $0.date < $1.date }
     }
 
     private var weightChange: Double? {
@@ -74,13 +115,14 @@ struct WeeklySummaryView: View {
     // MARK: - Streak
 
     private var streak: Int {
-        let sorted = allWorkouts.sorted { $0.date > $1.date }
-        guard !sorted.isEmpty else { return 0 }
+        // `recentWorkouts` is already ordered `.reverse`, so the old
+        // explicit sort is redundant.
+        guard !recentWorkouts.isEmpty else { return 0 }
 
         var count = 0
         var checkDate = calendar.startOfDay(for: Date())
 
-        for workout in sorted {
+        for workout in recentWorkouts {
             let workoutDay = calendar.startOfDay(for: workout.date)
             if workoutDay == checkDate {
                 count += 1
