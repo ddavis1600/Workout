@@ -9,6 +9,16 @@ final class ProgressPhoto {
     var caption: String = ""
     var createdAt: Date = Date()
 
+    /// JPEG bytes for the photo. `@Attribute(.externalStorage)` tells
+    /// SwiftData to keep the blob out of the SQLite row — under the hood it
+    /// writes a sidecar file inside the model container and, crucially,
+    /// hands CloudKit a CKAsset when NSPersistentCloudKitContainer syncs
+    /// the record. That's what gets the actual image across devices.
+    ///
+    /// Optional + nil default keeps CloudKit happy: every stored property
+    /// on a sync'd @Model must be Optional or have a default.
+    @Attribute(.externalStorage) var imageData: Data? = nil
+
     init(date: Date = Date(), filename: String, caption: String = "") {
         self.date = date
         self.filename = filename
