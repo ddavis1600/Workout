@@ -40,13 +40,18 @@ final class ProgressPhoto {
         return UIImage(data: data)
     }
 
+    /// Insert a new progress photo. The JPEG bytes are stored on the
+    /// model itself (`imageData`, backed by external storage); SwiftData
+    /// + NSPersistentCloudKitContainer handle the CKAsset sync from there.
+    ///
+    /// Callers should hand in already-compressed bytes (see
+    /// `ImageCompression.compressedJPEG(...)`) — this function does not
+    /// recompress. That keeps the expensive JPEG work out of the
+    /// model-context save path and lets the caller hop off main where
+    /// appropriate.
     static func save(imageData: Data, date: Date, caption: String = "", context: ModelContext) {
-        let dir = photoDirectory()
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        let filename = "progress_\(UUID().uuidString).jpg"
-        let url = dir.appendingPathComponent(filename)
-        try? imageData.write(to: url)
-        let photo = ProgressPhoto(date: date, filename: filename, caption: caption)
+        let photo = ProgressPhoto(date: date, filename: "", caption: caption)
+        photo.imageData = imageData
         context.insert(photo)
         try? context.save()
     }
