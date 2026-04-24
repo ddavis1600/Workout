@@ -72,7 +72,10 @@ struct HabitDetailView: View {
 
             HStack(alignment: .top, spacing: 6) {
                 VStack(spacing: 4) {
-                    ForEach(["S","M","T","W","T","F","S"], id: \.self) { d in
+                    // Same duplicate-ID concern as HabitsView's weekday
+                    // row — Sun/Sat share "S" and the two T's collide.
+                    // Use .offset as the stable id.
+                    ForEach(Array(["S","M","T","W","T","F","S"].enumerated()), id: \.offset) { _, d in
                         Text(d)
                             .font(.system(size: 9))
                             .foregroundColor(.slateText)

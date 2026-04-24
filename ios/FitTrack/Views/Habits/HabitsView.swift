@@ -592,7 +592,14 @@ struct HabitsView: View {
             }
 
             HStack(spacing: 0) {
-                ForEach(["M","T","W","T","F","S","S"], id: \.self) { d in
+                // id: `\.offset` because the letter array has duplicates
+                // ("T" and "S" both repeat across Mon–Sun). `\.self` as
+                // id produced the SwiftUI warning:
+                //   "the ID T occurs multiple times within the collection,
+                //    this will give undefined results!"
+                // and the same for "S". Offset-based id keeps the seven
+                // columns distinct without renaming the labels.
+                ForEach(Array(["M","T","W","T","F","S","S"].enumerated()), id: \.offset) { _, d in
                     Text(d).font(.caption2.weight(.semibold)).foregroundColor(.slateText).frame(maxWidth: .infinity)
                 }
             }
