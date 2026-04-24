@@ -19,7 +19,7 @@ class WatchSessionManager: NSObject, ObservableObject, WCSessionDelegate {
     func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
         DispatchQueue.main.async {
             if let action = message["action"] as? String, action == "stopWorkout" {
-                self.pendingStop = true
+                self.handleStopFromPhone()
             }
         }
     }
@@ -28,8 +28,21 @@ class WatchSessionManager: NSObject, ObservableObject, WCSessionDelegate {
     func session(_ session: WCSession, didReceiveUserInfo userInfo: [String: Any]) {
         DispatchQueue.main.async {
             if let action = userInfo["action"] as? String, action == "stopWorkout" {
-                self.pendingStop = true
+                self.handleStopFromPhone()
             }
+        }
+    }
+
+    /// Phone tapped Save → stop the watch session directly, not via a
+    /// WatchContentView `.onChange(pendingStop)` observer that may be
+    /// inactive if the view isn't currently rendered (user on another
+    /// watch app, screen asleep without active interaction, etc.).
+    /// Setting `pendingStop` is kept for any UI code still watching it.
+    private func handleStopFromPhone() {
+        pendingStop = true
+        Task { @MainActor in
+            WatchHeartRateService.shared.stopMonitoring()
+            WatchWorkoutSession.shared.stop()
         }
     }
 

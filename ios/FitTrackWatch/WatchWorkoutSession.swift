@@ -65,6 +65,10 @@ final class WatchWorkoutSession: NSObject, ObservableObject {
     private var routeLocations: [CLLocation] = []
     private var lastLocation: CLLocation?
     private var lastLiveUpdateSent: Date = .distantPast
+    /// Instant captured on user tap (before the async HK auth delay). Used
+    /// as HKWorkoutSession's startActivity timestamp so the watch's
+    /// built-in workout pill counts from the same moment as the phone.
+    private var pendingStartAt: Date = .distantPast
 
     override init() { super.init() }
 
@@ -97,10 +101,11 @@ final class WatchWorkoutSession: NSObject, ObservableObject {
     ///      WKBackgroundModes actually provide background time.
     ///   3. For GPS activities, start CLLocationManager. We rely on the
     ///      active HKWorkoutSession to keep the process alive.
-    func start(activityType: HKWorkoutActivityType) {
+    func start(activityType: HKWorkoutActivityType, startAt: Date = Date()) {
         guard !isActive else { return }
         reset()
         self.activityType = activityType
+        self.pendingStartAt = startAt
 
         // Must stay in lock-step with HealthKitManager.allShareTypes /
         // allReadTypes on the iPhone. Asking for the SAME supersets on
@@ -173,14 +178,21 @@ final class WatchWorkoutSession: NSObject, ObservableObject {
         config.activityType = activityType
         config.locationType  = Self.usesGPS(activityType) ? .outdoor : .indoor
 
+        // Use the instant captured when the user tapped Start (before auth),
+        // not `Date()` here — this is several hundred ms after the tap due
+        // to the async HK auth prompt + callback. Without this, HKWorkoutSession
+        // counts from the post-auth moment and the watch's built-in workout
+        // pill lags the phone's timer by the auth delay.
+        let startAt = pendingStartAt == .distantPast ? Date() : pendingStartAt
+
         do {
             let session = try HKWorkoutSession(healthStore: healthStore, configuration: config)
             let builder = session.associatedWorkoutBuilder()
             builder.dataSource = HKLiveWorkoutDataSource(healthStore: healthStore, workoutConfiguration: config)
             session.delegate = self
             builder.delegate = self
-            session.startActivity(with: Date())
-            builder.beginCollection(withStart: Date()) { success, error in
+            session.startActivity(with: startAt)
+            builder.beginCollection(withStart: startAt) { success, error in
                 if let error {
                     print("[WatchWorkoutSession] beginCollection failed: \(error)")
                 }

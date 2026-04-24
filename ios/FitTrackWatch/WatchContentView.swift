@@ -181,7 +181,11 @@ struct WatchContentView: View {
             "type":      selectedType,
             "startDate": startInstant.timeIntervalSince1970,
         ])
-        workoutSession.start(activityType: hkType(for: selectedType))
+        // Pass the same instant into the HKWorkoutSession so its internal
+        // startDate matches the phone's session.startDate — otherwise the
+        // watch's built-in workout pill lags the phone's timer by the
+        // async HK-auth delay.
+        workoutSession.start(activityType: hkType(for: selectedType), startAt: startInstant)
     }
 
     /// Stop HR, stop GPS tracking (which sends the final data payload to

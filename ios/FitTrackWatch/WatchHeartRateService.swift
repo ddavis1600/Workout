@@ -3,6 +3,11 @@ import HealthKit
 import WatchConnectivity
 
 class WatchHeartRateService: ObservableObject {
+    /// Shared instance so non-UI code (WatchSessionManager) can stop the
+    /// service directly, without waiting on a `.onChange` observer in
+    /// WatchContentView that might not fire if the view isn't active.
+    static let shared = WatchHeartRateService()
+
     @Published var currentBPM: Int = 0
     @Published var isMonitoring: Bool = false
     @Published var lastUpdated: Date?

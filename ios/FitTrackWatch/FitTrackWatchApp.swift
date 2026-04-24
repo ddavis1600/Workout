@@ -2,7 +2,7 @@ import SwiftUI
 
 @main
 struct FitTrackWatchApp: App {
-    @StateObject private var heartRateService = WatchHeartRateService()
+    @StateObject private var heartRateService = WatchHeartRateService.shared
 
     init() {
         WatchSessionManager.shared.activate()
