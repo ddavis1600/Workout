@@ -23,7 +23,15 @@ enum HeartRatePeriod: String, CaseIterable {
 // MARK: - View
 
 struct HeartRateView: View {
-    @StateObject private var viewModel = HeartRateViewModel()
+    // Migrated from `@StateObject HeartRateViewModel: ObservableObject` to
+    // the modern `@State`-backed `@Observable` pattern (AUDIT M5) so the
+    // Heart Rate stack matches the rest of the app's view models
+    // (DashboardViewModel, DiaryViewModel, MacrosViewModel, etc.). The
+    // `@StateObject` variant was also the wrong ownership when used with
+    // ObservableObject — SwiftUI would try to re-create the VM if this
+    // view's parent remounted, which in practice happened each time the
+    // tab bar reorganized.
+    @State private var viewModel = HeartRateViewModel()
     @State private var showZoneSettings = false
     @Environment(\.modelContext) private var modelContext
     @Query private var profiles: [UserProfile]
@@ -434,7 +442,14 @@ struct HeartRateView: View {
 // MARK: - Zone Settings Sheet
 
 struct ZoneSettingsSheet: View {
-    @ObservedObject var viewModel: HeartRateViewModel
+    // Switched from `@ObservedObject` to `@Bindable` to match the
+    // `HeartRateViewModel` migration to `@Observable` (AUDIT M5). The
+    // settings sheet reads the VM's zone-boundary storage and writes
+    // it back via the `boundaries` local state; it doesn't need
+    // `$viewModel` bindings today, but `@Bindable` is the drop-in
+    // replacement for `@ObservedObject` in the `@Observable` world
+    // and keeps future two-way bindings trivial.
+    @Bindable var viewModel: HeartRateViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var boundaries: [Int] = [115, 135, 155, 175]
 
@@ -493,15 +508,21 @@ struct ZoneSettingsSheet: View {
 // MARK: - View Model
 
 @MainActor
-class HeartRateViewModel: ObservableObject {
+@Observable
+final class HeartRateViewModel {
+    // `@Observable` auto-tracks all stored vars, so every `@Published`
+    // here became a plain `var` (AUDIT M5). The service itself stays
+    // `let` — it's already `@Observable` independently, and the view
+    // reads `viewModel.service.currentBPM` through observation.
     let service = HeartRateService()
-    @Published var isAuthorized = false
-    @Published var selectedPeriod: HeartRatePeriod = .weekly
-    @Published var restingStats: (avg: Int, min: Int, max: Int)? = nil
-    @Published var historicalZoneFractions: [Int: Double] = [:]
-    @Published var historicalZoneMinutes: [Int: Int] = [:]
 
-    @Published var userAge: Int = 25 {
+    var isAuthorized = false
+    var selectedPeriod: HeartRatePeriod = .weekly
+    var restingStats: (avg: Int, min: Int, max: Int)? = nil
+    var historicalZoneFractions: [Int: Double] = [:]
+    var historicalZoneMinutes: [Int: Int] = [:]
+
+    var userAge: Int = 25 {
         didSet {
             UserDefaults.standard.set(userAge, forKey: "heartRateUserAge")
         }
@@ -511,13 +532,17 @@ class HeartRateViewModel: ObservableObject {
 
     // Zone boundaries: [z1max, z2max, z3max, z4max]
     // Defaults: Z1 <115, Z2 115–135, Z3 135–155, Z4 155–175, Z5 >175
-    var zoneBoundaries: [Int] {
-        get {
-            (UserDefaults.standard.array(forKey: "hrZoneBoundaries") as? [Int]) ?? [115, 135, 155, 175]
-        }
-        set {
-            UserDefaults.standard.set(newValue, forKey: "hrZoneBoundaries")
-            objectWillChange.send()
+    //
+    // Converted from a UserDefaults-backed computed var to a stored var
+    // with a didSet persistence hook. @Observable can't observe plain
+    // computed properties — reads of the old version wouldn't trigger
+    // view updates after a write. The stored version auto-tracks and
+    // writes through to UserDefaults on change.
+    var zoneBoundaries: [Int] = {
+        (UserDefaults.standard.array(forKey: "hrZoneBoundaries") as? [Int]) ?? [115, 135, 155, 175]
+    }() {
+        didSet {
+            UserDefaults.standard.set(zoneBoundaries, forKey: "hrZoneBoundaries")
         }
     }
 
