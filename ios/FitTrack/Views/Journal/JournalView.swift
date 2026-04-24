@@ -339,14 +339,11 @@ struct NewJournalEntryView: View {
             }
             .onChange(of: selectedPhotoItem) { _, newItem in
                 Task {
-                    if let data = try? await newItem?.loadTransferable(type: Data.self) {
-                        if let uiImage = UIImage(data: data),
-                           let compressed = uiImage.jpegData(compressionQuality: 0.7) {
-                            photoData = compressed
-                        } else {
-                            photoData = data
-                        }
-                    }
+                    guard let data = try? await newItem?.loadTransferable(type: Data.self) else { return }
+                    // Downscale + JPEG encode off main via the shared
+                    // helper — same pattern as LogWorkoutView and the
+                    // ProgressPhoto / Diary surfaces.
+                    photoData = await ImageCompression.compressedJPEG(from: data) ?? data
                 }
             }
         }
