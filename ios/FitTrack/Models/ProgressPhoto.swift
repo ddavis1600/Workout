@@ -35,9 +35,11 @@ final class ProgressPhoto {
         ProgressPhoto.photoDirectory().appendingPathComponent(filename)
     }
 
+    /// Decode the on-model JPEG into a `UIImage`. Returns nil if the photo
+    /// hasn't synced yet (CloudKit asset still downloading) or was never
+    /// attached. Callers treat nil as "show placeholder."
     func loadImage() -> UIImage? {
-        guard let data = try? Data(contentsOf: photoURL()) else { return nil }
-        return UIImage(data: data)
+        imageData.flatMap(UIImage.init(data:))
     }
 
     /// Insert a new progress photo. The JPEG bytes are stored on the
