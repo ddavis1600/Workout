@@ -66,9 +66,18 @@ final class WatchWorkoutSession: NSObject, ObservableObject {
     private var lastLocation: CLLocation?
     private var lastLiveUpdateSent: Date = .distantPast
     /// Instant captured on user tap (before the async HK auth delay). Used
-    /// as HKWorkoutSession's startActivity timestamp so the watch's
-    /// built-in workout pill counts from the same moment as the phone.
-    private var pendingStartAt: Date = .distantPast
+    /// as HKWorkoutSession's startActivity timestamp and as the source of
+    /// truth for the watch UI's elapsed-timer display, so the watch and
+    /// phone compute elapsed from the same moment.
+    @Published private(set) var pendingStartAt: Date = .distantPast
+
+    /// Elapsed seconds since the user tapped Start. Used by the watch UI
+    /// timer — always derived from `pendingStartAt` so no separate ticker
+    /// can drift. Returns 0 when no workout is active.
+    var elapsedSeconds: Int {
+        guard isActive, pendingStartAt != .distantPast else { return 0 }
+        return max(0, Int(Date().timeIntervalSince(pendingStartAt)))
+    }
 
     override init() { super.init() }
 
