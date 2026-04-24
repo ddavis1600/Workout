@@ -130,7 +130,8 @@ struct ProgressPhotoTimelineView: View {
     // MARK: - Delete
 
     private func deletePhoto(_ photo: ProgressPhoto) {
-        try? FileManager.default.removeItem(at: photo.photoURL())
+        // SwiftData cleans up the externalStorage sidecar file automatically
+        // when the row is deleted — no disk work needed here anymore.
         modelContext.delete(photo)
         try? modelContext.save()
     }
