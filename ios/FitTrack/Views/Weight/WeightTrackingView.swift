@@ -11,6 +11,7 @@ struct WeightTrackingView: View {
     @State private var showingLogSheet = false
     @AppStorage("healthSyncEnabled") private var healthSyncEnabled = false
     @State private var timeRange: TimeRange = .thirtyDays
+    @State private var pendingDelete: WeightEntry?
 
     enum TimeRange: String, CaseIterable {
         case thirtyDays = "30 Days"
@@ -115,6 +116,17 @@ struct WeightTrackingView: View {
             }
             .sheet(isPresented: $showingLogSheet) {
                 LogWeightSheet(unitSystem: unitSystem)
+            }
+            .confirmDestructive(
+                item: $pendingDelete,
+                title: "Delete weight entry?",
+                message: { entry in
+                    let formatted = entry.date.formatted(as: "MMM d, yyyy")
+                    return "Removes the entry logged on \(formatted). This can't be undone."
+                }
+            ) { entry in
+                modelContext.delete(entry)
+                try? modelContext.save()
             }
         }
     }
@@ -330,8 +342,7 @@ struct WeightTrackingView: View {
                 .cornerRadius(12)
                 .contextMenu {
                     Button(role: .destructive) {
-                        modelContext.delete(entry)
-                        try? modelContext.save()
+                        pendingDelete = entry
                     } label: {
                         Label("Delete", systemImage: "trash")
                     }
@@ -444,6 +455,7 @@ struct LogWeightSheet: View {
                     .foregroundColor(.emerald)
                 }
             }
+            .keyboardDoneToolbar()
         }
         .presentationDetents([.medium])
     }
