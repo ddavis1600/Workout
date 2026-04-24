@@ -12,6 +12,7 @@ struct WorkoutListView: View {
     @State private var showingProgress = false
     @State private var showingManualWorkout = false
     @State private var selectedTemplate: WorkoutTemplate?
+    @State private var pendingDelete: Workout?
 
     var body: some View {
         NavigationStack {
@@ -39,18 +40,21 @@ struct WorkoutListView: View {
                             Image(systemName: "doc.on.doc")
                                 .foregroundStyle(Color.emerald)
                         }
+                        .accessibilityLabel("Workout templates")
                         Button {
                             showingPRHistory = true
                         } label: {
                             Image(systemName: "trophy.fill")
                                 .foregroundStyle(.yellow)
                         }
+                        .accessibilityLabel("Personal records")
                         Button {
                             showingProgress = true
                         } label: {
                             Image(systemName: "chart.line.uptrend.xyaxis")
                                 .foregroundStyle(Color.emerald)
                         }
+                        .accessibilityLabel("Progress charts")
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
@@ -75,6 +79,7 @@ struct WorkoutListView: View {
                         Image(systemName: "plus")
                             .foregroundStyle(Color.emerald)
                     }
+                    .accessibilityLabel("New workout")
                 }
             }
             .sheet(isPresented: $showingLogWorkout, onDismiss: {
@@ -130,6 +135,18 @@ struct WorkoutListView: View {
                     watchManager.pendingWorkoutStart = false
                 }
             }
+            .confirmDestructive(
+                item: $pendingDelete,
+                title: "Delete workout?",
+                message: { workout in
+                    let displayName = workout.name.isEmpty ? "this workout" : "“\(workout.name)”"
+                    let setCount = (workout.sets ?? []).count
+                    let setStr = setCount == 1 ? "1 set" : "\(setCount) sets"
+                    return "Removes \(displayName) (\(setStr)). This can't be undone."
+                }
+            ) { workout in
+                viewModel?.deleteWorkout(workout)
+            }
         }
     }
 
@@ -162,7 +179,7 @@ struct WorkoutListView: View {
                 .buttonStyle(.plain)
                 .contextMenu {
                     Button(role: .destructive) {
-                        vm.deleteWorkout(workout)
+                        pendingDelete = workout
                     } label: {
                         Label("Delete", systemImage: "trash")
                     }
