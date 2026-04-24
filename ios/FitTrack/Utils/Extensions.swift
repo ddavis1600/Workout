@@ -2,6 +2,116 @@ import Foundation
 import SwiftUI
 import UIKit
 
+// MARK: - Keyboard Dismiss Helpers
+// `.numberPad` / `.decimalPad` have no Return / Done key. Without a keyboard
+// accessory toolbar the user has no way to dismiss the keyboard short of
+// scrolling it off. HeartRateView fixed this first; this modifier ships the
+// same pattern everywhere in one line so future forms get it for free.
+//
+// Usage:
+//   ScrollView { /* fields */ }
+//     .keyboardDoneToolbar()
+//
+// Apply to the enclosing container (NavigationStack child, Form, ScrollView)
+// — SwiftUI shows the accessory only while a keyboard is visible.
+
+extension View {
+    /// Adds a "Done" button above the keyboard that dismisses any focused field.
+    /// Stateless — uses `resignFirstResponder` so no `@FocusState` plumbing is
+    /// required at the call site.
+    func keyboardDoneToolbar() -> some View {
+        modifier(KeyboardDoneToolbar())
+    }
+}
+
+private struct KeyboardDoneToolbar: ViewModifier {
+    func body(content: Content) -> some View {
+        content.toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") {
+                    UIApplication.shared.sendAction(
+                        #selector(UIResponder.resignFirstResponder),
+                        to: nil,
+                        from: nil,
+                        for: nil
+                    )
+                }
+                .foregroundStyle(Color.emerald)
+                .fontWeight(.semibold)
+            }
+        }
+    }
+}
+
+// MARK: - Destructive Confirm Helper
+// Matches JournalView's existing `.alert(...)` confirmation convention so every
+// destructive action in the app reads the same way. Each call supplies a title,
+// an optional descriptive message, and a closure to run on confirm.
+//
+// Usage:
+//   @State private var pendingDelete: Habit?
+//   ...
+//   .confirmDestructive(
+//       item: $pendingDelete,
+//       title: "Delete habit?",
+//       message: { habit in "Removes \(habit.completions?.count ?? 0) check-ins." },
+//       onConfirm: { habit in viewModel.delete(habit) }
+//   )
+
+extension View {
+    /// Presents a standard destructive-confirm `.alert` driven by an optional
+    /// state item. The alert appears while `item` is non-nil and clears on
+    /// either button. Message is evaluated against the pending item so the
+    /// copy can include item-specific detail (e.g. completion count).
+    func confirmDestructive<Item>(
+        item: Binding<Item?>,
+        title: String,
+        message: @escaping (Item) -> String,
+        confirmLabel: String = "Delete",
+        onConfirm: @escaping (Item) -> Void
+    ) -> some View {
+        modifier(
+            ConfirmDestructiveModifier(
+                item: item,
+                title: title,
+                message: message,
+                confirmLabel: confirmLabel,
+                onConfirm: onConfirm
+            )
+        )
+    }
+}
+
+private struct ConfirmDestructiveModifier<Item>: ViewModifier {
+    @Binding var item: Item?
+    let title: String
+    let message: (Item) -> String
+    let confirmLabel: String
+    let onConfirm: (Item) -> Void
+
+    func body(content: Content) -> some View {
+        content.alert(
+            title,
+            isPresented: Binding(
+                get: { item != nil },
+                set: { if !$0 { item = nil } }
+            ),
+            presenting: item
+        ) { pending in
+            Button(confirmLabel, role: .destructive) {
+                onConfirm(pending)
+                item = nil
+            }
+            Button("Cancel", role: .cancel) {
+                item = nil
+            }
+        } message: { pending in
+            Text(message(pending))
+        }
+    }
+}
+
 // MARK: - Date Extensions
 
 extension Date {
