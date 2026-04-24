@@ -72,7 +72,10 @@ struct DiaryView: View {
                     }
                 case .camera(let mealType):
                     MealCameraView { image in
-                        saveMealPhoto(mealType: mealType, image: image)
+                        // Hop into a Task so the compression + disk write
+                        // don't block the camera dismiss animation on the
+                        // main actor.
+                        Task { await saveMealPhoto(mealType: mealType, image: image) }
                     }
                 }
             }
@@ -87,9 +90,11 @@ struct DiaryView: View {
             .onChange(of: libraryPickerItem) { _, newItem in
                 Task {
                     guard let meal = libraryPickerMeal,
-                          let data = try? await newItem?.loadTransferable(type: Data.self),
-                          let uiImage = UIImage(data: data) else { return }
-                    saveMealPhoto(mealType: meal, image: uiImage)
+                          let data = try? await newItem?.loadTransferable(type: Data.self) else { return }
+                    // Hand raw bytes to the helper — avoids one `UIImage`
+                    // decode round-trip on main since the picker already
+                    // gives us encoded data.
+                    await saveMealPhoto(mealType: meal, data: data)
                     libraryPickerItem = nil
                     libraryPickerMeal = nil
                 }
@@ -104,23 +109,47 @@ struct DiaryView: View {
         return "meal_photo_\(mealType)_\(date.formatted(as: "yyyy-MM-dd")).jpg"
     }
 
-    private func saveMealPhoto(mealType: String, image: UIImage) {
+    /// Camera-delegate entry point — we already have the UIImage in hand.
+    private func saveMealPhoto(mealType: String, image: UIImage) async {
+        guard let jpeg = await ImageCompression.compressedJPEG(from: image) else { return }
+        await writeMealPhoto(mealType: mealType, jpeg: jpeg)
+    }
+
+    /// PhotosPicker entry point — we have the raw bytes. One less
+    /// `UIImage(data:)` round-trip on main than the camera path.
+    private func saveMealPhoto(mealType: String, data: Data) async {
+        guard let jpeg = await ImageCompression.compressedJPEG(from: data) else { return }
+        await writeMealPhoto(mealType: mealType, jpeg: jpeg)
+    }
+
+    /// Actually lay bytes on disk. The directory create + file write are
+    /// synchronous I/O and used to run on main; now pushed to a detached
+    /// userInitiated Task. Key is captured up front because
+    /// `mealPhotoKey` reads `viewModel.selectedDate` (main-actor state).
+    private func writeMealPhoto(mealType: String, jpeg: Data) async {
         let key = mealPhotoKey(mealType: mealType)
-        let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("MealPhotos", isDirectory: true)
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        if let jpeg = image.jpegData(compressionQuality: 0.75) {
+        await Task.detached(priority: .userInitiated) {
+            let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                .appendingPathComponent("MealPhotos", isDirectory: true)
+            try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
             try? jpeg.write(to: dir.appendingPathComponent(key))
-        }
+        }.value
+        // Back on main (saveMealPhoto is @MainActor-isolated by default
+        // as a View method). Tokening here triggers MealSectionView to
+        // reload from disk.
         mealPhotoTokens[mealType] = UUID()
     }
 
     private func deleteMealPhoto(mealType: String) {
         let key = mealPhotoKey(mealType: mealType)
-        let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("MealPhotos")
-            .appendingPathComponent(key)
-        try? FileManager.default.removeItem(at: url)
+        // Fire-and-forget detached Task — a sub-millisecond file removal
+        // isn't user-visible, and the caller doesn't need to wait.
+        Task.detached(priority: .utility) {
+            let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                .appendingPathComponent("MealPhotos")
+                .appendingPathComponent(key)
+            try? FileManager.default.removeItem(at: url)
+        }
         mealPhotoTokens[mealType] = UUID()
     }
 
