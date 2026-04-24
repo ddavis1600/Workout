@@ -38,6 +38,17 @@ class HealthKitManager {
 
     func requestAuthorization() async -> Bool {
         guard isAvailable else { return false }
+        // HKCorrelationType is deliberately NOT in shareTypes. HealthKit
+        // throws an uncaught NSInvalidArgumentException —
+        //   "Authorization to share the following types is disallowed:
+        //    HKCorrelationTypeIdentifierFood"
+        // — the moment `requestAuthorization(toShare:read:)` sees a
+        // correlation type in its share set. Apple only allows sharing
+        // the underlying sample types; `saveFoodEntry` builds the
+        // HKCorrelation from its contained HKQuantitySamples at write
+        // time, which HealthKit accepts because each sample's type is
+        // individually shareable. Reads are separately allowed and the
+        // correlation type lives in `allReadTypes`.
         let shareTypes: Set<HKSampleType> = [
             HKQuantityType(.bodyMass),
             HKQuantityType(.dietaryWater),
@@ -47,7 +58,6 @@ class HealthKitManager {
             HKQuantityType(.dietaryCarbohydrates),
             HKQuantityType(.dietaryFatTotal),
             HKQuantityType(.dietaryFiber),
-            HKCorrelationType(.food),
         ]
         do {
             try await healthStore.requestAuthorization(toShare: shareTypes, read: allReadTypes)
@@ -55,6 +65,64 @@ class HealthKitManager {
         } catch {
             print("HealthKit auth failed: \(error)")
             return false
+        }
+    }
+
+    // MARK: - Bundle versioning (forced re-auth after read-set expansion)
+
+    /// Bump this whenever a new type gets added to `allReadTypes` or
+    /// `shareTypes` that wasn't present in a prior shipping build. iOS
+    /// silently skips re-prompting for types it has already recorded a
+    /// decision on, so without this mechanism an existing user's grant
+    /// covers only the old types — a query against any newly added type
+    /// throws `NSInvalidArgumentException("Authorization to read … is
+    /// disallowed")` and crashes the app.
+    ///
+    /// Version log:
+    ///   v1 — original bundle: bodyMass, heartRate (+resting), stepCount,
+    ///        activeEnergyBurned, appleExerciseTime, dietaryWater,
+    ///        workoutType, mindfulSession, sleepAnalysis.
+    ///   v2 — **current**: adds the macro quantities
+    ///        (dietaryProtein/Carbs/Fat), HKCorrelationType(.food) read,
+    ///        and the matching share types for food-diary write-back.
+    ///        Food correlation reads landed with the diary HK-sync work;
+    ///        existing v1 users crashed in `deleteFoodEntry` because
+    ///        iOS had never collected a decision for `.food`.
+    ///
+    /// When Daniel bumps to v3 (e.g. to add .bodyFatPercentage read),
+    /// change the constant here and every install that opens the app
+    /// gets exactly one re-auth sheet covering only the newly added
+    /// types. Existing decisions are preserved — iOS does not re-prompt
+    /// for types the user has already allowed or denied.
+    static let currentAuthBundleVersion = 2
+
+    private static let bundleVersionKey = "hkAuthBundleVersion"
+
+    /// Idempotent. Call at app launch and at the top of any HK-touching
+    /// path that reads a type added after v1 (currently: food correlation).
+    /// Does nothing once the user's recorded bundle version matches
+    /// `currentAuthBundleVersion`.
+    ///
+    /// This is what makes `deleteFoodEntry` crash-safe for users who
+    /// originally granted auth on v1 — by the time the query fires,
+    /// `requestAuthorization` has already run with the v2 read set, so
+    /// `.food` is in a valid per-type state (authorized or explicitly
+    /// denied, not `.notDetermined`).
+    func ensureAuthorizationCurrent() async {
+        guard isAvailable else { return }
+        let stored = UserDefaults.standard.integer(forKey: Self.bundleVersionKey)
+        if stored >= Self.currentAuthBundleVersion { return }
+
+        _ = await requestAuthorization()
+        UserDefaults.standard.set(Self.currentAuthBundleVersion, forKey: Self.bundleVersionKey)
+
+        // The v1 per-site gating flags (introduced in P3) would otherwise
+        // fire duplicate prompts at the Weight toggle / workout-save /
+        // HR view sites right after this bundle-level prompt. Mark them
+        // as already-asked — the system sheet we just showed covers all
+        // their types.
+        for key in ["hasRequestedHRAuth", "hasRequestedWeightAuth", "hasRequestedWorkoutAuth"] {
+            UserDefaults.standard.set(true, forKey: key)
         }
     }
 
@@ -356,6 +424,10 @@ class HealthKitManager {
         fiber: Double
     ) async -> UUID? {
         guard isAvailable else { return nil }
+        // Ensure auth for v2 types (macros + food correlation) is settled
+        // before HealthKit touches the correlation machinery. Idempotent —
+        // a user who's already on v2 falls through immediately.
+        await ensureAuthorizationCurrent()
 
         var samples: [HKQuantitySample] = []
 
@@ -409,6 +481,19 @@ class HealthKitManager {
 
     func deleteFoodEntry(correlationID: UUID) async {
         guard isAvailable else { return }
+        // THE crash vector on v1 users before this fix. Without the ensure
+        // call, the HKSampleQueryDescriptor below throws
+        //   NSInvalidArgumentException("Authorization to read the
+        //   following types is disallowed: HKCorrelationTypeIdentifierFood")
+        // because iOS never collected a per-type decision for .food on
+        // that user's auth grant. `ensureAuthorizationCurrent` forces the
+        // v2 auth sheet, which materializes the .food decision before we
+        // touch the query.
+        await ensureAuthorizationCurrent()
+
+        // After the ensure call, `.food` has either been authorized (query
+        // works) or denied (query returns no results, no throw). Either
+        // outcome is safe.
         let predicate = HKQuery.predicateForObject(with: correlationID)
         let descriptor = HKSampleQueryDescriptor(
             predicates: [.correlation(type: HKCorrelationType(.food), predicate: predicate)],

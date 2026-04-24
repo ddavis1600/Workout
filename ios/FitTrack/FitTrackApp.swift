@@ -88,6 +88,20 @@ struct FitTrackApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .task {
+                    // Run once per app launch (SwiftUI guarantees `.task` on
+                    // the root view fires exactly once after the first
+                    // render). Forces the HK re-auth sheet for users whose
+                    // original grant predates any read type we've added
+                    // since — currently food correlation + macro quantities
+                    // shipped in the v1 → v2 bundle bump. See
+                    // `HealthKitManager.ensureAuthorizationCurrent`.
+                    //
+                    // Idempotent and cheap if the stored bundle version is
+                    // already current; users on v2 pay one UserDefaults
+                    // read and return.
+                    await HealthKitManager.shared.ensureAuthorizationCurrent()
+                }
         }
         .modelContainer(container)
     }
