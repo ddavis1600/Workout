@@ -8,6 +8,7 @@ struct ProgressPhotoTimelineView: View {
 
     @State private var showingAddSheet = false
     @State private var selectedPhoto: ProgressPhoto?
+    @State private var pendingDelete: ProgressPhoto?
 
     private let columns = [GridItem(.flexible()), GridItem(.flexible())]
 
@@ -46,9 +47,22 @@ struct ProgressPhotoTimelineView: View {
             }
             .fullScreenCover(item: $selectedPhoto) { photo in
                 ProgressPhotoFullscreenView(photo: photo, onDelete: {
-                    deletePhoto(photo)
+                    // Route through the same confirm dialog the grid uses.
+                    // Dismiss the fullscreen first so the alert isn't stacked
+                    // on top of a presented sheet.
                     selectedPhoto = nil
+                    pendingDelete = photo
                 })
+            }
+            .confirmDestructive(
+                item: $pendingDelete,
+                title: "Delete photo?",
+                message: { photo in
+                    let formatted = photo.date.formatted(as: "MMM d, yyyy")
+                    return "Removes the progress photo from \(formatted). This can't be undone."
+                }
+            ) { photo in
+                deletePhoto(photo)
             }
         }
     }
@@ -102,7 +116,7 @@ struct ProgressPhotoTimelineView: View {
         }
         .contextMenu {
             Button(role: .destructive) {
-                deletePhoto(photo)
+                pendingDelete = photo
             } label: {
                 Label("Delete", systemImage: "trash")
             }
