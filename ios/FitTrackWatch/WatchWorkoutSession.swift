@@ -102,16 +102,52 @@ final class WatchWorkoutSession: NSObject, ObservableObject {
         reset()
         self.activityType = activityType
 
+        // Must stay in lock-step with HealthKitManager.allShareTypes /
+        // allReadTypes on the iPhone. Asking for the SAME supersets on
+        // both sides means iOS shows the HK permission sheet once — on
+        // whichever surface the user hits first — and every subsequent
+        // requestAuthorization call on either side is a silent no-op.
+        //
+        // Previously the watch asked for workout + distance types while
+        // the phone asked for a different set (body mass, diet macros,
+        // heart rate, etc.), so the user kept getting fresh sheets as
+        // each new code path introduced still-undecided types.
         let typesToShare: Set<HKSampleType> = [
             HKWorkoutType.workoutType(),
+            HKQuantityType(.bodyMass),
+            HKQuantityType(.activeEnergyBurned),
             HKQuantityType(.distanceWalkingRunning),
             HKQuantityType(.distanceCycling),
             HKQuantityType(.distanceSwimming),
-            HKQuantityType(.activeEnergyBurned),
+            HKQuantityType(.dietaryWater),
+            HKQuantityType(.dietaryEnergyConsumed),
+            HKQuantityType(.dietaryProtein),
+            HKQuantityType(.dietaryCarbohydrates),
+            HKQuantityType(.dietaryFatTotal),
+            HKQuantityType(.dietaryFiber),
         ]
-        let typesToRead: Set<HKObjectType> = [
+        var typesToRead: Set<HKObjectType> = [
+            HKWorkoutType.workoutType(),
+            HKQuantityType(.bodyMass),
             HKQuantityType(.heartRate),
+            HKQuantityType(.restingHeartRate),
+            HKQuantityType(.stepCount),
+            HKQuantityType(.activeEnergyBurned),
+            HKQuantityType(.appleExerciseTime),
+            HKQuantityType(.distanceWalkingRunning),
+            HKQuantityType(.distanceCycling),
+            HKQuantityType(.distanceSwimming),
+            HKQuantityType(.dietaryWater),
+            HKQuantityType(.dietaryProtein),
+            HKQuantityType(.dietaryCarbohydrates),
+            HKQuantityType(.dietaryFatTotal),
         ]
+        if let mindful = HKObjectType.categoryType(forIdentifier: .mindfulSession) {
+            typesToRead.insert(mindful)
+        }
+        if let sleep = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) {
+            typesToRead.insert(sleep)
+        }
 
         healthStore.requestAuthorization(toShare: typesToShare, read: typesToRead) { [weak self] granted, error in
             Task { @MainActor in

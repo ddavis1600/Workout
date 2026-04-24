@@ -10,21 +10,58 @@ class HealthKitManager {
         HKHealthStore.isHealthDataAvailable()
     }
 
-    // MARK: - All readable types
+    // MARK: - HealthKit type sets
+    //
+    // These are the COMPLETE sets of every type the iPhone + Watch combined
+    // ever read from or write to HealthKit. `requestAuthorization()` always
+    // asks for this full superset so iOS shows the HK permission sheet at
+    // most once per install — any subsequent call is a silent no-op because
+    // every tuple (type, read|write) has already been decided.
+    //
+    // Previously different code paths (HeartRateView, WorkoutPersistence,
+    // WatchWorkoutSession, WatchHeartRateService) each asked for their own
+    // distinct subset. Every new subset introduced a still-undecided tuple,
+    // which triggered a fresh sheet. Result: user kept getting the
+    // "FitTrack would like to access Health data" prompt on every new
+    // action until every subset had been covered.
 
-    private var allReadTypes: Set<HKObjectType> {
+    /// Every HK type the app might ever WRITE. Keep this in sync with the
+    /// watch-side request in `WatchWorkoutSession.start()` so first prompt
+    /// covers both surfaces.
+    static var allShareTypes: Set<HKSampleType> {
+        [
+            HKWorkoutType.workoutType(),
+            HKQuantityType(.bodyMass),
+            HKQuantityType(.activeEnergyBurned),
+            HKQuantityType(.distanceWalkingRunning),
+            HKQuantityType(.distanceCycling),
+            HKQuantityType(.distanceSwimming),
+            HKQuantityType(.dietaryWater),
+            HKQuantityType(.dietaryEnergyConsumed),
+            HKQuantityType(.dietaryProtein),
+            HKQuantityType(.dietaryCarbohydrates),
+            HKQuantityType(.dietaryFatTotal),
+            HKQuantityType(.dietaryFiber),
+        ]
+    }
+
+    /// Every HK type the app might ever READ.
+    static var allReadTypes: Set<HKObjectType> {
         var types: Set<HKObjectType> = [
+            HKWorkoutType.workoutType(),
             HKQuantityType(.bodyMass),
             HKQuantityType(.heartRate),
             HKQuantityType(.restingHeartRate),
             HKQuantityType(.stepCount),
             HKQuantityType(.activeEnergyBurned),
             HKQuantityType(.appleExerciseTime),
+            HKQuantityType(.distanceWalkingRunning),
+            HKQuantityType(.distanceCycling),
+            HKQuantityType(.distanceSwimming),
             HKQuantityType(.dietaryWater),
             HKQuantityType(.dietaryProtein),
             HKQuantityType(.dietaryCarbohydrates),
             HKQuantityType(.dietaryFatTotal),
-            HKWorkoutType.workoutType(),
         ]
         if let mindful = HKObjectType.categoryType(forIdentifier: .mindfulSession) {
             types.insert(mindful)
@@ -37,18 +74,11 @@ class HealthKitManager {
 
     func requestAuthorization() async -> Bool {
         guard isAvailable else { return false }
-        let shareTypes: Set<HKSampleType> = [
-            HKQuantityType(.bodyMass),
-            HKQuantityType(.dietaryWater),
-            HKWorkoutType.workoutType(),
-            HKQuantityType(.dietaryEnergyConsumed),
-            HKQuantityType(.dietaryProtein),
-            HKQuantityType(.dietaryCarbohydrates),
-            HKQuantityType(.dietaryFatTotal),
-            HKQuantityType(.dietaryFiber),
-        ]
         do {
-            try await healthStore.requestAuthorization(toShare: shareTypes, read: allReadTypes)
+            try await healthStore.requestAuthorization(
+                toShare: Self.allShareTypes,
+                read:    Self.allReadTypes
+            )
             return true
         } catch {
             print("HealthKit auth failed: \(error)")

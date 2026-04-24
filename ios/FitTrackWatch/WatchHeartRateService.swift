@@ -35,7 +35,37 @@ class WatchHeartRateService: ObservableObject {
     func startMonitoring() {
         guard HKHealthStore.isHealthDataAvailable(),
               let hrType = HKObjectType.quantityType(forIdentifier: .heartRate) else { return }
-        healthStore.requestAuthorization(toShare: nil, read: [hrType]) { [weak self] granted, _ in
+        // Ask for the same superset the workout session requests so we
+        // don't create a new un-decided type-tuple and trigger an
+        // unnecessary HK permission sheet. If the user already granted
+        // via the workout-start flow, this is a silent no-op.
+        let shareTypes: Set<HKSampleType> = [
+            HKWorkoutType.workoutType(),
+            HKQuantityType(.bodyMass),
+            HKQuantityType(.activeEnergyBurned),
+            HKQuantityType(.distanceWalkingRunning),
+            HKQuantityType(.distanceCycling),
+            HKQuantityType(.distanceSwimming),
+            HKQuantityType(.dietaryWater),
+            HKQuantityType(.dietaryEnergyConsumed),
+            HKQuantityType(.dietaryProtein),
+            HKQuantityType(.dietaryCarbohydrates),
+            HKQuantityType(.dietaryFatTotal),
+            HKQuantityType(.dietaryFiber),
+        ]
+        let readTypes: Set<HKObjectType> = [
+            HKWorkoutType.workoutType(),
+            HKQuantityType(.bodyMass),
+            hrType,
+            HKQuantityType(.restingHeartRate),
+            HKQuantityType(.stepCount),
+            HKQuantityType(.activeEnergyBurned),
+            HKQuantityType(.appleExerciseTime),
+            HKQuantityType(.distanceWalkingRunning),
+            HKQuantityType(.distanceCycling),
+            HKQuantityType(.distanceSwimming),
+        ]
+        healthStore.requestAuthorization(toShare: shareTypes, read: readTypes) { [weak self] granted, _ in
             guard granted else { return }
             self?.beginQuery()
         }
