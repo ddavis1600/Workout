@@ -17,7 +17,7 @@ final class MacrosViewModel {
         } else {
             let newProfile = UserProfile()
             modelContext.insert(newProfile)
-            try? modelContext.save()
+            modelContext.saveOrLog("MacrosViewModel.init.newProfile")
             self.profile = newProfile
         }
     }
@@ -67,7 +67,7 @@ final class MacrosViewModel {
         profile.fatTarget = targets.fat
         profile.updatedAt = .now
 
-        try? modelContext.save()
+        modelContext.saveOrLog("MacrosViewModel.updateProfile")
     }
 
     // MARK: - Preview (Stateless)

@@ -132,7 +132,7 @@ struct ProgressPhotoTimelineView: View {
     private func deletePhoto(_ photo: ProgressPhoto) {
         try? FileManager.default.removeItem(at: photo.photoURL())
         modelContext.delete(photo)
-        try? modelContext.save()
+        modelContext.saveOrLog("ProgressPhotoTimelineView.deletePhoto")
     }
 }
 

@@ -61,7 +61,7 @@ final class DiaryViewModel {
     func addEntry(food: Food, mealType: String, servings: Double) {
         let entry = DiaryEntry(date: selectedDate, mealType: mealType, food: food, servings: servings)
         modelContext.insert(entry)
-        try? modelContext.save()
+        modelContext.saveOrLog("DiaryViewModel.addEntry")
         fetchEntries()
         writeToHealthKit(entry: entry)
     }
@@ -69,7 +69,7 @@ final class DiaryViewModel {
     func deleteEntry(_ entry: DiaryEntry) {
         let correlationID = entry.healthKitCorrelationID
         modelContext.delete(entry)
-        try? modelContext.save()
+        modelContext.saveOrLog("DiaryViewModel.deleteEntry")
         fetchEntries()
         if let id = correlationID {
             Task { await HealthKitManager.shared.deleteFoodEntry(correlationID: id) }
@@ -78,7 +78,7 @@ final class DiaryViewModel {
 
     func updateServings(_ entry: DiaryEntry, servings: Double) {
         entry.servings = servings
-        try? modelContext.save()
+        modelContext.saveOrLog("DiaryViewModel.updateServings")
         fetchEntries()
         writeToHealthKit(entry: entry, existingCorrelationID: entry.healthKitCorrelationID)
     }
@@ -100,7 +100,7 @@ final class DiaryViewModel {
                 calories: calories, protein: protein, carbs: carbs, fat: fat, fiber: fiber
             )
             entry.healthKitCorrelationID = newID
-            try? modelContext.save()
+            modelContext.saveOrLog("DiaryViewModel.writeToHealthKit")
         }
     }
 

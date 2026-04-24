@@ -57,7 +57,7 @@ struct HeartRateView: View {
                 }
                 profile.age = newValue
                 profile.updatedAt = .now
-                try? modelContext.save()
+                modelContext.saveOrLog("HeartRateView.ageBinding")
                 UserDefaults.standard.set(newValue, forKey: "heartRateUserAge")
                 viewModel.userAge = newValue
             }

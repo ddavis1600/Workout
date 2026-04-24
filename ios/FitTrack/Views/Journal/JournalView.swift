@@ -89,7 +89,7 @@ struct JournalView: View {
             try? FileManager.default.removeItem(at: url)
         }
         modelContext.delete(entry)
-        try? modelContext.save()
+        modelContext.saveOrLog("JournalView.performDelete")
     }
 
     private var emptyState: some View {
@@ -546,7 +546,7 @@ struct NewJournalEntryView: View {
             )
             modelContext.insert(entry)
         }
-        try? modelContext.save()
+        modelContext.saveOrLog("NewJournalEntryView.save")
         dismiss()
     }
 
@@ -701,7 +701,7 @@ struct JournalDetailView: View {
             try? FileManager.default.removeItem(at: url)
         }
         modelContext.delete(entry)
-        try? modelContext.save()
+        modelContext.saveOrLog("JournalDetailView.deleteEntry")
         dismiss()
     }
 

@@ -578,7 +578,7 @@ struct MacrosView: View {
             vm.profile.proteinTarget = Double(adjProtein)
             vm.profile.carbTarget    = Double(adjCarbs)
             vm.profile.fatTarget     = Double(adjFat)
-            try? modelContext.save()
+            modelContext.saveOrLog("MacrosView.savePreviewProfile")
             savedSummary = (calories: Int(cal), protein: adjProtein, carbs: adjCarbs, fat: adjFat)
         }
         showSavedToast()
@@ -598,7 +598,7 @@ struct MacrosView: View {
         vm.profile.fatTarget = fat
         vm.profile.updatedAt = .now
 
-        try? modelContext.save()
+        modelContext.saveOrLog("MacrosView.saveManualProfile")
         savedSummary = (
             calories: Int(cal),
             protein: Int(pro),
