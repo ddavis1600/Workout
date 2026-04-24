@@ -22,7 +22,11 @@ struct ProgressPhotoTimelineView: View {
                     ScrollView {
                         LazyVGrid(columns: columns, spacing: 12) {
                             ForEach(photos) { photo in
-                                photoTile(photo)
+                                ProgressPhotoTile(
+                                    photo: photo,
+                                    onTap: { selectedPhoto = photo },
+                                    onDelete: { deletePhoto(photo) }
+                                )
                             }
                         }
                         .padding()
@@ -53,14 +57,52 @@ struct ProgressPhotoTimelineView: View {
         }
     }
 
-    // MARK: - Photo Tile
+    // MARK: - Empty State
 
-    private func photoTile(_ photo: ProgressPhoto) -> some View {
-        Button {
-            selectedPhoto = photo
-        } label: {
+    private var emptyState: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "photo.on.rectangle.angled")
+                .font(.system(size: 52))
+                .foregroundStyle(Color.slateText)
+            Text("No progress photos yet")
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(Color.ink)
+            Text("Tap + to add your first progress photo")
+                .font(.subheadline)
+                .foregroundStyle(Color.slateText)
+                .multilineTextAlignment(.center)
+        }
+        .padding(40)
+    }
+
+    // MARK: - Delete
+
+    private func deletePhoto(_ photo: ProgressPhoto) {
+        ProgressPhotoImageCache.shared.invalidate(photo)
+        try? FileManager.default.removeItem(at: photo.photoURL())
+        modelContext.delete(photo)
+        try? modelContext.save()
+    }
+}
+
+// MARK: - Tile (async decode + NSCache)
+
+/// Per-photo tile, extracted so `@State var image: UIImage?` and the
+/// `.task` that populates it are scoped to the individual row. Keeping
+/// it as a separate struct means LazyVGrid recycles its identity with
+/// the photo's persistent ID — scroll performance is bounded by the
+/// cache hit rate, not the grid cell count.
+private struct ProgressPhotoTile: View {
+    let photo: ProgressPhoto
+    let onTap: () -> Void
+    let onDelete: () -> Void
+
+    @State private var image: UIImage?
+
+    var body: some View {
+        Button(action: onTap) {
             ZStack(alignment: .bottomLeading) {
-                if let image = photo.loadImage() {
+                if let image {
                     Image(uiImage: image)
                         .resizable()
                         .scaledToFill()
@@ -69,11 +111,18 @@ struct ProgressPhotoTimelineView: View {
                         .clipped()
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 } else {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.slateCard)
-                        .frame(height: 180)
-                    Image(systemName: "photo")
-                        .foregroundStyle(Color.slateText)
+                    // Placeholder while the JPEG is being decoded off
+                    // main (or cold-synced via CloudKit in the P2
+                    // world). Same slate card look as the empty tile,
+                    // plus a small ProgressView so the user can tell
+                    // the difference between "no image" and "loading."
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.slateCard)
+                        ProgressView()
+                            .tint(Color.slateText)
+                    }
+                    .frame(height: 180)
                 }
 
                 // Date overlay
@@ -101,38 +150,73 @@ struct ProgressPhotoTimelineView: View {
             }
         }
         .contextMenu {
-            Button(role: .destructive) {
-                deletePhoto(photo)
-            } label: {
+            Button(role: .destructive, action: onDelete) {
                 Label("Delete", systemImage: "trash")
             }
         }
-    }
-
-    // MARK: - Empty State
-
-    private var emptyState: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "photo.on.rectangle.angled")
-                .font(.system(size: 52))
-                .foregroundStyle(Color.slateText)
-            Text("No progress photos yet")
-                .font(.title3.weight(.semibold))
-                .foregroundStyle(Color.ink)
-            Text("Tap + to add your first progress photo")
-                .font(.subheadline)
-                .foregroundStyle(Color.slateText)
-                .multilineTextAlignment(.center)
+        .task(id: photo.persistentModelID) {
+            // Synchronous cache check happens inside the helper — a
+            // warm hit returns before `.task` yields to the actor hop,
+            // so scrolled-back-into-view tiles don't flash the
+            // placeholder. Cold miss awaits a detached JPEG decode.
+            image = await ProgressPhotoImageCache.shared.image(for: photo)
         }
-        .padding(40)
+    }
+}
+
+// MARK: - Image cache
+
+/// Decoded-UIImage cache keyed by `PersistentIdentifier`. Sits in front
+/// of `ProgressPhoto.loadImage()` / `loadImageAsync()` so scrolled-past
+/// tiles don't re-decode on re-appear. Uses `NSCache` so we inherit its
+/// automatic-eviction behaviour (system clears it under memory
+/// pressure, no manual tracking needed).
+@MainActor
+final class ProgressPhotoImageCache {
+    static let shared = ProgressPhotoImageCache()
+
+    private let cache: NSCache<NSString, UIImage> = {
+        let c = NSCache<NSString, UIImage>()
+        // 50 decoded images ≈ plenty for a grid that shows ~8 at a time
+        // and uses the rest as scroll-back headroom. `totalCostLimit` in
+        // bytes prevents a handful of huge images from blowing memory.
+        c.countLimit = 50
+        c.totalCostLimit = 64 * 1024 * 1024  // 64 MB of decoded bitmaps
+        return c
+    }()
+
+    private func key(for photo: ProgressPhoto) -> NSString {
+        // `PersistentIdentifier.description` is stable per row and
+        // survives fetch round-trips. Safe cache key.
+        NSString(string: String(describing: photo.persistentModelID))
     }
 
-    // MARK: - Delete
+    func image(for photo: ProgressPhoto) async -> UIImage? {
+        let cacheKey = key(for: photo)
+        if let cached = cache.object(forKey: cacheKey) {
+            return cached
+        }
 
-    private func deletePhoto(_ photo: ProgressPhoto) {
-        try? FileManager.default.removeItem(at: photo.photoURL())
-        modelContext.delete(photo)
-        try? modelContext.save()
+        // Decode off main. The read + decode both happen in the
+        // detached task — this is the expensive work we're avoiding
+        // on main during scroll.
+        let decoded = await Task.detached(priority: .userInitiated) { [photoURL = photo.photoURL()] () -> UIImage? in
+            guard let data = try? Data(contentsOf: photoURL) else { return nil }
+            return UIImage(data: data)
+        }.value
+
+        if let decoded {
+            // Cost ≈ decoded bitmap bytes (w * h * 4). Not perfect
+            // because UIImage may lazy-decode, but close enough to
+            // keep totalCostLimit meaningful.
+            let cost = Int(decoded.size.width * decoded.size.height * 4 * decoded.scale * decoded.scale)
+            cache.setObject(decoded, forKey: cacheKey, cost: cost)
+        }
+        return decoded
+    }
+
+    func invalidate(_ photo: ProgressPhoto) {
+        cache.removeObject(forKey: key(for: photo))
     }
 }
 
@@ -249,38 +333,33 @@ struct AddProgressPhotoSheet: View {
                         selectedImageData = await ImageCompression.compressedJPEG(from: image)
                     }
                 }
+                .ignoresSafeArea()
             }
         }
-        .presentationDetents([.large])
     }
 }
 
-// MARK: - Fullscreen
+// MARK: - Fullscreen View
 
 struct ProgressPhotoFullscreenView: View {
     let photo: ProgressPhoto
-    var onDelete: () -> Void
+    let onDelete: () -> Void
+
     @Environment(\.dismiss) private var dismiss
+    @State private var image: UIImage?
 
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
 
-            if let image = photo.loadImage() {
+            if let image {
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFit()
-                    .ignoresSafeArea()
-                    .onTapGesture { dismiss() }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                VStack(spacing: 12) {
-                    Image(systemName: "photo.slash")
-                        .font(.system(size: 48))
-                        .foregroundStyle(.white.opacity(0.5))
-                    Text("Image unavailable")
-                        .font(.subheadline)
-                        .foregroundStyle(.white.opacity(0.5))
-                }
+                ProgressView()
+                    .tint(.white)
             }
 
             VStack {
@@ -290,28 +369,24 @@ struct ProgressPhotoFullscreenView: View {
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                             .font(.title)
-                            .foregroundStyle(.white, Color.black.opacity(0.5))
+                            .foregroundStyle(.white, .black.opacity(0.5))
                     }
-                    .padding()
-
                     Spacer()
-
                     Button {
                         onDelete()
                     } label: {
                         Image(systemName: "trash.circle.fill")
                             .font(.title)
-                            .foregroundStyle(.red, Color.black.opacity(0.5))
+                            .foregroundStyle(.white, Color.red.opacity(0.7))
                     }
-                    .padding()
                 }
+                .padding()
                 Spacer()
 
-                // Date + caption
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(photo.date.formatted(as: "EEEE, MMM d, yyyy"))
+                    Text(photo.date.formatted(as: "MMMM d, yyyy"))
                         .font(.headline)
-                        .foregroundStyle(Color.ink)
+                        .foregroundStyle(.white)
                     if !photo.caption.isEmpty {
                         Text(photo.caption)
                             .font(.subheadline)
@@ -320,14 +395,13 @@ struct ProgressPhotoFullscreenView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
-                .background(
-                    LinearGradient(
-                        gradient: Gradient(colors: [.clear, .black.opacity(0.7)]),
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
+                .background(Color.black.opacity(0.6))
             }
+        }
+        .task {
+            // Same cache as the grid — a photo viewed from the grid
+            // tile is instantly hot here too.
+            image = await ProgressPhotoImageCache.shared.image(for: photo)
         }
     }
 }
