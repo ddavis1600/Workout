@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 import HealthKit
 
 // MARK: - Period
@@ -24,6 +25,44 @@ enum HeartRatePeriod: String, CaseIterable {
 struct HeartRateView: View {
     @StateObject private var viewModel = HeartRateViewModel()
     @State private var showZoneSettings = false
+    @Environment(\.modelContext) private var modelContext
+    @Query private var profiles: [UserProfile]
+    @FocusState private var ageFocused: Bool
+
+    /// Age is now sourced from UserProfile (CloudKit-synced) so it survives
+    /// reinstalls. Previously the Heart Rate UI wrote only to UserDefaults
+    /// under "heartRateUserAge" — wiped on uninstall.
+    ///
+    /// The binding:
+    ///   1. Ensures a UserProfile exists (creates one on first write if
+    ///      the user hasn't gone through the Macros flow yet).
+    ///   2. Writes `age` on the profile + calls `modelContext.save()` so
+    ///      CloudKit actually picks up the change. A simple `@Bindable`
+    ///      write wouldn't commit without save().
+    ///   3. Mirrors the value to the legacy UserDefaults key so
+    ///      LogWorkoutView / WorkoutDetailView (which still read it for
+    ///      maxHR calcs) keep working without their own @Query.
+    ///   4. Updates the viewModel's published `userAge` so the zone maths
+    ///      re-computes immediately.
+    private var ageBinding: Binding<Int> {
+        Binding(
+            get: { profiles.first?.age ?? viewModel.userAge },
+            set: { newValue in
+                let profile: UserProfile
+                if let existing = profiles.first {
+                    profile = existing
+                } else {
+                    profile = UserProfile()
+                    modelContext.insert(profile)
+                }
+                profile.age = newValue
+                profile.updatedAt = .now
+                try? modelContext.save()
+                UserDefaults.standard.set(newValue, forKey: "heartRateUserAge")
+                viewModel.userAge = newValue
+            }
+        )
+    }
 
     private func zoneColor(_ colorName: String) -> Color {
         switch colorName {
@@ -89,11 +128,26 @@ struct HeartRateView: View {
                             .foregroundColor(.slateText)
                     }
                 }
+                // numberPad has no Return/Done key — without this toolbar
+                // the user can't dismiss the keyboard after editing Age.
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") { ageFocused = false }
+                        .foregroundStyle(Color.emerald)
+                        .fontWeight(.semibold)
+                }
             }
             .sheet(isPresented: $showZoneSettings) {
                 ZoneSettingsSheet(viewModel: viewModel)
             }
             .task {
+                // Seed the viewModel from the CloudKit-synced profile (if
+                // any) before falling back to the legacy UserDefaults key
+                // in setup(). This keeps the zone maths right on first
+                // open after a reinstall — previously age reset to 25.
+                if let p = profiles.first {
+                    viewModel.userAge = p.age
+                }
                 await viewModel.setup()
             }
             .onChange(of: viewModel.selectedPeriod) { _, _ in
@@ -351,11 +405,12 @@ struct HeartRateView: View {
                 Text("Age")
                     .foregroundColor(Color.ink)
                 Spacer()
-                TextField("Age", value: $viewModel.userAge, format: .number)
+                TextField("Age", value: ageBinding, format: .number)
                     .keyboardType(.numberPad)
                     .multilineTextAlignment(.trailing)
                     .foregroundColor(.emerald)
                     .frame(width: 60)
+                    .focused($ageFocused)
             }
 
             HStack {
@@ -478,13 +533,50 @@ class HeartRateViewModel: ObservableObject {
     }
 
     func setup() async {
-        userAge = UserDefaults.standard.integer(forKey: "heartRateUserAge")
-        if userAge == 0 { userAge = 25 }
+        // If the view has already seeded userAge from a CloudKit-synced
+        // UserProfile (non-default value), don't clobber it with the
+        // legacy UserDefaults cache. The UserDefaults read remains as a
+        // fallback for installs that haven't yet gone through the
+        // Macros body-stats flow or migrated from a pre-CloudKit build.
+        if userAge == 25 {
+            let cached = UserDefaults.standard.integer(forKey: "heartRateUserAge")
+            if cached > 0 { userAge = cached }
+        }
 
         guard HealthKitManager.shared.isAvailable else { return }
-        let authorized = await HealthKitManager.shared.requestAuthorization()
-        isAuthorized = authorized
-        if authorized {
+
+        // Only prompt the FIRST time the user visits Heart Rate. Previously
+        // setup() unconditionally called requestAuthorization on every
+        // view appear — even when auth was already decided, iOS would
+        // briefly flash the system sheet (especially after HealthKitManager
+        // recently added new types to the request set, which keeps some
+        // tuples in .notDetermined state).
+        //
+        // Gate strategy:
+        //   - UserDefaults flag "hasRequestedHRAuth" tracks whether we've
+        //     ever called requestAuthorization. Belt-and-suspenders: for
+        //     read types, HKHealthStore.authorizationStatus always reports
+        //     .sharingDenied, so we can't rely on a status check alone.
+        //   - We also check workoutType share status — workouts are a
+        //     write type, so status DOES reflect the user's decision. If
+        //     the flag was set but workout status is still .notDetermined
+        //     (e.g. user killed the sheet mid-prompt last time), re-ask.
+        let hasAskedBefore = UserDefaults.standard.bool(forKey: "hasRequestedHRAuth")
+        let workoutStatus = HealthKitManager.shared.healthStore
+            .authorizationStatus(for: HKWorkoutType.workoutType())
+
+        if !hasAskedBefore || workoutStatus == .notDetermined {
+            let authorized = await HealthKitManager.shared.requestAuthorization()
+            isAuthorized = authorized
+            UserDefaults.standard.set(true, forKey: "hasRequestedHRAuth")
+        } else {
+            // Already asked. Treat as authorized unless the user explicitly
+            // denied (workoutStatus == .sharingDenied). The "Enable Access"
+            // button still drives requestAccess() for a manual retry.
+            isAuthorized = (workoutStatus != .sharingDenied)
+        }
+
+        if isAuthorized {
             await service.startMonitoring()
             await fetchStats()
         }
@@ -493,6 +585,7 @@ class HeartRateViewModel: ObservableObject {
     func requestAccess() async {
         let authorized = await HealthKitManager.shared.requestAuthorization()
         isAuthorized = authorized
+        UserDefaults.standard.set(true, forKey: "hasRequestedHRAuth")
         if authorized {
             await service.startMonitoring()
             await fetchStats()

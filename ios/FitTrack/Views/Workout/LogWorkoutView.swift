@@ -23,8 +23,15 @@ struct LogWorkoutView: View {
     @State private var selectedPhotoData: Data?
 
     // Timer state
+    // `hasStarted` gates the whole workout lifecycle — until the user
+    // taps the big "Start" button, no timer runs, no HealthKit session
+    // is begun, and no "startWorkout" message is sent to the watch. This
+    // replaces the previous behavior where opening the sheet auto-started
+    // everything, which meant accidentally backing out (without tapping
+    // Save) still created a spurious HK workout entry.
+    @State private var hasStarted = false
     @State private var elapsedSeconds: Int = 0
-    @State private var timerIsRunning = true
+    @State private var timerIsRunning = false
     @State private var timerSubscription: AnyCancellable?
 
     // Rest timer
@@ -120,19 +127,30 @@ struct LogWorkoutView: View {
                 })
             }
             .task {
-                startTimer()
-                heartRateService.resetSession()
-                await heartRateService.startMonitoring()
+                // Pre-populate exercises if launched from a template, but
+                // DO NOT start the timer / HR / watch — wait for the user
+                // to tap the Start button in the ready-state card.
                 loadTemplate()
             }
             .onDisappear {
+                // stopTimer/stopMonitoring are no-ops if nothing was
+                // actually started, so calling them is safe either way.
                 stopTimer()
                 heartRateService.stopMonitoring()
             }
             .onChange(of: watchManager.pendingWorkoutStop) { _, stop in
                 if stop {
                     watchManager.pendingWorkoutStop = false
-                    saveWorkout()
+                    // Only auto-save on a watch Stop if the user actually
+                    // began a workout on this device. Without this guard,
+                    // merely opening LogWorkoutView and then receiving any
+                    // stray `stopWorkout` WatchConnectivity message (even
+                    // a stale queued one from a previous session) saves a
+                    // blank Workout — which is how ghost workouts were
+                    // appearing in Daniel's list.
+                    if hasStarted {
+                        saveWorkout()
+                    }
                 }
             }
         }
@@ -169,7 +187,56 @@ struct LogWorkoutView: View {
 
     // MARK: - Timer
 
+    @ViewBuilder
     private var timerSection: some View {
+        if !hasStarted {
+            readyStateCard
+        } else {
+            runningTimerCard
+        }
+    }
+
+    /// Before the user taps Start, the view is "ready": exercises / sets /
+    /// notes can be pre-populated (e.g. from a template or a manual build),
+    /// but no timer runs, no HK session opens, and the watch isn't signalled.
+    private var readyStateCard: some View {
+        VStack(spacing: 10) {
+            Text("Ready")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Color.slateText)
+                .textCase(.uppercase)
+
+            Text("00:00:00")
+                .font(.system(size: 40, weight: .medium, design: .monospaced))
+                .foregroundStyle(Color.slateText.opacity(0.5))
+                .frame(maxWidth: .infinity, alignment: .center)
+
+            Button {
+                beginWorkout()
+            } label: {
+                Label("Start", systemImage: "play.fill")
+                    .font(.headline.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(Color.emerald)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.vertical, 16)
+        .padding(.horizontal)
+        .frame(maxWidth: .infinity)
+        .background(Color.slateCard)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(Color.slateBorder, lineWidth: 1)
+        )
+    }
+
+    /// Existing live-workout card — elapsed time with Pause/Resume + Reset.
+    private var runningTimerCard: some View {
         VStack(spacing: 10) {
             Text(formattedElapsedTime)
                 .font(.system(size: 40, weight: .medium, design: .monospaced))
@@ -211,6 +278,19 @@ struct LogWorkoutView: View {
             RoundedRectangle(cornerRadius: 14)
                 .stroke(Color.slateBorder, lineWidth: 1)
         )
+    }
+
+    /// Transition from "ready" → actively timing. Kicks off the timer
+    /// and begins HR monitoring. Called from the Start button in
+    /// `readyStateCard`. HR samples flow through HealthKit regardless
+    /// of which device (phone or watch) the user taps Start on, so we
+    /// don't need to signal the watch from here.
+    private func beginWorkout() {
+        hasStarted = true
+        timerIsRunning = true
+        startTimer()
+        heartRateService.resetSession()
+        Task { await heartRateService.startMonitoring() }
     }
 
     private var formattedElapsedTime: String {

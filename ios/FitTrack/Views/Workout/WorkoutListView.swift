@@ -10,6 +10,7 @@ struct WorkoutListView: View {
     @State private var showingTemplates = false
     @State private var showingPRHistory = false
     @State private var showingProgress = false
+    @State private var showingManualWorkout = false
     @State private var selectedTemplate: WorkoutTemplate?
 
     var body: some View {
@@ -53,9 +54,23 @@ struct WorkoutListView: View {
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        selectedTemplate = nil
-                        showingLogWorkout = true
+                    // Menu instead of bare + — two clear entry paths:
+                    //   Log Workout: live timer flow (LogWorkoutView in
+                    //     the new "Ready" state from #2)
+                    //   Add Workout (no timer): backdated manual entry,
+                    //     new in this branch, skips timer + HK write
+                    Menu {
+                        Button {
+                            selectedTemplate = nil
+                            showingLogWorkout = true
+                        } label: {
+                            Label("Log Workout", systemImage: "timer")
+                        }
+                        Button {
+                            showingManualWorkout = true
+                        } label: {
+                            Label("Add Workout (no timer)", systemImage: "calendar.badge.plus")
+                        }
                     } label: {
                         Image(systemName: "plus")
                             .foregroundStyle(Color.emerald)
@@ -74,6 +89,11 @@ struct WorkoutListView: View {
                     selectedTemplate = template
                     showingLogWorkout = true
                 }
+            }
+            .sheet(isPresented: $showingManualWorkout) {
+                ManualWorkoutView(onSave: {
+                    viewModel?.fetchWorkouts()
+                })
             }
             .sheet(isPresented: $showingPRHistory) {
                 NavigationStack {
