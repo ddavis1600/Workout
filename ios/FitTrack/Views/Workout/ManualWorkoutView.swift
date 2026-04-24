@@ -68,6 +68,7 @@ struct ManualWorkoutView: View {
                         .disabled(exerciseGroups.isEmpty)
                 }
             }
+            .keyboardDoneToolbar()
             .sheet(isPresented: $showingExercisePicker) {
                 ExercisePickerView { exercise in
                     let initialSet = SetEntry(reps: "", weight: "", rpe: "")
