@@ -141,7 +141,16 @@ struct LogWorkoutView: View {
             .onChange(of: watchManager.pendingWorkoutStop) { _, stop in
                 if stop {
                     watchManager.pendingWorkoutStop = false
-                    saveWorkout()
+                    // Only auto-save on a watch Stop if the user actually
+                    // began a workout on this device. Without this guard,
+                    // merely opening LogWorkoutView and then receiving any
+                    // stray `stopWorkout` WatchConnectivity message (even
+                    // a stale queued one from a previous session) saves a
+                    // blank Workout — which is how ghost workouts were
+                    // appearing in Daniel's list.
+                    if hasStarted {
+                        saveWorkout()
+                    }
                 }
             }
         }
