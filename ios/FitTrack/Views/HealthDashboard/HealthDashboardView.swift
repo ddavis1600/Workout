@@ -26,7 +26,13 @@ struct HealthDashboardView: View {
             .background(Color.slateBackground)
             .navigationTitle("Health")
             .task {
-                await service.requestAuthorizationIfNeeded()
+                // Don't auto-fire requestAuthorizationIfNeeded on appear.
+                // HKHealthStore can raise an uncatchable Objective-C NSException
+                // ("Authorization is disallowed for sharing") that bypasses
+                // Swift's try/catch and crashes the app before the user gets a
+                // chance to grant — observed reliably on iOS 18 simulators. The
+                // AuthHandshakeCard's Connect button is the sole user-initiated
+                // auth trigger; refreshIfStale just re-pulls cached summaries.
                 await service.refreshIfStale()
             }
         }
