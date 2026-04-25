@@ -96,6 +96,11 @@ struct LogWorkoutView: View {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") {
                         WatchConnectivityManager.shared.sendStopWorkout()
+                        // F3 — end the Live Activity on cancel too,
+                        // immediately so the lock screen doesn't keep
+                        // a stale "active workout" banner up after the
+                        // user backed out.
+                        LiveActivityManager.shared.endActivity(dismissAfter: 0)
                         dismiss()
                     }
                     .foregroundStyle(Color.slateText)
@@ -288,9 +293,19 @@ struct LogWorkoutView: View {
     private func beginWorkout() {
         hasStarted = true
         timerIsRunning = true
+        let startDate = Date()
         startTimer()
         heartRateService.resetSession()
         Task { await heartRateService.startMonitoring() }
+
+        // F3 — start the Live Activity. Lock screen + Dynamic Island
+        // light up the moment the user taps Start; subsequent
+        // updates fire from the timer loop every 5 s.
+        LiveActivityManager.shared.startActivity(
+            workoutName: workoutName.isEmpty ? "Workout" : workoutName,
+            workoutType: workoutName,  // best heuristic for symbol resolution v1
+            startDate: startDate
+        )
     }
 
     private var formattedElapsedTime: String {
@@ -305,7 +320,29 @@ struct LogWorkoutView: View {
             .autoconnect()
             .sink { _ in
                 elapsedSeconds += 1
+                // F3 — push a Live Activity update every 5 s. Time
+                // itself ticks via `Text(.timerInterval)` from the
+                // attribute's startDate, so updates are budgeted on
+                // the calorie / HR fields rather than the clock.
+                if elapsedSeconds.isMultiple(of: 5) {
+                    pushLiveActivityUpdate()
+                }
             }
+    }
+
+    /// Build a fresh `ContentState` from current timer/HR/calorie
+    /// values and forward to the Live Activity. Calorie estimate is
+    /// `elapsedSeconds / 60 * 6` kcal/min — the same back-of-envelope
+    /// proxy used in the Trends "Calorie Balance" chart for pre-HK
+    /// builds.
+    private func pushLiveActivityUpdate() {
+        let approxCalories = (elapsedSeconds / 60) * 6
+        let bpm = heartRateService.currentBPM
+        LiveActivityManager.shared.updateActivity(
+            elapsedSeconds: elapsedSeconds,
+            caloriesBurned: approxCalories,
+            heartRateBPM: bpm > 0 ? bpm : nil
+        )
     }
 
     private func stopTimer() {
@@ -552,6 +589,13 @@ struct LogWorkoutView: View {
         stopTimer()
         heartRateService.stopMonitoring()
         WatchConnectivityManager.shared.sendStopWorkout()
+
+        // F3 — end the Live Activity. Final calorie value mirrors
+        // the persisted workout so the lock-screen banner during
+        // the dismissal grace period shows the same number we
+        // wrote to SwiftData.
+        let finalCalories = (elapsedSeconds / 60) * 6
+        LiveActivityManager.shared.endActivity(finalCalories: finalCalories)
 
         let workoutEndDate   = Date()
         let workoutStartDate = workoutEndDate.addingTimeInterval(-Double(max(elapsedSeconds, 1)))
