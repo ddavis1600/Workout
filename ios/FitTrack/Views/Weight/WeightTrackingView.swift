@@ -264,7 +264,21 @@ struct WeightTrackingView: View {
                 .onChange(of: healthSyncEnabled) { _, newValue in
                     if newValue && HealthKitManager.shared.isAvailable {
                         Task {
-                            let _ = await HealthKitManager.shared.requestAuthorization()
+                            // AUDIT H7: only prompt on the first flip
+                            // to "on" (or after a Settings-side revoke
+                            // that returns the write type to
+                            // `.notDetermined`). The previous behaviour
+                            // re-fired the auth request on every toggle
+                            // flip — users found the system-sheet flash
+                            // jarring.
+                            let hk = HealthKitManager.shared
+                            if hk.shouldRequestAuthorization(
+                                writeType: HKQuantityType(.bodyMass),
+                                flagKey: "hasRequestedWeightAuth"
+                            ) {
+                                _ = await hk.requestAuthorization()
+                                hk.markAuthorizationRequested(flagKey: "hasRequestedWeightAuth")
+                            }
                             await importFromHealthKit()
                         }
                     }
