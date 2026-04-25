@@ -22,7 +22,7 @@ enum HeartRatePeriod: String, CaseIterable {
 // MARK: - View
 
 struct HeartRateView: View {
-    @StateObject private var viewModel = HeartRateViewModel()
+    @State private var viewModel = HeartRateViewModel()
     @State private var showZoneSettings = false
     /// Focus state for the Age field so we can dismiss its numberPad
     /// keyboard from a "Done" toolbar button — numberPad has no Return key.
@@ -394,7 +394,10 @@ struct HeartRateView: View {
 // MARK: - Zone Settings Sheet
 
 struct ZoneSettingsSheet: View {
-    @ObservedObject var viewModel: HeartRateViewModel
+    // `viewModel` is an @Observable reference type — no need for @Bindable
+    // since this sheet doesn't expose a `$viewModel.boundaries` binding to
+    // any SwiftUI control. It mutates the property directly on Save.
+    let viewModel: HeartRateViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var boundaries: [Int] = [115, 135, 155, 175]
 
@@ -453,15 +456,19 @@ struct ZoneSettingsSheet: View {
 // MARK: - View Model
 
 @MainActor
-class HeartRateViewModel: ObservableObject {
+@Observable
+final class HeartRateViewModel {
     let service = HeartRateService()
-    @Published var isAuthorized = false
-    @Published var selectedPeriod: HeartRatePeriod = .weekly
-    @Published var restingStats: (avg: Int, min: Int, max: Int)? = nil
-    @Published var historicalZoneFractions: [Int: Double] = [:]
-    @Published var historicalZoneMinutes: [Int: Int] = [:]
+    var isAuthorized = false
+    var selectedPeriod: HeartRatePeriod = .weekly
+    var restingStats: (avg: Int, min: Int, max: Int)? = nil
+    var historicalZoneFractions: [Int: Double] = [:]
+    var historicalZoneMinutes: [Int: Int] = [:]
 
-    @Published var userAge: Int = 25 {
+    /// Persisted to UserDefaults via didSet. Read once at init so SwiftUI's
+    /// @Observable tracker sees a real stored property — view bodies that
+    /// reference `vm.userAge` will re-render on assignment.
+    var userAge: Int {
         didSet {
             UserDefaults.standard.set(userAge, forKey: "heartRateUserAge")
         }
@@ -469,16 +476,25 @@ class HeartRateViewModel: ObservableObject {
 
     var maxHeartRate: Int { 220 - userAge }
 
-    // Zone boundaries: [z1max, z2max, z3max, z4max]
-    // Defaults: Z1 <115, Z2 115–135, Z3 135–155, Z4 155–175, Z5 >175
+    /// Zone boundaries: [z1max, z2max, z3max, z4max].
+    /// Defaults: Z1 <115, Z2 115–135, Z3 135–155, Z4 155–175, Z5 >175.
+    /// Was a UserDefaults-computed property under ObservableObject — that
+    /// pattern doesn't work under @Observable because the macro only tracks
+    /// stored-property accesses, so views wouldn't re-render on change.
+    /// Now a stored var read once in init() with didSet writing back to
+    /// UserDefaults — change-tracking is automatic.
     var zoneBoundaries: [Int] {
-        get {
-            (UserDefaults.standard.array(forKey: "hrZoneBoundaries") as? [Int]) ?? [115, 135, 155, 175]
+        didSet {
+            UserDefaults.standard.set(zoneBoundaries, forKey: "hrZoneBoundaries")
         }
-        set {
-            UserDefaults.standard.set(newValue, forKey: "hrZoneBoundaries")
-            objectWillChange.send()
-        }
+    }
+
+    init() {
+        let savedAge = UserDefaults.standard.integer(forKey: "heartRateUserAge")
+        self.userAge = savedAge == 0 ? 25 : savedAge
+        self.zoneBoundaries =
+            (UserDefaults.standard.array(forKey: "hrZoneBoundaries") as? [Int])
+            ?? [115, 135, 155, 175]
     }
 
     var currentZone: HeartRateZone {
@@ -493,9 +509,8 @@ class HeartRateViewModel: ObservableObject {
     }
 
     func setup() async {
-        userAge = UserDefaults.standard.integer(forKey: "heartRateUserAge")
-        if userAge == 0 { userAge = 25 }
-
+        // userAge / zoneBoundaries are loaded from UserDefaults in init() now,
+        // so we no longer reload them here.
         guard HealthKitManager.shared.isAvailable else { return }
 
         // Give UIKit a beat to attach this view's presentation host to the
