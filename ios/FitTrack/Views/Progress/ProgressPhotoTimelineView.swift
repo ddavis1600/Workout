@@ -130,7 +130,8 @@ struct ProgressPhotoTimelineView: View {
     // MARK: - Delete
 
     private func deletePhoto(_ photo: ProgressPhoto) {
-        try? FileManager.default.removeItem(at: photo.photoURL())
+        // SwiftData cleans up the externalStorage sidecar file
+        // automatically when the row is deleted — no disk work needed.
         modelContext.delete(photo)
         try? modelContext.save()
     }
@@ -185,11 +186,12 @@ struct AddProgressPhotoSheet: View {
                             }
                             .onChange(of: photoPickerItem) { _, newItem in
                                 Task {
-                                    if let data = try? await newItem?.loadTransferable(type: Data.self),
-                                       let ui = UIImage(data: data),
-                                       let jpeg = ui.jpegData(compressionQuality: 0.8) {
-                                        selectedImageData = jpeg
-                                    }
+                                    guard let data = try? await newItem?.loadTransferable(type: Data.self) else { return }
+                                    // Downscale + JPEG-compress off main
+                                    // before we hold the bytes on the
+                                    // model — keeps the CKAsset small
+                                    // and the UI snappy.
+                                    selectedImageData = await ImageCompression.compressedJPEG(from: data)
                                 }
                             }
 
@@ -243,8 +245,8 @@ struct AddProgressPhotoSheet: View {
             }
             .sheet(isPresented: $showingCamera) {
                 MealCameraView { image in
-                    if let jpeg = image.jpegData(compressionQuality: 0.8) {
-                        selectedImageData = jpeg
+                    Task {
+                        selectedImageData = await ImageCompression.compressedJPEG(from: image)
                     }
                 }
             }
