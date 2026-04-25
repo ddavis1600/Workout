@@ -10,6 +10,12 @@ struct ExercisePickerView: View {
     @State private var searchText = ""
     @State private var exercises: [Exercise] = []
     @State private var showingNewExercise = false
+    // AUDIT H5: Exercise.workoutSets is .nullify (per cascade audit),
+    // so deleting an exercise leaves historical sets with their name
+    // intact. Still confirm — exercises are picked into many workouts
+    // and an accidental swipe-delete of "Bench Press" is a hassle to
+    // re-pick everywhere.
+    @State private var exercisePendingDelete: Exercise? = nil
 
     private var filteredExercises: [Exercise] {
         if searchText.isEmpty {
@@ -63,7 +69,7 @@ struct ExercisePickerView: View {
                                 // re-creatable via the New Exercise button.
                                 .swipeActions(edge: .trailing) {
                                     Button(role: .destructive) {
-                                        deleteExercise(exercise)
+                                        exercisePendingDelete = exercise
                                     } label: {
                                         Label("Delete", systemImage: "trash")
                                     }
@@ -116,6 +122,24 @@ struct ExercisePickerView: View {
                     onSelect(newExercise)
                     dismiss()
                 }
+            }
+            .confirmationDialog(
+                exercisePendingDelete.map { "Delete \"\($0.name)\"?" } ?? "Delete exercise?",
+                isPresented: Binding(
+                    get: { exercisePendingDelete != nil },
+                    set: { if !$0 { exercisePendingDelete = nil } }
+                ),
+                titleVisibility: .visible
+            ) {
+                Button("Delete", role: .destructive) {
+                    if let e = exercisePendingDelete {
+                        deleteExercise(e)
+                    }
+                    exercisePendingDelete = nil
+                }
+                Button("Cancel", role: .cancel) { exercisePendingDelete = nil }
+            } message: {
+                Text("Removes this exercise from the picker. Past workouts that used it keep their data.")
             }
             .onAppear {
                 fetchExercises()

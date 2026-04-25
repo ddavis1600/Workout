@@ -23,6 +23,10 @@ struct MealSectionView: View {
     @State private var fullscreenPhoto: UIImage?
     @State private var showFullscreen = false
     @State private var showPhotoOptions = false
+    // AUDIT H5: hold the entry whose swipe-delete fired so we can
+    // confirm before invoking onDelete. Multiple meal sections each
+    // own their own state — no cross-section confirm clobbering.
+    @State private var entryPendingDelete: DiaryEntry? = nil
 
     private var mealCalories: Double {
         entries.reduce(0) { $0 + $1.totalCalories }
@@ -106,7 +110,7 @@ struct MealSectionView: View {
                     .contentShape(Rectangle())
                     .swipeActions(edge: .trailing) {
                         Button(role: .destructive) {
-                            onDelete(entry)
+                            entryPendingDelete = entry
                         } label: {
                             Label("Delete", systemImage: "trash")
                         }
@@ -146,6 +150,23 @@ struct MealSectionView: View {
                 }
             }
             Button("Cancel", role: .cancel) {}
+        }
+        // AUDIT H5: confirm diary-entry delete before firing onDelete.
+        .confirmationDialog(
+            entryPendingDelete.map { "Remove \($0.food?.name ?? "this entry")?" } ?? "Remove entry?",
+            isPresented: Binding(
+                get: { entryPendingDelete != nil },
+                set: { if !$0 { entryPendingDelete = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("Remove", role: .destructive) {
+                if let e = entryPendingDelete {
+                    onDelete(e)
+                }
+                entryPendingDelete = nil
+            }
+            Button("Cancel", role: .cancel) { entryPendingDelete = nil }
         }
         // Fullscreen viewer is its own presentation type — no conflict with parent's .sheet
         .fullScreenCover(isPresented: $showFullscreen) {

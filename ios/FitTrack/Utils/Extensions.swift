@@ -82,6 +82,40 @@ extension Color {
     })
 }
 
+// MARK: - Destructive-confirm helper
+
+extension View {
+    /// Attaches a confirmation dialog gated on a Bool. Pattern:
+    ///
+    ///     @State private var showingDelete = false
+    ///     Button(role: .destructive) { showingDelete = true } label: {
+    ///         Label("Delete", systemImage: "trash")
+    ///     }
+    ///     .destructiveConfirm(
+    ///         "Delete entry?",
+    ///         isPresented: $showingDelete,
+    ///         message: "This can't be undone."
+    ///     ) { viewModel.deleteEntry(entry) }
+    ///
+    /// JournalView shipped this same shape with `.alert(...)`; this
+    /// modifier standardizes on `.confirmationDialog` across the app
+    /// per AUDIT H5 (shorter UX, less heavyweight than alert).
+    func destructiveConfirm(
+        _ title: String,
+        isPresented: Binding<Bool>,
+        message: String? = nil,
+        confirmLabel: String = "Delete",
+        action: @escaping () -> Void
+    ) -> some View {
+        confirmationDialog(title, isPresented: isPresented, titleVisibility: .visible) {
+            Button(confirmLabel, role: .destructive, action: action)
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            if let message { Text(message) }
+        }
+    }
+}
+
 // MARK: - Keyboard Done toolbar
 
 extension View {

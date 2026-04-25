@@ -10,6 +10,8 @@ struct WorkoutListView: View {
     @State private var showingTemplates = false
     @State private var showingPRHistory = false
     @State private var showingProgress = false
+    // AUDIT H5
+    @State private var workoutPendingDelete: Workout? = nil
 
     var body: some View {
         NavigationStack {
@@ -133,7 +135,7 @@ struct WorkoutListView: View {
                 .buttonStyle(.plain)
                 .contextMenu {
                     Button(role: .destructive) {
-                        vm.deleteWorkout(workout)
+                        workoutPendingDelete = workout
                     } label: {
                         Label("Delete", systemImage: "trash")
                     }
@@ -145,6 +147,29 @@ struct WorkoutListView: View {
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
         .background(Color.slateBackground)
+        .confirmationDialog(
+            workoutPendingDelete.map { $0.name.isEmpty ? "Delete this workout?" : "Delete \"\($0.name)\"?" } ?? "Delete workout?",
+            isPresented: Binding(
+                get: { workoutPendingDelete != nil },
+                set: { if !$0 { workoutPendingDelete = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("Delete", role: .destructive) {
+                if let w = workoutPendingDelete {
+                    vm.deleteWorkout(w)
+                }
+                workoutPendingDelete = nil
+            }
+            Button("Cancel", role: .cancel) { workoutPendingDelete = nil }
+        } message: {
+            if let w = workoutPendingDelete {
+                let setCount = (w.sets ?? []).count
+                Text(setCount == 0
+                     ? "This can't be undone."
+                     : "This permanently removes the workout and its \(setCount) set\(setCount == 1 ? "" : "s").")
+            }
+        }
     }
 
     private func workoutRow(_ workout: Workout) -> some View {

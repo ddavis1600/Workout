@@ -8,6 +8,8 @@ struct ProgressPhotoTimelineView: View {
 
     @State private var showingAddSheet = false
     @State private var selectedPhoto: ProgressPhoto?
+    // AUDIT H5
+    @State private var photoPendingDelete: ProgressPhoto? = nil
 
     private let columns = [GridItem(.flexible()), GridItem(.flexible())]
 
@@ -45,10 +47,32 @@ struct ProgressPhotoTimelineView: View {
                 AddProgressPhotoSheet()
             }
             .fullScreenCover(item: $selectedPhoto) { photo in
+                // Fullscreen viewer dismisses itself, then we let the
+                // parent's `confirmationDialog` below handle the actual
+                // delete. Trying to confirm INSIDE the fullScreenCover
+                // races with its dismissal animation.
                 ProgressPhotoFullscreenView(photo: photo, onDelete: {
-                    deletePhoto(photo)
                     selectedPhoto = nil
+                    photoPendingDelete = photo
                 })
+            }
+            .confirmationDialog(
+                "Delete progress photo?",
+                isPresented: Binding(
+                    get: { photoPendingDelete != nil },
+                    set: { if !$0 { photoPendingDelete = nil } }
+                ),
+                titleVisibility: .visible
+            ) {
+                Button("Delete", role: .destructive) {
+                    if let p = photoPendingDelete {
+                        deletePhoto(p)
+                    }
+                    photoPendingDelete = nil
+                }
+                Button("Cancel", role: .cancel) { photoPendingDelete = nil }
+            } message: {
+                Text("This can't be undone.")
             }
         }
     }
@@ -102,7 +126,7 @@ struct ProgressPhotoTimelineView: View {
         }
         .contextMenu {
             Button(role: .destructive) {
-                deletePhoto(photo)
+                photoPendingDelete = photo
             } label: {
                 Label("Delete", systemImage: "trash")
             }

@@ -221,6 +221,10 @@ struct HabitsView: View {
     @State private var libraryPrefill: LibraryHabitTemplate? = nil
     // Per-day note sheet (item 7)
     @State private var noteTarget: (habit: Habit, date: Date)? = nil
+    // Destructive-confirm state (AUDIT H5). Holding the candidate habit
+    // here rather than per-row Bool because a habit delete cascades to
+    // all completions — the confirmation message wants the count.
+    @State private var habitPendingDelete: Habit? = nil
 
     private var calendar: Calendar { Calendar.current }
 
@@ -309,8 +313,7 @@ struct HabitsView: View {
                                 }
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                     Button(role: .destructive) {
-                                        modelContext.delete(habit)
-                                        try? modelContext.save()
+                                        habitPendingDelete = habit
                                     } label: {
                                         Label("Delete", systemImage: "trash")
                                     }
@@ -333,8 +336,7 @@ struct HabitsView: View {
                                         }
                                     }
                                     Button(role: .destructive) {
-                                        modelContext.delete(habit)
-                                        try? modelContext.save()
+                                        habitPendingDelete = habit
                                     } label: {
                                         Label("Delete", systemImage: "trash")
                                     }
@@ -392,6 +394,36 @@ struct HabitsView: View {
             }
             .sheet(item: $habitToEdit) { habit in
                 EditHabitSheet(habit: habit)
+            }
+            // AUDIT H5: confirm before deleting a habit. Habit delete
+            // cascades to every HabitCompletion, so accidental swipe used
+            // to silently nuke months of streak data. Message includes
+            // the count so the user sees what they're losing.
+            .confirmationDialog(
+                habitPendingDelete.map { "Delete \"\($0.name)\"?" } ?? "Delete habit?",
+                isPresented: Binding(
+                    get: { habitPendingDelete != nil },
+                    set: { if !$0 { habitPendingDelete = nil } }
+                ),
+                titleVisibility: .visible
+            ) {
+                Button("Delete", role: .destructive) {
+                    if let h = habitPendingDelete {
+                        modelContext.delete(h)
+                        try? modelContext.save()
+                    }
+                    habitPendingDelete = nil
+                }
+                Button("Cancel", role: .cancel) {
+                    habitPendingDelete = nil
+                }
+            } message: {
+                if let h = habitPendingDelete {
+                    let count = (h.completions ?? []).count
+                    Text(count == 0
+                         ? "This can't be undone."
+                         : "This permanently removes the habit and its \(count) check-in\(count == 1 ? "" : "s").")
+                }
             }
             // Note sheet (item 7) — reuses HabitNoteSheet from HabitDetailView.swift.
             .sheet(item: Binding(

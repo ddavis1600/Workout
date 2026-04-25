@@ -6,6 +6,9 @@ struct BodyMeasurementsView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \BodyMeasurement.date, order: .reverse) private var measurements: [BodyMeasurement]
     @State private var showingAddSheet = false
+    // AUDIT H5: per-row delete confirmation. Replaces the prior
+    // `.onDelete(IndexSet)` swipe-to-delete which fired immediately.
+    @State private var measurementPendingDelete: BodyMeasurement? = nil
 
     var body: some View {
         NavigationStack {
@@ -38,12 +41,13 @@ struct BodyMeasurementsView: View {
                             measurementRow(m)
                                 .listRowBackground(Color.slateBackground)
                                 .listRowSeparator(.hidden)
-                        }
-                        .onDelete { offsets in
-                            for i in offsets {
-                                modelContext.delete(measurements[i])
-                            }
-                            try? modelContext.save()
+                                .swipeActions(edge: .trailing) {
+                                    Button(role: .destructive) {
+                                        measurementPendingDelete = m
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                }
                         }
                     }
                     .listStyle(.plain)
@@ -62,6 +66,25 @@ struct BodyMeasurementsView: View {
             }
             .sheet(isPresented: $showingAddSheet) {
                 AddMeasurementSheet()
+            }
+            .confirmationDialog(
+                "Delete measurement?",
+                isPresented: Binding(
+                    get: { measurementPendingDelete != nil },
+                    set: { if !$0 { measurementPendingDelete = nil } }
+                ),
+                titleVisibility: .visible
+            ) {
+                Button("Delete", role: .destructive) {
+                    if let m = measurementPendingDelete {
+                        modelContext.delete(m)
+                        try? modelContext.save()
+                    }
+                    measurementPendingDelete = nil
+                }
+                Button("Cancel", role: .cancel) { measurementPendingDelete = nil }
+            } message: {
+                Text("This can't be undone.")
             }
         }
     }

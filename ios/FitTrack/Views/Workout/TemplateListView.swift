@@ -8,6 +8,11 @@ struct TemplateListView: View {
 
     var onSelect: (WorkoutTemplate) -> Void
 
+    // AUDIT H5: per-row delete confirmation. WorkoutTemplate.exercises
+    // is .cascade — accidental swipe destroys every TemplateExercise
+    // configured for that template. Worth a confirm.
+    @State private var templatePendingDelete: WorkoutTemplate? = nil
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -54,12 +59,13 @@ struct TemplateListView: View {
                             }
                             .buttonStyle(.plain)
                             .listRowBackground(Color.slateCard)
-                        }
-                        .onDelete { offsets in
-                            for index in offsets {
-                                modelContext.delete(templates[index])
+                            .swipeActions(edge: .trailing) {
+                                Button(role: .destructive) {
+                                    templatePendingDelete = template
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
                             }
-                            try? modelContext.save()
                         }
                     }
                     .listStyle(.insetGrouped)
@@ -72,6 +78,30 @@ struct TemplateListView: View {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") { dismiss() }
                         .foregroundStyle(Color.slateText)
+                }
+            }
+            .confirmationDialog(
+                templatePendingDelete.map { "Delete \"\($0.name)\"?" } ?? "Delete template?",
+                isPresented: Binding(
+                    get: { templatePendingDelete != nil },
+                    set: { if !$0 { templatePendingDelete = nil } }
+                ),
+                titleVisibility: .visible
+            ) {
+                Button("Delete", role: .destructive) {
+                    if let t = templatePendingDelete {
+                        modelContext.delete(t)
+                        try? modelContext.save()
+                    }
+                    templatePendingDelete = nil
+                }
+                Button("Cancel", role: .cancel) { templatePendingDelete = nil }
+            } message: {
+                if let t = templatePendingDelete {
+                    let count = (t.exercises ?? []).count
+                    Text(count == 0
+                         ? "This can't be undone."
+                         : "Removes the template and its \(count) exercise\(count == 1 ? "" : "s").")
                 }
             }
         }

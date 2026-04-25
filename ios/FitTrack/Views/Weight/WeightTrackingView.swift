@@ -11,6 +11,9 @@ struct WeightTrackingView: View {
     @State private var showingLogSheet = false
     @AppStorage("healthSyncEnabled") private var healthSyncEnabled = false
     @State private var timeRange: TimeRange = .thirtyDays
+    // AUDIT H5: hold the entry whose context-menu Delete was tapped, so
+    // we can show a confirmationDialog before actually deleting.
+    @State private var entryPendingDelete: WeightEntry? = nil
 
     enum TimeRange: String, CaseIterable {
         case thirtyDays = "30 Days"
@@ -115,6 +118,26 @@ struct WeightTrackingView: View {
             }
             .sheet(isPresented: $showingLogSheet) {
                 LogWeightSheet(unitSystem: unitSystem)
+            }
+            // AUDIT H5: confirm weight-entry delete.
+            .confirmationDialog(
+                "Delete weight entry?",
+                isPresented: Binding(
+                    get: { entryPendingDelete != nil },
+                    set: { if !$0 { entryPendingDelete = nil } }
+                ),
+                titleVisibility: .visible
+            ) {
+                Button("Delete", role: .destructive) {
+                    if let e = entryPendingDelete {
+                        modelContext.delete(e)
+                        try? modelContext.save()
+                    }
+                    entryPendingDelete = nil
+                }
+                Button("Cancel", role: .cancel) { entryPendingDelete = nil }
+            } message: {
+                Text("This can't be undone.")
             }
         }
     }
@@ -330,8 +353,7 @@ struct WeightTrackingView: View {
                 .cornerRadius(12)
                 .contextMenu {
                     Button(role: .destructive) {
-                        modelContext.delete(entry)
-                        try? modelContext.save()
+                        entryPendingDelete = entry
                     } label: {
                         Label("Delete", systemImage: "trash")
                     }
