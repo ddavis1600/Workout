@@ -136,6 +136,9 @@
 		WIDG10000010 /* FitTrackWidgets.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = WIDG20000008 /* FitTrackWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		ONBF10000001 /* OnboardingFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = ONBF20000001 /* OnboardingFlow.swift */; };
 		ONBS10000001 /* OnboardingSampleData.swift in Sources */ = {isa = PBXBuildFile; fileRef = ONBS20000001 /* OnboardingSampleData.swift */; };
+		WAKA10000001 /* WorkoutActivityAttributes.swift in Sources (FitTrack) */ = {isa = PBXBuildFile; fileRef = WAKA20000001 /* WorkoutActivityAttributes.swift */; };
+		WAKA10000002 /* WorkoutActivityAttributes.swift in Sources (FitTrackWidgets) */ = {isa = PBXBuildFile; fileRef = WAKA20000001 /* WorkoutActivityAttributes.swift */; };
+		LIVM10000001 /* LiveActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = LIVM20000001 /* LiveActivityManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -296,6 +299,8 @@
 		WIDG20000008 /* FitTrackWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FitTrackWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		ONBF20000001 /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlow.swift; sourceTree = "<group>"; };
 		ONBS20000001 /* OnboardingSampleData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSampleData.swift; sourceTree = "<group>"; };
+		WAKA20000001 /* WorkoutActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutActivityAttributes.swift; sourceTree = "<group>"; };
+		LIVM20000001 /* LiveActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -432,6 +437,7 @@
 				F20000000000000000000001 /* HeartRateService.swift */,
 				WSM200000000000000000001 /* WorkoutSessionManager.swift */,
 				WPS200000000000000000001 /* WorkoutPersistence.swift */,
+				LIVM20000001 /* LiveActivityManager.swift */,
 				A2000000000000000000000B /* MacroCalculator.swift */,
 				H20000000000000000000011 /* NotificationService.swift */,
 				ONBS20000001 /* OnboardingSampleData.swift */,
@@ -439,6 +445,7 @@
 				A2000000000000000000000C /* SeedData.swift */,
 				J20000000000000000000001 /* WatchConnectivityManager.swift */,
 				WSNP20000001 /* WidgetSnapshot.swift */,
+				WAKA20000001 /* WorkoutActivityAttributes.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -923,6 +930,8 @@
 				TRND10000001 /* TrendsView.swift in Sources */,
 				ONBF10000001 /* OnboardingFlow.swift in Sources */,
 				ONBS10000001 /* OnboardingSampleData.swift in Sources */,
+				WAKA10000001 /* WorkoutActivityAttributes.swift in Sources (FitTrack) */,
+				LIVM10000001 /* LiveActivityManager.swift in Sources */,
 				HD1000000000000000000001 /* HealthMetric.swift in Sources */,
 				HD1000000000000000000002 /* HealthDashboardService.swift in Sources */,
 				HD1000000000000000000003 /* HealthDashboardView.swift in Sources */,
