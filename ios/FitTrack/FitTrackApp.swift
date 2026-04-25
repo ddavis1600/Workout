@@ -99,9 +99,24 @@ struct FitTrackApp: App {
 
     @Environment(\.scenePhase) private var scenePhase
 
+    /// First-launch gate. Set to `true` by `OnboardingFlow.finish()`
+    /// after the user finishes the multi-step intro (F5). Stored in
+    /// `UserDefaults` rather than `UserProfile` because we need to
+    /// read it before any SwiftData query — the flag determines
+    /// whether we even show the main UI.
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            // Single switch on the AppStorage flag. The transition
+            // animation lives on `OnboardingFlow.finish()` so the
+            // hand-off from flow → main UI feels intentional rather
+            // than a hard cut.
+            if hasCompletedOnboarding {
+                ContentView()
+            } else {
+                OnboardingFlow()
+            }
         }
         .modelContainer(container)
         .onChange(of: scenePhase) { _, newPhase in

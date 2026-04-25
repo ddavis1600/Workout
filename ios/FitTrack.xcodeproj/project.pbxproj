@@ -128,6 +128,8 @@
 		WIDG10000005 /* TodayWorkoutWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = WIDG20000005 /* TodayWorkoutWidget.swift */; };
 		TRND10000001 /* TrendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TRND20000001 /* TrendsView.swift */; };
 		WIDG10000010 /* FitTrackWidgets.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = WIDG20000008 /* FitTrackWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		ONBF10000001 /* OnboardingFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = ONBF20000001 /* OnboardingFlow.swift */; };
+		ONBS10000001 /* OnboardingSampleData.swift in Sources */ = {isa = PBXBuildFile; fileRef = ONBS20000001 /* OnboardingSampleData.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -280,6 +282,8 @@
 		WIDG20000006 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		WIDG20000007 /* FitTrackWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FitTrackWidgets.entitlements; sourceTree = "<group>"; };
 		WIDG20000008 /* FitTrackWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FitTrackWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		ONBF20000001 /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlow.swift; sourceTree = "<group>"; };
+		ONBS20000001 /* OnboardingSampleData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSampleData.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -416,6 +420,7 @@
 				WPS200000000000000000001 /* WorkoutPersistence.swift */,
 				A2000000000000000000000B /* MacroCalculator.swift */,
 				H20000000000000000000011 /* NotificationService.swift */,
+				ONBS20000001 /* OnboardingSampleData.swift */,
 				H20000000000000000000006 /* PRService.swift */,
 				A2000000000000000000000C /* SeedData.swift */,
 				J20000000000000000000001 /* WatchConnectivityManager.swift */,
@@ -479,6 +484,7 @@
 		E40000000000000000000002 /* Onboarding */ = {
 			isa = PBXGroup;
 			children = (
+				ONBF20000001 /* OnboardingFlow.swift */,
 				E20000000000000000000003 /* OnboardingView.swift */,
 				ISV200000000000000000001 /* IntroSplashView.swift */,
 			);
@@ -889,6 +895,8 @@
 				AGRP10000001 /* AppGroup.swift in Sources (FitTrack) */,
 				WSNP10000001 /* WidgetSnapshot.swift in Sources (FitTrack) */,
 				TRND10000001 /* TrendsView.swift in Sources */,
+				ONBF10000001 /* OnboardingFlow.swift in Sources */,
+				ONBS10000001 /* OnboardingSampleData.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

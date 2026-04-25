@@ -554,6 +554,17 @@ struct LogWorkoutView: View {
     /// run the exact same flow (including the brief wait for the watch's
     /// final GPS payload).
     private func saveWorkout() {
+        // Suppress today's workout-nudge notification — the user just
+        // logged a workout, no need to ping them at the configured
+        // time. Read pref directly from UserDefaults so the helper
+        // works whether or not the toggle is currently on; the helper
+        // itself short-circuits on missing notification permission.
+        if UserDefaults.standard.bool(forKey: "workoutNudgeEnabled") {
+            let hour = UserDefaults.standard.object(forKey: "workoutNudgeHour") as? Int ?? 18
+            let minute = UserDefaults.standard.object(forKey: "workoutNudgeMinute") as? Int ?? 0
+            NotificationService.suppressWorkoutNudgeForToday(hour: hour, minute: minute)
+        }
+
         Task {
             await WorkoutPersistence.saveAndEnd(context: modelContext, unitSystem: unitSystem)
             // Refresh the Home Screen widgets — "Today's Workout"

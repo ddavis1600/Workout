@@ -17,6 +17,22 @@ final class UserProfile {
     var unitSystem: String = "imperial"
     var updatedAt: Date = Date()
 
+    /// Display name captured during onboarding (F5). Optional so the
+    /// "Set up later" path stays valid; lets us address the user by
+    /// name in the welcome header / notifications without forcing a
+    /// field. Lightweight inferred migration handles existing rows.
+    var name: String?
+
+    /// Onboarding goal selections — any subset of the four primary
+    /// goals the audit specifies for F5:
+    ///   `"build_muscle"`, `"lose_weight"`, `"track_nutrition"`,
+    ///   `"daily_habits"`.
+    /// Stored as a tag list rather than an enum so future goal kinds
+    /// can be added without a schema bump. Defaulted to empty so
+    /// existing rows migrate cleanly via SwiftData's lightweight
+    /// inference.
+    var goals: [String] = []
+
     init() {
         self.weight = 70.0
         self.height = 175.0
@@ -31,6 +47,8 @@ final class UserProfile {
         self.calorieTarget = 0
         self.unitSystem = "imperial"
         self.updatedAt = .now
+        self.name = nil
+        self.goals = []
     }
 
     /// Recalculates TDEE and macro targets based on current profile values.
