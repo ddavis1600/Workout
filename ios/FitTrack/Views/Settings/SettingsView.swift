@@ -63,7 +63,7 @@ struct SettingsView: View {
                     p.unitSystem = newValue
                     modelContext.insert(p)
                 }
-                try? modelContext.save()
+                modelContext.saveOrLog("SettingsView.unitSystemBinding")
             }
         )
     }

@@ -35,13 +35,13 @@ final class WorkoutViewModel {
 
     func saveWorkout(_ workout: Workout) {
         modelContext.insert(workout)
-        try? modelContext.save()
+        modelContext.saveOrLog("WorkoutViewModel.saveWorkout")
         fetchWorkouts()
     }
 
     func deleteWorkout(_ workout: Workout) {
         modelContext.delete(workout)
-        try? modelContext.save()
+        modelContext.saveOrLog("WorkoutViewModel.deleteWorkout")
         fetchWorkouts()
     }
 

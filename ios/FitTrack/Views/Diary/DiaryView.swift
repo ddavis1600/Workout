@@ -347,7 +347,7 @@ struct DiaryView: View {
         .contextMenu {
             Button(role: .destructive) {
                 modelContext.delete(favorite)
-                try? modelContext.save()
+                modelContext.saveOrLog("DiaryView.removeFavorite")
             } label: {
                 Label("Remove from Favorites", systemImage: "star.slash")
             }

@@ -69,7 +69,7 @@ struct SeedData {
         context.insert(Exercise(name: "Stair Climber", muscleGroup: "Cardio", equipment: "cardio"))
         context.insert(Exercise(name: "Elliptical", muscleGroup: "Cardio", equipment: "cardio"))
 
-        try? context.save()
+        context.saveOrLog("SeedData.seedExercises")
     }
 
     // MARK: - Foods
@@ -140,6 +140,6 @@ struct SeedData {
         context.insert(Food(name: "Hummus", servingSize: 2, servingUnit: "tbsp", calories: 70, protein: 2, carbs: 6, fat: 5))
         context.insert(Food(name: "Rice Cakes", servingSize: 2, servingUnit: "cakes", calories: 70, protein: 1.4, carbs: 15, fat: 0.5))
 
-        try? context.save()
+        context.saveOrLog("SeedData.seedFoods")
     }
 }

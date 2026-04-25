@@ -164,7 +164,7 @@ struct FoodSearchView: View {
                             .swipeActions(edge: .trailing) {
                                 Button(role: .destructive) {
                                     modelContext.delete(fav)
-                                    try? modelContext.save()
+                                    modelContext.saveOrLog("FoodSearchView.unfavoriteSwipe")
                                     fetchFavorites()
                                 } label: {
                                     Label("Unfavorite", systemImage: "star.slash")
@@ -509,14 +509,14 @@ struct FoodSearchView: View {
         guard !isFavorite(food) else { return }
         let fav = FoodFavorite(food: food)
         modelContext.insert(fav)
-        try? modelContext.save()
+        modelContext.saveOrLog("FoodSearchView.addFavorite")
         fetchFavorites()
     }
 
     private func removeFavorite(_ food: Food) {
         if let fav = favorites.first(where: { $0.food === food }) {
             modelContext.delete(fav)
-            try? modelContext.save()
+            modelContext.saveOrLog("FoodSearchView.removeFavorite")
             fetchFavorites()
         }
     }
@@ -560,7 +560,7 @@ struct FoodSearchView: View {
             isCustom: false
         )
         modelContext.insert(food)
-        try? modelContext.save()
+        modelContext.saveOrLog("FoodSearchView.addAPIResult")
 
         onAdd(food, apiServings)
         dismiss()

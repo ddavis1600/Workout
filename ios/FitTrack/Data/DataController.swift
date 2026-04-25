@@ -53,7 +53,7 @@ enum DataController {
         }
 
         if deleted > 0 {
-            try? context.save()
+            context.saveOrLog("DataController.dedupExercises")
             print("[DataController] cleaned up \(deleted) duplicate exercise(s)")
         }
     }

@@ -280,7 +280,7 @@ struct HabitNoteSheet: View {
         }
         // If no existing completion and no note entered, nothing to save — just dismiss.
 
-        try? modelContext.save()
+        modelContext.saveOrLog("HabitNoteSheet.save")
         dismiss()
     }
 }

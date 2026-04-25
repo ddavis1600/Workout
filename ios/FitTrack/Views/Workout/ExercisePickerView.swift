@@ -109,7 +109,7 @@ struct ExercisePickerView: View {
             .sheet(isPresented: $showingNewExercise) {
                 NewExerciseSheet(defaultName: searchText) { newExercise in
                     modelContext.insert(newExercise)
-                    try? modelContext.save()
+                    modelContext.saveOrLog("ExercisePickerView.newExercise")
                     // Refresh + auto-select the just-created exercise so
                     // the user goes straight back into their workout flow.
                     fetchExercises()
@@ -159,7 +159,7 @@ struct ExercisePickerView: View {
         // `exercise` relationship nullified (per @Relationship deleteRule).
         // Those sets will show "Unknown" in workout history.
         modelContext.delete(exercise)
-        try? modelContext.save()
+        modelContext.saveOrLog("ExercisePickerView.deleteExercise")
         fetchExercises()
     }
 }

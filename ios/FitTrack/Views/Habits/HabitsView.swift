@@ -310,7 +310,7 @@ struct HabitsView: View {
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                     Button(role: .destructive) {
                                         modelContext.delete(habit)
-                                        try? modelContext.save()
+                                        modelContext.saveOrLog("HabitsView.deleteHabitSwipe")
                                     } label: {
                                         Label("Delete", systemImage: "trash")
                                     }
@@ -334,7 +334,7 @@ struct HabitsView: View {
                                     }
                                     Button(role: .destructive) {
                                         modelContext.delete(habit)
-                                        try? modelContext.save()
+                                        modelContext.saveOrLog("HabitsView.deleteHabitContextMenu")
                                     } label: {
                                         Label("Delete", systemImage: "trash")
                                     }
@@ -431,7 +431,7 @@ struct HabitsView: View {
         let newMilestones = habit.newlyEarnedMilestones()
         if !newMilestones.isEmpty {
             for m in newMilestones { habit.earnedBadges.append(m) }
-            try? modelContext.save()
+            modelContext.saveOrLog("HabitsView.completeHabit.milestones")
             pendingMilestones = (habit, newMilestones)
             showingMilestone = true
         }
@@ -446,7 +446,7 @@ struct HabitsView: View {
             all[globalIdx] = catHabits[pos]
         }
         for (i, habit) in all.enumerated() { habit.sortOrder = i }
-        try? modelContext.save()
+        modelContext.saveOrLog("HabitsView.moveHabits")
     }
 
     // MARK: - HealthKit
@@ -893,7 +893,7 @@ struct AddHabitSheet: View {
             sortOrder: totalHabits
         )
         modelContext.insert(habit)
-        try? modelContext.save()
+        modelContext.saveOrLog("HabitsView.createHabit")
         if hasReminder {
             NotificationService.scheduleHabitNotification(
                 habitKey: "\(Int(habit.createdAt.timeIntervalSince1970))",
@@ -1279,7 +1279,7 @@ struct EditHabitSheet: View {
         habit.reminderTime = hasReminder ? reminderTime : nil
         habit.healthKitTrigger = selectedTrigger?.id
         habit.healthKitThreshold = Double(thresholdText) ?? selectedTrigger?.defaultThreshold ?? 0
-        try? modelContext.save()
+        modelContext.saveOrLog("HabitsView.editHabit.save")
 
         NotificationService.cancelHabitNotification(habitKey: oldKey)
         if hasReminder {

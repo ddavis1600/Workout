@@ -58,7 +58,7 @@ final class Habit {
             if completions != nil { completions!.append(completion) } else { completions = [completion] }
             context.insert(completion)
         }
-        try? context.save()
+        context.saveOrLog("Habit.toggle")
     }
 
     // MARK: - Scheduling
@@ -145,7 +145,7 @@ final class Habit {
     func applyFreeze(for date: Date, context: ModelContext) {
         guard canApplyFreeze(forWeekOf: date) else { return }
         freezeAppliedDates.append(date.startOfDay)
-        try? context.save()
+        context.saveOrLog("Habit.applyFreeze")
     }
 
     // MARK: - Stats
