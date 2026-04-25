@@ -236,6 +236,11 @@ struct HabitNoteSheet: View {
             }
             .navigationTitle("Habit Entry")
             .navigationBarTitleDisplayMode(.inline)
+            // TextEditor's Return key inserts a newline, so without a
+            // toolbar Done the user can't dismiss the keyboard to reach
+            // the Save button on small screens. Same shape as numeric
+            // sites — see Extensions.swift.
+            .keyboardDoneToolbar()
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") { dismiss() }
