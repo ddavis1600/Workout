@@ -89,13 +89,28 @@ struct FitTrackApp: App {
         // exercise picker stays clean.
         DataController.cleanupDuplicateExercises(context: context)
 
+        // Seed the Home Screen widget snapshot so first-launch widgets
+        // render real values rather than the placeholder zeros. Save
+        // paths refresh it later; this is the cold-start guarantee.
+        WidgetSnapshot.refresh(from: context)
+
         WatchConnectivityManager.shared.activate()
     }
+
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
         WindowGroup {
             ContentView()
         }
         .modelContainer(container)
+        .onChange(of: scenePhase) { _, newPhase in
+            // Refresh widgets whenever the app foregrounds. Catches data
+            // changes that bypass the in-app save paths (e.g. Watch app
+            // syncing a workout via WatchConnectivity).
+            if newPhase == .active {
+                WidgetSnapshot.refresh(from: ModelContext(container))
+            }
+        }
     }
 }

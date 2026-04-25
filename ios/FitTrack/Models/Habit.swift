@@ -59,6 +59,10 @@ final class Habit {
             context.insert(completion)
         }
         context.saveOrLog("Habit.toggle")
+        // Streak widget reads the longest current streak from the App
+        // Group snapshot — refresh after each toggle so the Home Screen
+        // tile keeps up with daily check-ins.
+        WidgetSnapshot.refresh(from: context)
     }
 
     // MARK: - Scheduling

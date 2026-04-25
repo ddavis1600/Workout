@@ -556,6 +556,12 @@ struct LogWorkoutView: View {
     private func saveWorkout() {
         Task {
             await WorkoutPersistence.saveAndEnd(context: modelContext, unitSystem: unitSystem)
+            // Refresh the Home Screen widgets — "Today's Workout"
+            // reads the most recent same-day entry from the App
+            // Group snapshot. Done after the persistence completes
+            // so the snapshot reflects the just-saved workout
+            // rather than a stale view of SwiftData.
+            WidgetSnapshot.refresh(from: modelContext)
         }
     }
 }

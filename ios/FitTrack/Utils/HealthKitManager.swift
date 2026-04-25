@@ -28,10 +28,16 @@ class HealthKitManager {
     /// Every HK type the app might ever WRITE. Keep this in sync with the
     /// watch-side request in `WatchWorkoutSession.start()` so first prompt
     /// covers both surfaces.
+    ///
+    /// V2 of this bundle (P6 — F9) added `bodyFatPercentage` and
+    /// `mindfulSession`. Bumping `currentAuthBundleVersion` below
+    /// triggers a one-shot re-auth via `requestAuthorizationIfNeeded()`
+    /// for users who previously granted V1.
     static var allShareTypes: Set<HKSampleType> {
-        [
+        var types: Set<HKSampleType> = [
             HKWorkoutType.workoutType(),
             HKQuantityType(.bodyMass),
+            HKQuantityType(.bodyFatPercentage),       // F9 — body composition
             HKQuantityType(.activeEnergyBurned),
             HKQuantityType(.distanceWalkingRunning),
             HKQuantityType(.distanceCycling),
@@ -43,6 +49,13 @@ class HealthKitManager {
             HKQuantityType(.dietaryFatTotal),
             HKQuantityType(.dietaryFiber),
         ]
+        // F9 — mindful sessions; future-proofs for a meditation
+        // feature so the V2 auth bundle covers mindful writes and we
+        // don't have to re-prompt when the UI lands.
+        if let mindful = HKObjectType.categoryType(forIdentifier: .mindfulSession) {
+            types.insert(mindful)
+        }
+        return types
     }
 
     /// Every HK type the app might ever READ.
@@ -72,6 +85,17 @@ class HealthKitManager {
         return types
     }
 
+    /// Current HK auth bundle version. Bump when adding new write
+    /// types so existing users get prompted once for the expanded set.
+    /// V2 added bodyFatPercentage + mindfulSession.
+    private static let currentAuthBundleVersion = 2
+
+    private static let authBundleVersionKey = "hasRequestedHKBundleVersion"
+
+    /// Force a fresh HealthKit prompt regardless of stored version.
+    /// Used by settings-style affordances ("Re-request Health access").
+    /// Pins the version key on success so subsequent
+    /// `requestAuthorizationIfNeeded()` calls stay silent.
     func requestAuthorization() async -> Bool {
         guard isAvailable else { return false }
         do {
@@ -79,11 +103,26 @@ class HealthKitManager {
                 toShare: Self.allShareTypes,
                 read:    Self.allReadTypes
             )
+            UserDefaults.standard.set(Self.currentAuthBundleVersion, forKey: Self.authBundleVersionKey)
             return true
         } catch {
             print("HealthKit auth failed: \(error)")
             return false
         }
+    }
+
+    /// Idempotent variant — only prompts when the user hasn't yet been
+    /// asked for the current bundle version. Once granted (or denied)
+    /// at the latest version, subsequent calls return immediately.
+    /// New F9 call sites (BodyMeasurements body-fat write, Diary
+    /// hydration +1 cup) use this for the silent re-use path.
+    func requestAuthorizationIfNeeded() async -> Bool {
+        guard isAvailable else { return false }
+        let storedVersion = UserDefaults.standard.integer(forKey: Self.authBundleVersionKey)
+        if storedVersion >= Self.currentAuthBundleVersion {
+            return true
+        }
+        return await requestAuthorization()
     }
 
     // MARK: - Workout
@@ -221,6 +260,51 @@ class HealthKitManager {
         } catch {
             print("Failed to fetch weights from HealthKit: \(error)")
             return []
+        }
+    }
+
+    // MARK: - Body Fat (F9)
+
+    /// Save a body-fat percentage sample to Health. `percent` is the
+    /// raw percentage (e.g. `18.5` for 18.5%); HealthKit stores it as a
+    /// 0…1 fraction internally so we divide by 100 here.
+    func saveBodyFatPercentage(_ percent: Double, date: Date) async {
+        guard isAvailable else { return }
+        // HK accepts values in [0, 1]. 0 is meaningless; clamp anything
+        // above 100% as well — body-fat readings outside that range are
+        // operator error.
+        let clamped = max(0, min(percent, 100)) / 100.0
+        guard clamped > 0 else { return }
+        let type = HKQuantityType(.bodyFatPercentage)
+        let quantity = HKQuantity(unit: .percent(), doubleValue: clamped)
+        let sample = HKQuantitySample(type: type, quantity: quantity, start: date, end: date)
+        do {
+            try await healthStore.save(sample)
+        } catch {
+            print("Failed to save body fat to HealthKit: \(error)")
+        }
+    }
+
+    // MARK: - Mindful Session (F9 — future-proofing)
+
+    /// Save a mindful session of `minutes` minutes ending at `date`.
+    /// Currently unused by the UI — the API is wired so the V2 auth
+    /// bundle covers mindful writes and a future meditation feature
+    /// can call this without triggering another permission prompt.
+    func saveMindfulSession(minutes: Double, endDate: Date = .now) async {
+        guard isAvailable, minutes > 0 else { return }
+        guard let type = HKObjectType.categoryType(forIdentifier: .mindfulSession) else { return }
+        let start = endDate.addingTimeInterval(-(minutes * 60))
+        let sample = HKCategorySample(
+            type: type,
+            value: HKCategoryValue.notApplicable.rawValue,
+            start: start,
+            end: endDate
+        )
+        do {
+            try await healthStore.save(sample)
+        } catch {
+            print("Failed to save mindful session to HealthKit: \(error)")
         }
     }
 

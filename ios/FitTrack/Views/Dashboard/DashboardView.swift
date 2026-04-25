@@ -36,6 +36,10 @@ struct DashboardView: View {
                             .listRowBackground(Color.slateBackground)
                             .listRowSeparator(.hidden)
 
+                        trendsLink
+                            .listRowBackground(Color.slateBackground)
+                            .listRowSeparator(.hidden)
+
                         recentWorkoutsSection(vm: vm)
                             .listRowBackground(Color.slateBackground)
                             .listRowSeparator(.hidden)
@@ -170,6 +174,43 @@ struct DashboardView: View {
                 )
             }
         }
+    }
+
+    // MARK: - Trends Link
+
+    /// Card-style nav link into the Trends hub. Sits between the weekly
+    /// summary and recent workouts so it's discoverable without
+    /// dominating the dashboard.
+    private var trendsLink: some View {
+        NavigationLink {
+            TrendsView()
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "chart.line.uptrend.xyaxis")
+                    .font(.title3)
+                    .foregroundStyle(Color.emerald)
+                    .frame(width: 36, height: 36)
+                    .background(Color.emerald.opacity(0.15), in: Circle())
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Trends")
+                        .font(.headline)
+                        .foregroundStyle(Color.ink)
+                    Text("Weight, workouts, calories, and habit completion")
+                        .font(.caption)
+                        .foregroundStyle(Color.slateText)
+                        .lineLimit(1)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color.slateText)
+            }
+            .padding()
+            .background(Color.slateCard)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.slateBorder, lineWidth: 1))
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Recent Workouts

@@ -63,6 +63,7 @@ final class DiaryViewModel {
         modelContext.insert(entry)
         modelContext.saveOrLog("DiaryViewModel.addEntry")
         fetchEntries()
+        WidgetSnapshot.refresh(from: modelContext)
         writeToHealthKit(entry: entry)
     }
 
@@ -71,6 +72,7 @@ final class DiaryViewModel {
         modelContext.delete(entry)
         modelContext.saveOrLog("DiaryViewModel.deleteEntry")
         fetchEntries()
+        WidgetSnapshot.refresh(from: modelContext)
         if let id = correlationID {
             Task { await HealthKitManager.shared.deleteFoodEntry(correlationID: id) }
         }
@@ -80,6 +82,7 @@ final class DiaryViewModel {
         entry.servings = servings
         modelContext.saveOrLog("DiaryViewModel.updateServings")
         fetchEntries()
+        WidgetSnapshot.refresh(from: modelContext)
         writeToHealthKit(entry: entry, existingCorrelationID: entry.healthKitCorrelationID)
     }
 
