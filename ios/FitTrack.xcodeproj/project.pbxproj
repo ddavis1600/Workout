@@ -125,6 +125,7 @@
 		ILGT10000001 /* LogWeightIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = ILGT20000001 /* LogWeightIntent.swift */; };
 		ILGH10000001 /* LogHabitIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = ILGH20000001 /* LogHabitIntent.swift */; };
 		FTSC10000001 /* FitTrackShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = FTSC20000001 /* FitTrackShortcuts.swift */; };
+		SHST10000001 /* ShortcutsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHST20000001 /* ShortcutsSettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -274,6 +275,7 @@
 		ILGT20000001 /* LogWeightIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogWeightIntent.swift; sourceTree = "<group>"; };
 		ILGH20000001 /* LogHabitIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogHabitIntent.swift; sourceTree = "<group>"; };
 		FTSC20000001 /* FitTrackShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitTrackShortcuts.swift; sourceTree = "<group>"; };
+		SHST20000001 /* ShortcutsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsSettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -611,6 +613,7 @@
 				H20000000000000000000015 /* DataExportView.swift */,
 				H20000000000000000000012 /* NotificationSettingsView.swift */,
 				G20000000000000000000003 /* SettingsView.swift */,
+				SHST20000001 /* ShortcutsSettingsView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -880,6 +883,7 @@
 				ILGT10000001 /* LogWeightIntent.swift in Sources */,
 				ILGH10000001 /* LogHabitIntent.swift in Sources */,
 				FTSC10000001 /* FitTrackShortcuts.swift in Sources */,
+				SHST10000001 /* ShortcutsSettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
