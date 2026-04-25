@@ -44,6 +44,9 @@ struct DiaryView: View {
                 summarySection
                     .listRowBackground(Color.slateBackground)
                     .listRowSeparator(.hidden)
+                hydrationSection
+                    .listRowBackground(Color.slateBackground)
+                    .listRowSeparator(.hidden)
                 mealSections
                     .listRowBackground(Color.slateBackground)
                     .listRowSeparator(.hidden)
@@ -207,6 +210,94 @@ struct DiaryView: View {
             RoundedRectangle(cornerRadius: 14)
                 .stroke(Color.slateBorder, lineWidth: 1)
         )
+    }
+
+    // MARK: - Hydration (F9)
+
+    /// Cup count for the diary's currently-selected day. Stored in
+    /// UserDefaults under a per-day key (e.g. `water_cups_2026-04-25`)
+    /// so the count survives app restarts; HK is the eventual source
+    /// of truth, but reading from HK on every view render would add
+    /// latency for what's essentially an integer counter.
+    ///
+    /// Each cup logs 240 mL (8 fl oz) to HealthKit via
+    /// `HealthKitManager.saveWater(ml:date:)`.
+    private func waterKey(for date: Date) -> String {
+        "water_cups_\(date.formatted(as: "yyyy-MM-dd"))"
+    }
+
+    private func waterCups(for date: Date) -> Int {
+        UserDefaults.standard.integer(forKey: waterKey(for: date))
+    }
+
+    private var hydrationSection: some View {
+        let selectedDate = viewModel?.selectedDate ?? Date.now
+        let cups = waterCups(for: selectedDate)
+        let goal = 8 // 8 cups ≈ 1.9 L — a common default; future: profile-driven
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Image(systemName: "drop.fill")
+                    .foregroundStyle(.blue)
+                Text("Hydration")
+                    .font(.headline)
+                    .foregroundStyle(Color.ink)
+                Spacer()
+                Text("\(cups) / \(goal) cups")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.blue)
+            }
+
+            // Visual row of 8 droplet glyphs that fill in as cups are
+            // logged — gives the user a quick "how much further" cue
+            // without parsing the mL number.
+            HStack(spacing: 4) {
+                ForEach(0..<goal, id: \.self) { i in
+                    Image(systemName: i < cups ? "drop.fill" : "drop")
+                        .foregroundStyle(i < cups ? .blue : Color.slateText.opacity(0.5))
+                        .font(.title3)
+                }
+                Spacer()
+                Button {
+                    addCup(for: selectedDate)
+                } label: {
+                    Label("1 cup", systemImage: "plus.circle.fill")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(.blue, in: Capsule())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding()
+        .background(Color.slateCard)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(Color.slateBorder, lineWidth: 1)
+        )
+    }
+
+    private func addCup(for date: Date) {
+        let key = waterKey(for: date)
+        UserDefaults.standard.set(UserDefaults.standard.integer(forKey: key) + 1, forKey: key)
+        // Force a re-render — UserDefaults reads in the body don't
+        // trigger SwiftUI invalidation by themselves, so we bump the
+        // mealPhotoTokens dict (already used as a refresh signal in
+        // this view) to nudge the body. Cheap and side-effect-free.
+        mealPhotoTokens["__hydration"] = UUID()
+
+        // Side-effect write to Health. The auth gate is V2-aware:
+        // first-time tappers get the prompt; everyone else proceeds
+        // silently. If the user denies, the local count still
+        // increments — HK is mirror, not master.
+        let now = Date()
+        Task {
+            let hk = HealthKitManager.shared
+            guard hk.isAvailable, await hk.requestAuthorizationIfNeeded() else { return }
+            await hk.saveWater(ml: 240, date: now) // 240 mL ≈ 1 cup / 8 fl oz
+        }
     }
 
     // MARK: - Meal Sections

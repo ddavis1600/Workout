@@ -240,9 +240,24 @@ struct AddMeasurementSheet: View {
         m.bicepRight = Double(bicepRight)
         m.thighLeft = Double(thighLeft)
         m.thighRight = Double(thighRight)
-        m.bodyFatPercent = Double(bodyFat)
+        let bodyFatValue = Double(bodyFat)
+        m.bodyFatPercent = bodyFatValue
         modelContext.insert(m)
         try? modelContext.save()
+
+        // F9 — write body-fat to Apple Health if the user provided one.
+        // requestAuthorizationIfNeeded is the V2-bundle gate: if the
+        // user has already granted access for the bodyFat write set,
+        // it's a no-op; otherwise this is the one-shot prompt.
+        if let percent = bodyFatValue, percent > 0 {
+            let captureDate = date
+            Task {
+                let hk = HealthKitManager.shared
+                guard hk.isAvailable, await hk.requestAuthorizationIfNeeded() else { return }
+                await hk.saveBodyFatPercentage(percent, date: captureDate)
+            }
+        }
+
         dismiss()
     }
 }
