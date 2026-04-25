@@ -52,9 +52,16 @@ struct WeeklySummaryView: View {
     }
 
     private var weightChange: Double? {
-        guard thisWeekWeightEntries.count >= 2 else { return nil }
-        let first = thisWeekWeightEntries.first!.weight
-        let last = thisWeekWeightEntries.last!.weight
+        // Optional-chain the reads even though the count >= 2 guard
+        // makes `first` / `last` technically safe today — the guard
+        // is two lines from the reads, and a future refactor that
+        // inserts a `dropWhile` or `filter` between could slip a nil
+        // past it. Cheap defensive bind. (AUDIT M6.)
+        guard let first = thisWeekWeightEntries.first?.weight,
+              let last  = thisWeekWeightEntries.last?.weight,
+              thisWeekWeightEntries.count >= 2 else {
+            return nil
+        }
         return last - first
     }
 

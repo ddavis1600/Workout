@@ -43,7 +43,7 @@ struct BodyMeasurementsView: View {
                             for i in offsets {
                                 modelContext.delete(measurements[i])
                             }
-                            try? modelContext.save()
+                            modelContext.saveOrLog("BodyMeasurementsView.onDelete")
                         }
                     }
                     .listStyle(.plain)
@@ -242,7 +242,7 @@ struct AddMeasurementSheet: View {
         m.thighRight = Double(thighRight)
         m.bodyFatPercent = Double(bodyFat)
         modelContext.insert(m)
-        try? modelContext.save()
+        modelContext.saveOrLog("BodyMeasurementsView.saveMeasurement")
         dismiss()
     }
 }

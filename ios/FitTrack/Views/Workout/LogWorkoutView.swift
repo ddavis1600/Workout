@@ -4,26 +4,55 @@ import Combine
 import PhotosUI
 import WatchConnectivity
 
+/// Full-screen workout logger. All session state lives on
+/// `WorkoutSessionManager.shared` so it survives minimize/expand cycles
+/// (see the mini bar in ContentView).
 struct LogWorkoutView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @ObservedObject private var session = WorkoutSessionManager.shared
+    @ObservedObject private var watchManager = WatchConnectivityManager.shared
+    @Query private var userProfiles: [UserProfile]
+    private var unitSystem: String { userProfiles.first?.unitSystem ?? "imperial" }
+    private var distanceUnitLabel: String { unitSystem == "imperial" ? "mi" : "km" }
 
-    var viewModel: WorkoutViewModel
-
-    @State private var workoutName = ""
-    @State private var workoutDate = Date.now
-    @State private var workoutNotes = ""
-    @State private var workoutType: String = "strength"
-    @State private var exerciseGroups: [ExerciseGroup] = []
+    // Transient view state (not worth persisting across minimize):
     @State private var showingExercisePicker = false
     @State private var showingSaveTemplate = false
-    var template: WorkoutTemplate?
+    @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var timerTick = Date()   // forces a re-render every second
+    @State private var hasLoadedTemplate = false
 
-    /// Workout type catalog. Tag string is the canonical value
-    /// stored on `Workout.workoutType`; `HealthKitManager.hkActivityType(from:)`
-    /// maps it to the corresponding `HKWorkoutActivityType` on save.
-    /// Order roughly matches frequency-of-use (strength first, then
-    /// cardio, then specialty).
+    // Rest timer (UI-only, lives here)
+    @AppStorage("restTimerSeconds") private var restTimerDuration = 60
+    @AppStorage("restTimerEnabled") private var restTimerEnabled = true
+    @State private var showRestTimer = false
+
+    private var userAge: Int {
+        let age = UserDefaults.standard.integer(forKey: "heartRateUserAge")
+        return age > 0 ? age : 25
+    }
+
+    /// Formats the live GPS distance for the on-screen indicator.
+    private func formatLiveDistance() -> String {
+        let m = session.liveDistanceMeters
+        if unitSystem == "imperial" {
+            return String(format: "%.2f mi", m * 0.000621371)
+        }
+        return String(format: "%.2f km", m / 1000.0)
+    }
+
+    /// Formats the live elevation gain for the on-screen indicator.
+    private func formatLiveElevation() -> String {
+        let m = session.liveElevationGain
+        if unitSystem == "imperial" {
+            return "\(Int((m * 3.28084).rounded())) ft"
+        }
+        return "\(Int(m.rounded())) m"
+    }
+
+    /// Workout type picker options. Kept here (not in the model) so the UI
+    /// presentation labels can be changed without a schema migration.
     private static let workoutTypeOptions: [(id: String, label: String, icon: String)] = [
         ("strength",  "Strength",     "dumbbell.fill"),
         ("running",   "Running",      "figure.run"),
@@ -34,49 +63,6 @@ struct LogWorkoutView: View {
         ("swimming",  "Swimming",     "figure.pool.swim"),
         ("other",     "Other",        "figure.flexibility"),
     ]
-
-    // Photo state
-    @State private var selectedPhotoItem: PhotosPickerItem?
-    @State private var selectedPhotoData: Data?
-
-    // Timer state
-    // `hasStarted` gates the whole workout lifecycle — until the user
-    // taps the big "Start" button, no timer runs, no HealthKit session
-    // is begun, and no "startWorkout" message is sent to the watch. This
-    // replaces the previous behavior where opening the sheet auto-started
-    // everything, which meant accidentally backing out (without tapping
-    // Save) still created a spurious HK workout entry.
-    @State private var hasStarted = false
-    @State private var elapsedSeconds: Int = 0
-    @State private var timerIsRunning = false
-    @State private var timerSubscription: AnyCancellable?
-
-    // Rest timer
-    @AppStorage("restTimerSeconds") private var restTimerDuration = 60
-    @AppStorage("restTimerEnabled") private var restTimerEnabled = true
-    @State private var showRestTimer = false
-
-    // Heart rate
-    @State private var heartRateService = HeartRateService()
-    @ObservedObject private var watchManager = WatchConnectivityManager.shared
-    private var userAge: Int {
-        let age = UserDefaults.standard.integer(forKey: "heartRateUserAge")
-        return age > 0 ? age : 25
-    }
-
-    struct SetEntry: Identifiable {
-        let id = UUID()
-        var reps: String
-        var weight: String
-        var rpe: String
-        var notes: String = ""
-    }
-
-    struct ExerciseGroup: Identifiable {
-        let id = UUID()
-        var exercise: Exercise
-        var sets: [SetEntry]
-    }
 
     var body: some View {
         NavigationStack {
@@ -94,12 +80,12 @@ struct LogWorkoutView: View {
                         if let watchBPM = watchManager.liveHeartRate {
                             watchHeartRateRow(bpm: watchBPM)
                         }
-                        WorkoutHeartRateCard(service: heartRateService, userAge: userAge)
+                        WorkoutHeartRateCard(service: session.heartRateService, userAge: userAge)
                         workoutInfoSection
                         photoSection
                         exerciseSections
                         addExerciseButton
-                        if !exerciseGroups.isEmpty {
+                        if !session.exerciseGroups.isEmpty {
                             saveAsTemplateButton
                         }
                     }
@@ -111,11 +97,25 @@ struct LogWorkoutView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Cancel") {
+                    Button {
+                        // Cancel: stop the session and dismiss.
                         WatchConnectivityManager.shared.sendStopWorkout()
-                        dismiss()
+                        session.end()
+                    } label: {
+                        Text("Cancel")
+                            .foregroundStyle(Color.slateText)
                     }
-                    .foregroundStyle(Color.slateText)
+                }
+                ToolbarItem(placement: .principal) {
+                    // Minimize button — keeps the workout running behind the tab bar.
+                    Button {
+                        session.minimize()
+                    } label: {
+                        Label("Minimize", systemImage: "chevron.down")
+                            .labelStyle(.iconOnly)
+                            .font(.title3)
+                            .foregroundStyle(Color.slateText)
+                    }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Save") {
@@ -127,12 +127,12 @@ struct LogWorkoutView: View {
             }
             .sheet(isPresented: $showingExercisePicker) {
                 ExercisePickerView { exercise in
-                    let initialSet = SetEntry(reps: "", weight: "", rpe: "")
-                    exerciseGroups.append(ExerciseGroup(exercise: exercise, sets: [initialSet]))
+                    let initialSet = SetEntry()
+                    session.exerciseGroups.append(ExerciseGroup(exercise: exercise, sets: [initialSet]))
                 }
             }
             .sheet(isPresented: $showingSaveTemplate) {
-                SaveTemplateSheet(exerciseGroups: exerciseGroups.map { group in
+                SaveTemplateSheet(exerciseGroups: session.exerciseGroups.map { group in
                     let lastSet = group.sets.last
                     return (
                         exerciseName: group.exercise.name,
@@ -144,29 +144,26 @@ struct LogWorkoutView: View {
                 })
             }
             .task {
-                // Pre-populate exercises if launched from a template, but
-                // DO NOT start the timer / HR / watch — wait for the user
-                // to tap the Start button in the ready-state card.
-                loadTemplate()
+                loadTemplateIfNeeded()
             }
-            .onDisappear {
-                // stopTimer/stopMonitoring are no-ops if nothing was
-                // actually started, so calling them is safe either way.
-                stopTimer()
-                heartRateService.stopMonitoring()
+            // Cheap re-render ticker for the elapsed-time display.
+            // Does NOT drive the clock — `session.elapsedSeconds` is always
+            // computed from startDate — this just tells SwiftUI to recompute.
+            .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { now in
+                timerTick = now
             }
-            .onChange(of: watchManager.pendingWorkoutStop) { _, stop in
-                if stop {
-                    watchManager.pendingWorkoutStop = false
-                    // Only auto-save on a watch Stop if the user actually
-                    // began a workout on this device. Without this guard,
-                    // merely opening LogWorkoutView and then receiving any
-                    // stray `stopWorkout` WatchConnectivity message (even
-                    // a stale queued one from a previous session) saves a
-                    // blank Workout — which is how ghost workouts were
-                    // appearing in Daniel's list.
-                    if hasStarted {
-                        saveWorkout()
+            // watchManager.pendingWorkoutStop is now handled globally in
+            // ContentView so that watch-initiated stops save even when this
+            // view isn't mounted (minimized / different tab).
+            .onChange(of: selectedPhotoItem) { _, newItem in
+                Task {
+                    if let data = try? await newItem?.loadTransferable(type: Data.self) {
+                        if let uiImage = UIImage(data: data),
+                           let compressed = uiImage.jpegData(compressionQuality: 0.7) {
+                            session.selectedPhotoData = compressed
+                        } else {
+                            session.selectedPhotoData = data
+                        }
                     }
                 }
             }
@@ -204,56 +201,7 @@ struct LogWorkoutView: View {
 
     // MARK: - Timer
 
-    @ViewBuilder
     private var timerSection: some View {
-        if !hasStarted {
-            readyStateCard
-        } else {
-            runningTimerCard
-        }
-    }
-
-    /// Before the user taps Start, the view is "ready": exercises / sets /
-    /// notes can be pre-populated (e.g. from a template or a manual build),
-    /// but no timer runs, no HK session opens, and the watch isn't signalled.
-    private var readyStateCard: some View {
-        VStack(spacing: 10) {
-            Text("Ready")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(Color.slateText)
-                .textCase(.uppercase)
-
-            Text("00:00:00")
-                .font(.system(size: 40, weight: .medium, design: .monospaced))
-                .foregroundStyle(Color.slateText.opacity(0.5))
-                .frame(maxWidth: .infinity, alignment: .center)
-
-            Button {
-                beginWorkout()
-            } label: {
-                Label("Start", systemImage: "play.fill")
-                    .font(.headline.weight(.semibold))
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(Color.emerald)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.vertical, 16)
-        .padding(.horizontal)
-        .frame(maxWidth: .infinity)
-        .background(Color.slateCard)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-        .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .stroke(Color.slateBorder, lineWidth: 1)
-        )
-    }
-
-    /// Existing live-workout card — elapsed time with Pause/Resume + Reset.
-    private var runningTimerCard: some View {
         VStack(spacing: 10) {
             Text(formattedElapsedTime)
                 .font(.system(size: 40, weight: .medium, design: .monospaced))
@@ -262,23 +210,20 @@ struct LogWorkoutView: View {
 
             HStack(spacing: 20) {
                 Button {
-                    if timerIsRunning {
-                        stopTimer()
+                    if session.isPaused {
+                        session.resume()
                     } else {
-                        startTimer()
+                        session.pause()
                     }
-                    timerIsRunning.toggle()
                 } label: {
-                    Label(timerIsRunning ? "Pause" : "Resume",
-                          systemImage: timerIsRunning ? "pause.fill" : "play.fill")
+                    Label(session.isPaused ? "Resume" : "Pause",
+                          systemImage: session.isPaused ? "play.fill" : "pause.fill")
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(Color.emerald)
                 }
 
                 Button {
-                    stopTimer()
-                    elapsedSeconds = 0
-                    timerIsRunning = false
+                    session.resetTimer()
                 } label: {
                     Label("Reset", systemImage: "arrow.counterclockwise")
                         .font(.subheadline.weight(.medium))
@@ -297,66 +242,99 @@ struct LogWorkoutView: View {
         )
     }
 
-    /// Transition from "ready" → actively timing. Kicks off the timer
-    /// and begins HR monitoring. Called from the Start button in
-    /// `readyStateCard`. HR samples flow through HealthKit regardless
-    /// of which device (phone or watch) the user taps Start on, so we
-    /// don't need to signal the watch from here.
-    private func beginWorkout() {
-        hasStarted = true
-        timerIsRunning = true
-        startTimer()
-        heartRateService.resetSession()
-        Task { await heartRateService.startMonitoring() }
-    }
-
     private var formattedElapsedTime: String {
-        let hours = elapsedSeconds / 3600
-        let minutes = (elapsedSeconds % 3600) / 60
-        let seconds = elapsedSeconds % 60
-        return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
-    }
-
-    private func startTimer() {
-        timerSubscription = Timer.publish(every: 1, on: .main, in: .common)
-            .autoconnect()
-            .sink { _ in
-                elapsedSeconds += 1
-            }
-    }
-
-    private func stopTimer() {
-        timerSubscription?.cancel()
-        timerSubscription = nil
+        // `timerTick` is referenced to force a re-render each second.
+        _ = timerTick
+        let seconds = session.elapsedSeconds
+        let hours = seconds / 3600
+        let minutes = (seconds % 3600) / 60
+        let sec = seconds % 60
+        return String(format: "%02d:%02d:%02d", hours, minutes, sec)
     }
 
     // MARK: - Workout Info
 
     private var workoutInfoSection: some View {
         VStack(spacing: 14) {
-            TextField("Workout Name (optional)", text: $workoutName)
+            TextField("Workout Name (optional)", text: $session.workoutName)
                 .textFieldStyle(.plain)
                 .padding(12)
                 .background(Color.slateCard)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
                 .foregroundStyle(Color.ink)
 
-            // Workout-type picker. Stored as a tag string on
-            // `Workout.workoutType`; mapped to HKWorkoutActivityType
-            // at HK-save time via HealthKitManager.hkActivityType(from:).
-            Picker("Type", selection: $workoutType) {
-                ForEach(Self.workoutTypeOptions, id: \.id) { option in
-                    Label(option.label, systemImage: option.icon).tag(option.id)
+            // Workout type picker (item 10) — maps to HKWorkoutActivityType on save.
+            HStack {
+                Text("Type")
+                    .font(.subheadline)
+                    .foregroundStyle(Color.slateText)
+                Spacer()
+                Picker("Type", selection: $session.workoutType) {
+                    ForEach(Self.workoutTypeOptions, id: \.id) { option in
+                        Label(option.label, systemImage: option.icon)
+                            .tag(option.id)
+                    }
                 }
+                .pickerStyle(.menu)
+                .tint(Color.emerald)
             }
-            .pickerStyle(.menu)
-            .tint(.emerald)
             .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color.slateCard)
             .clipShape(RoundedRectangle(cornerRadius: 10))
 
-            DatePicker("Date", selection: $workoutDate, displayedComponents: .date)
+            // Distance field — only relevant for running / cycling / walking / swimming.
+            // Stored in meters on the model; user types in mi or km based on their
+            // unit preference. When the Watch is live-tracking GPS, the captured
+            // distance appears here as a read-only row that overrides any manual
+            // input at save time.
+            if Workout.isDistanceType(session.workoutType) {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Distance")
+                            .font(.subheadline)
+                            .foregroundStyle(Color.slateText)
+                        Spacer()
+                        TextField("0.0", text: $session.distanceInput)
+                            .textFieldStyle(.plain)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                            .frame(maxWidth: 100)
+                            .foregroundStyle(Color.ink)
+                            .disabled(session.liveDistanceMeters > 0)
+                        Text(distanceUnitLabel)
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(Color.slateText)
+                            .frame(width: 24, alignment: .leading)
+                    }
+                    if session.liveDistanceMeters > 0 {
+                        HStack(spacing: 6) {
+                            Image(systemName: "location.fill")
+                                .font(.caption2)
+                                .foregroundStyle(Color.emerald)
+                            Text("GPS: \(formatLiveDistance())")
+                                .font(.caption.monospacedDigit())
+                                .foregroundStyle(Color.emerald)
+                            if session.liveElevationGain > 0 {
+                                Text("•")
+                                    .font(.caption)
+                                    .foregroundStyle(Color.slateText)
+                                Image(systemName: "mountain.2.fill")
+                                    .font(.caption2)
+                                    .foregroundStyle(Color.emerald)
+                                Text(formatLiveElevation())
+                                    .font(.caption.monospacedDigit())
+                                    .foregroundStyle(Color.emerald)
+                            }
+                            Spacer()
+                        }
+                    }
+                }
+                .padding(12)
+                .background(Color.slateCard)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+            }
+
+            DatePicker("Date", selection: $session.workoutDate, displayedComponents: .date)
                 .datePickerStyle(.compact)
                 .tint(.emerald)
                 .foregroundStyle(Color.ink)
@@ -364,7 +342,7 @@ struct LogWorkoutView: View {
                 .background(Color.slateCard)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
 
-            TextField("Notes (optional)", text: $workoutNotes, axis: .vertical)
+            TextField("Notes (optional)", text: $session.workoutNotes, axis: .vertical)
                 .textFieldStyle(.plain)
                 .lineLimit(3...6)
                 .padding(12)
@@ -382,7 +360,7 @@ struct LogWorkoutView: View {
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(Color.slateText)
 
-            if let photoData = selectedPhotoData, let uiImage = UIImage(data: photoData) {
+            if let photoData = session.selectedPhotoData, let uiImage = UIImage(data: photoData) {
                 ZStack(alignment: .topTrailing) {
                     Image(uiImage: uiImage)
                         .resizable()
@@ -391,7 +369,7 @@ struct LogWorkoutView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 12))
 
                     Button {
-                        selectedPhotoData = nil
+                        session.selectedPhotoData = nil
                         selectedPhotoItem = nil
                     } label: {
                         Image(systemName: "xmark.circle.fill")
@@ -403,7 +381,7 @@ struct LogWorkoutView: View {
             }
 
             PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
-                Label(selectedPhotoData == nil ? "Add Photo" : "Change Photo", systemImage: "camera.fill")
+                Label(session.selectedPhotoData == nil ? "Add Photo" : "Change Photo", systemImage: "camera.fill")
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(Color.emerald)
                     .frame(maxWidth: .infinity)
@@ -415,26 +393,13 @@ struct LogWorkoutView: View {
                             .stroke(Color.emerald.opacity(0.3), lineWidth: 1)
                     )
             }
-            .onChange(of: selectedPhotoItem) { _, newItem in
-                Task {
-                    if let data = try? await newItem?.loadTransferable(type: Data.self) {
-                        // Compress to JPEG to save space
-                        if let uiImage = UIImage(data: data),
-                           let compressed = uiImage.jpegData(compressionQuality: 0.7) {
-                            selectedPhotoData = compressed
-                        } else {
-                            selectedPhotoData = data
-                        }
-                    }
-                }
-            }
         }
     }
 
     // MARK: - Exercise Sections
 
     private var exerciseSections: some View {
-        ForEach($exerciseGroups) { $group in
+        ForEach($session.exerciseGroups) { $group in
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     Text(group.exercise.name)
@@ -443,7 +408,7 @@ struct LogWorkoutView: View {
                     Spacer()
                     Button {
                         withAnimation {
-                            exerciseGroups.removeAll { $0.id == group.id }
+                            session.exerciseGroups.removeAll { $0.id == group.id }
                         }
                     } label: {
                         Image(systemName: "xmark.circle.fill")
@@ -555,9 +520,10 @@ struct LogWorkoutView: View {
 
     // MARK: - Load Template
 
-    private func loadTemplate() {
-        guard let template = template, exerciseGroups.isEmpty else { return }
-        workoutName = template.name
+    private func loadTemplateIfNeeded() {
+        guard !hasLoadedTemplate else { return }
+        hasLoadedTemplate = true
+        guard let template = session.pendingTemplate, session.exerciseGroups.isEmpty else { return }
 
         for te in (template.exercises ?? []).sorted(by: { $0.sortOrder < $1.sortOrder }) {
             let searchName = te.exerciseName
@@ -574,91 +540,22 @@ struct LogWorkoutView: View {
                     rpe: ""
                 ))
             }
-            exerciseGroups.append(ExerciseGroup(exercise: exercise, sets: sets))
+            session.exerciseGroups.append(ExerciseGroup(exercise: exercise, sets: sets))
         }
+
+        // Consume the template so it doesn't reload on minimize/expand.
+        session.pendingTemplate = nil
     }
 
     // MARK: - Save
 
+    /// Delegate to the shared WorkoutPersistence helper so the watch-stop
+    /// auto-save path in ContentView and the phone Save-button path here
+    /// run the exact same flow (including the brief wait for the watch's
+    /// final GPS payload).
     private func saveWorkout() {
-        stopTimer()
-        heartRateService.stopMonitoring()
-        WatchConnectivityManager.shared.sendStopWorkout()
-
-        let workoutEndDate   = Date()
-        let workoutStartDate = workoutEndDate.addingTimeInterval(-Double(max(elapsedSeconds, 1)))
-        let durationMin      = max(1, Int(round(Double(elapsedSeconds) / 60.0)))
-
-        let workout = Workout(
-            name: workoutName,
-            date: workoutDate,
-            notes: workoutNotes,
-            durationMinutes: elapsedSeconds > 0 ? durationMin : nil,
-            photoData: selectedPhotoData,
-            workoutType: workoutType
-        )
-
-        // Save heart rate data if available
-        if heartRateService.sessionAvgBPM > 0 {
-            workout.avgHeartRate = heartRateService.sessionAvgBPM
-            workout.maxHeartRate = heartRateService.sessionMaxBPM
-            workout.minHeartRate = heartRateService.sessionMinBPM
-            let maxHR = 220 - userAge
-            let durations = heartRateService.zoneDurations(maxHR: maxHR)
-            workout.hrZone1Seconds = durations[1]
-            workout.hrZone2Seconds = durations[2]
-            workout.hrZone3Seconds = durations[3]
-            workout.hrZone4Seconds = durations[4]
-            workout.hrZone5Seconds = durations[5]
-        }
-
-        modelContext.insert(workout)
-
-        for group in exerciseGroups {
-            let exercise = group.exercise
-            if exercise.modelContext == nil {
-                modelContext.insert(exercise)
-            }
-            for (index, setEntry) in group.sets.enumerated() {
-                let workoutSet = WorkoutSet(
-                    exercise: exercise,
-                    setNumber: index + 1,
-                    reps: Int(setEntry.reps),
-                    weight: Double(setEntry.weight),
-                    rpe: Double(setEntry.rpe),
-                    notes: setEntry.notes
-                )
-                if workout.sets != nil { workout.sets!.append(workoutSet) } else { workout.sets = [workoutSet] }
-                modelContext.insert(workoutSet)
-            }
-        }
-
-        do {
-            try modelContext.save()
-        } catch {
-            print("Failed to save workout: \(error)")
-        }
-
-        // Write to Apple Health after local save succeeds.
-        // requestAuthorization() is a no-op if permission was already granted;
-        // first-time users see the HK system sheet. If they deny, we skip silently.
         Task {
-            let hk = HealthKitManager.shared
-            guard hk.isAvailable else { return }
-            _ = await hk.requestAuthorization()
-            // Map the user-chosen workout type to the matching
-            // HKWorkoutActivityType so Apple Health categorizes the
-            // session correctly (running/cycling/yoga/etc.) instead
-            // of every workout showing up as "Strength Training".
-            let activityType = HealthKitManager.hkActivityType(from: workoutType)
-            await hk.saveWorkoutToHealth(
-                startDate: workoutStartDate,
-                endDate: workoutEndDate,
-                activityType: activityType
-            )
+            await WorkoutPersistence.saveAndEnd(context: modelContext, unitSystem: unitSystem)
         }
-
-        viewModel.fetchWorkouts()
-        dismiss()
     }
 }

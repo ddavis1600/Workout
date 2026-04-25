@@ -13,9 +13,21 @@ final class Food {
     var fat: Double = 0
     var fiber: Double = 0
     var isCustom: Bool = false
-    // Inverse relationships required by CloudKit
+    // Inverse relationships required by CloudKit.
+    //
+    // DiaryEntry stays `.nullify` — historical diary rows should
+    // survive deletion of their Food. The macro/calorie totals are
+    // already denormalized on `DiaryEntry` so the row stays
+    // meaningful; UI shows "Unknown" for the food name.
+    //
+    // FoodFavorite is `.cascade` because a favorite with no Food is
+    // semantically empty — a bookmark with nothing bookmarked.
+    // Previously `.nullify`, which would have left orphaned rows
+    // (and CloudKit records) if Food ever gets deleted. No code
+    // path deletes Food today, but a future "manage custom foods"
+    // flow or cross-device deletion replication would hit this.
     @Relationship(deleteRule: .nullify) var diaryEntries: [DiaryEntry]?
-    @Relationship(deleteRule: .nullify) var foodFavorites: [FoodFavorite]?
+    @Relationship(deleteRule: .cascade) var foodFavorites: [FoodFavorite]?
 
     init(
         name: String,

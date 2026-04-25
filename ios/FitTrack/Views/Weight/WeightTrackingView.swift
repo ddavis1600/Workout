@@ -296,7 +296,7 @@ struct WeightTrackingView: View {
             }
         }
 
-        try? modelContext.save()
+        modelContext.saveOrLog("WeightTrackingView.importFromHealth")
     }
 
     private var recentEntriesSection: some View {
@@ -331,7 +331,7 @@ struct WeightTrackingView: View {
                 .contextMenu {
                     Button(role: .destructive) {
                         modelContext.delete(entry)
-                        try? modelContext.save()
+                        modelContext.saveOrLog("WeightTrackingView.deleteEntry")
                     } label: {
                         Label("Delete", systemImage: "trash")
                     }
@@ -453,7 +453,7 @@ struct LogWeightSheet: View {
         let weightKg = WeightEntry.fromDisplay(displayValue, unitSystem: unitSystem)
         let entry = WeightEntry(date: date, weight: weightKg, note: note)
         modelContext.insert(entry)
-        try? modelContext.save()
+        modelContext.saveOrLog("WeightTrackingView.saveWeight")
 
         if healthSyncEnabled {
             Task {

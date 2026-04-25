@@ -10,22 +10,58 @@ class HealthKitManager {
         HKHealthStore.isHealthDataAvailable()
     }
 
-    // MARK: - All readable types
+    // MARK: - HealthKit type sets
+    //
+    // These are the COMPLETE sets of every type the iPhone + Watch combined
+    // ever read from or write to HealthKit. `requestAuthorization()` always
+    // asks for this full superset so iOS shows the HK permission sheet at
+    // most once per install — any subsequent call is a silent no-op because
+    // every tuple (type, read|write) has already been decided.
+    //
+    // Previously different code paths (HeartRateView, WorkoutPersistence,
+    // WatchWorkoutSession, WatchHeartRateService) each asked for their own
+    // distinct subset. Every new subset introduced a still-undecided tuple,
+    // which triggered a fresh sheet. Result: user kept getting the
+    // "FitTrack would like to access Health data" prompt on every new
+    // action until every subset had been covered.
 
-    private var allReadTypes: Set<HKObjectType> {
+    /// Every HK type the app might ever WRITE. Keep this in sync with the
+    /// watch-side request in `WatchWorkoutSession.start()` so first prompt
+    /// covers both surfaces.
+    static var allShareTypes: Set<HKSampleType> {
+        [
+            HKWorkoutType.workoutType(),
+            HKQuantityType(.bodyMass),
+            HKQuantityType(.activeEnergyBurned),
+            HKQuantityType(.distanceWalkingRunning),
+            HKQuantityType(.distanceCycling),
+            HKQuantityType(.distanceSwimming),
+            HKQuantityType(.dietaryWater),
+            HKQuantityType(.dietaryEnergyConsumed),
+            HKQuantityType(.dietaryProtein),
+            HKQuantityType(.dietaryCarbohydrates),
+            HKQuantityType(.dietaryFatTotal),
+            HKQuantityType(.dietaryFiber),
+        ]
+    }
+
+    /// Every HK type the app might ever READ.
+    static var allReadTypes: Set<HKObjectType> {
         var types: Set<HKObjectType> = [
+            HKWorkoutType.workoutType(),
             HKQuantityType(.bodyMass),
             HKQuantityType(.heartRate),
             HKQuantityType(.restingHeartRate),
             HKQuantityType(.stepCount),
             HKQuantityType(.activeEnergyBurned),
             HKQuantityType(.appleExerciseTime),
+            HKQuantityType(.distanceWalkingRunning),
+            HKQuantityType(.distanceCycling),
+            HKQuantityType(.distanceSwimming),
             HKQuantityType(.dietaryWater),
             HKQuantityType(.dietaryProtein),
             HKQuantityType(.dietaryCarbohydrates),
             HKQuantityType(.dietaryFatTotal),
-            HKWorkoutType.workoutType(),
-            HKCorrelationType(.food),
         ]
         if let mindful = HKObjectType.categoryType(forIdentifier: .mindfulSession) {
             types.insert(mindful)
@@ -38,19 +74,11 @@ class HealthKitManager {
 
     func requestAuthorization() async -> Bool {
         guard isAvailable else { return false }
-        let shareTypes: Set<HKSampleType> = [
-            HKQuantityType(.bodyMass),
-            HKQuantityType(.dietaryWater),
-            HKWorkoutType.workoutType(),
-            HKQuantityType(.dietaryEnergyConsumed),
-            HKQuantityType(.dietaryProtein),
-            HKQuantityType(.dietaryCarbohydrates),
-            HKQuantityType(.dietaryFatTotal),
-            HKQuantityType(.dietaryFiber),
-            HKCorrelationType(.food),
-        ]
         do {
-            try await healthStore.requestAuthorization(toShare: shareTypes, read: allReadTypes)
+            try await healthStore.requestAuthorization(
+                toShare: Self.allShareTypes,
+                read:    Self.allReadTypes
+            )
             return true
         } catch {
             print("HealthKit auth failed: \(error)")
@@ -60,11 +88,10 @@ class HealthKitManager {
 
     // MARK: - Workout
 
-    /// Maps the stored `Workout.workoutType` string (from the in-app
-    /// picker) to an `HKWorkoutActivityType` for Apple Health. Unknown
-    /// or `nil` values fall back to `.traditionalStrengthTraining` so
-    /// legacy workouts saved before the type picker was added still
-    /// report as strength training.
+    /// Maps the stored `Workout.workoutType` string (from the in-app picker)
+    /// to an HKWorkoutActivityType for Apple Health. Unknown / nil values
+    /// fall back to `.traditionalStrengthTraining` so legacy workouts saved
+    /// before the type picker was added still report as strength training.
     static func hkActivityType(from stored: String?) -> HKWorkoutActivityType {
         switch stored {
         case "running":   return .running
@@ -78,18 +105,55 @@ class HealthKitManager {
         }
     }
 
+    /// HealthKit distance sample type that corresponds to an activity type.
+    /// `nil` when the activity isn't distance-based (strength, yoga, hiit…).
+    private static func distanceQuantityType(for activityType: HKWorkoutActivityType) -> HKQuantityType? {
+        switch activityType {
+        case .running, .walking, .hiking:
+            return HKQuantityType(.distanceWalkingRunning)
+        case .cycling:
+            return HKQuantityType(.distanceCycling)
+        case .swimming:
+            return HKQuantityType(.distanceSwimming)
+        default:
+            return nil
+        }
+    }
+
     /// Saves a completed workout to Apple Health / Fitness app.
+    /// If `distanceMeters` is provided and the activity type supports it,
+    /// also writes a paired HKQuantitySample so Apple Health shows the
+    /// distance alongside the workout (and Fitness app computes pace).
     func saveWorkoutToHealth(
         startDate: Date,
         endDate: Date,
-        activityType: HKWorkoutActivityType = .traditionalStrengthTraining
+        activityType: HKWorkoutActivityType = .traditionalStrengthTraining,
+        distanceMeters: Double? = nil
     ) async {
         guard isAvailable else { return }
         let config = HKWorkoutConfiguration()
         config.activityType = activityType
-        config.locationType = .indoor
+        // Outdoor for distance activities so Apple Health classifies correctly
+        // (matters for things like the Fitness app's auto-map view).
+        config.locationType = Self.distanceQuantityType(for: activityType) != nil ? .outdoor : .indoor
 
         let builder = HKWorkoutBuilder(healthStore: healthStore, configuration: config, device: .local())
+
+        // Build a distance sample up-front so we can add it inside the
+        // collection window. Only runs when the activity type supports it
+        // AND the caller actually passed a non-zero distance.
+        var distanceSamples: [HKSample] = []
+        if let meters = distanceMeters, meters > 0,
+           let distanceType = Self.distanceQuantityType(for: activityType) {
+            let quantity = HKQuantity(unit: .meter(), doubleValue: meters)
+            let sample = HKQuantitySample(
+                type: distanceType,
+                quantity: quantity,
+                start: startDate,
+                end: endDate
+            )
+            distanceSamples.append(sample)
+        }
 
         await withCheckedContinuation { continuation in
             builder.beginCollection(withStart: startDate) { success, error in
@@ -98,15 +162,29 @@ class HealthKitManager {
                     continuation.resume()
                     return
                 }
-                builder.endCollection(withEnd: endDate) { success, error in
-                    guard success else {
-                        print("[HealthKit] endCollection failed: \(String(describing: error))")
-                        continuation.resume()
-                        return
+
+                // Closure that ends the collection & finishes the workout.
+                let finish = {
+                    builder.endCollection(withEnd: endDate) { success, error in
+                        guard success else {
+                            print("[HealthKit] endCollection failed: \(String(describing: error))")
+                            continuation.resume()
+                            return
+                        }
+                        builder.finishWorkout { _, error in
+                            if let error { print("[HealthKit] finishWorkout failed: \(error)") }
+                            continuation.resume()
+                        }
                     }
-                    builder.finishWorkout { _, error in
-                        if let error { print("[HealthKit] finishWorkout failed: \(error)") }
-                        continuation.resume()
+                }
+
+                if distanceSamples.isEmpty {
+                    finish()
+                } else {
+                    builder.add(distanceSamples) { success, error in
+                        if let error { print("[HealthKit] add distance sample failed: \(error)") }
+                        _ = success
+                        finish()
                     }
                 }
             }
@@ -253,9 +331,44 @@ class HealthKitManager {
             return await fetchDailySumQuantity(typeIdentifier: .dietaryCarbohydrates, unit: .gram(), date: date)
         case "dietaryFatTotal":
             return await fetchDailySumQuantity(typeIdentifier: .dietaryFatTotal, unit: .gram(), date: date)
+        case "zoneTwoMinutes":
+            return await fetchZone2Minutes(on: date)
         default:
             return 0
         }
+    }
+
+    /// Daily total minutes spent in heart-rate Zone 2 (60–70% of max HR).
+    /// Uses the same zone-classification helper as HeartRateService so
+    /// in-workout and all-day math stay consistent. Max HR is derived from
+    /// `heartRateUserAge` UserDefaults (220 − age), falling back to 180 if
+    /// the user hasn't set their age yet.
+    func fetchZone2Minutes(on date: Date) async -> Double {
+        let start = date.startOfDay
+        guard let end = Calendar.current.date(byAdding: .day, value: 1, to: start) else { return 0 }
+        let samples = await fetchHeartRateSamples(from: start, to: end)
+        guard samples.count >= 2 else { return 0 }
+
+        let age = UserDefaults.standard.integer(forKey: "heartRateUserAge")
+        let maxHR = age > 0 ? (220 - age) : 180
+
+        var totalSeconds: Double = 0
+        for i in 0..<(samples.count - 1) {
+            let (t1, bpm) = samples[i]
+            let (t2, _)   = samples[i + 1]
+            // Cap to 60s so gaps (watch off, sleep) don't inflate the total.
+            let interval = min(t2.timeIntervalSince(t1), 60.0)
+            if HeartRateZone.zone(for: bpm, maxHR: maxHR).number == 2 {
+                totalSeconds += interval
+            }
+        }
+        // Attribute ~30s for the trailing sample.
+        if let last = samples.last,
+           HeartRateZone.zone(for: last.1, maxHR: maxHR).number == 2 {
+            totalSeconds += 30.0
+        }
+
+        return totalSeconds / 60.0
     }
 
     // MARK: - Private Helpers
@@ -359,9 +472,44 @@ class HealthKitManager {
     }
 
     // MARK: - Food Diary
+    //
+    // Food entries used to be saved as HKCorrelation(.food) wrapping the
+    // five macro HKQuantitySamples. That hit an unrecoverable iOS auth
+    // edge case for any user whose grant predated the food correlation
+    // type — iOS would leave `.food` at `.notDetermined` and the
+    // delete-by-correlation query crashed with an uncatchable
+    // NSInvalidArgumentException ("Authorization to read … is
+    // disallowed: HKCorrelationTypeIdentifierFood"). After multiple
+    // failed bundle-version re-auth attempts we concluded there's no
+    // way to recover the type once iOS has decided about a constituent.
+    //
+    // The fix is to never touch HKCorrelationType. Save individual
+    // quantity samples tagged with `kFitTrackDiaryEntryIDKey` metadata.
+    // Delete by querying each macro type with a metadata predicate.
+    // Apple Health no longer groups the macros as a single "meal" entry
+    // but still totals them correctly for the day; users see five
+    // separate dietary-energy / protein / carb / fat / fiber samples
+    // at the same timestamp.
 
-    /// Saves a food diary entry as an HKCorrelation of type .food containing individual macro samples.
-    /// Returns the correlation UUID, which should be stored on DiaryEntry.healthKitCorrelationID.
+    /// Metadata key the macro samples carry so `deleteFoodEntry` can
+    /// find them later. Stored as the diary entry's UUID string.
+    private static let kFitTrackDiaryEntryIDKey = "FitTrackDiaryEntryID"
+
+    /// HealthKit-backed quantity types we save for a food diary entry.
+    /// Used by both save and delete paths so they stay in sync.
+    private static let foodMacroTypes: [HKQuantityTypeIdentifier] = [
+        .dietaryEnergyConsumed,
+        .dietaryProtein,
+        .dietaryCarbohydrates,
+        .dietaryFatTotal,
+        .dietaryFiber,
+    ]
+
+    /// Saves a food diary entry as a set of individual `HKQuantitySample`s,
+    /// one per non-zero macro. Returns a stable UUID the caller persists
+    /// on `DiaryEntry.healthKitCorrelationID` (field name is now a
+    /// historical misnomer — kept to avoid a model migration; the value
+    /// is no longer a correlation UUID, just our own per-entry key).
     @discardableResult
     func saveFoodEntry(
         date: Date,
@@ -375,34 +523,40 @@ class HealthKitManager {
     ) async -> UUID? {
         guard isAvailable else { return nil }
 
-        var samples: [HKQuantitySample] = []
+        let entryID = UUID()
+        let metadata: [String: Any] = [
+            Self.kFitTrackDiaryEntryIDKey: entryID.uuidString,
+            HKMetadataKeyFoodType: foodName,
+            "HKMealSlot": mealType,
+        ]
 
-        let typeValuePairs: [(HKQuantityTypeIdentifier, HKUnit, Double)] = [
+        let values: [(HKQuantityTypeIdentifier, HKUnit, Double)] = [
             (.dietaryEnergyConsumed, .kilocalorie(), calories),
             (.dietaryProtein,        .gram(),         protein),
             (.dietaryCarbohydrates,  .gram(),         carbs),
             (.dietaryFatTotal,       .gram(),         fat),
             (.dietaryFiber,          .gram(),         fiber),
         ]
-        for (identifier, unit, value) in typeValuePairs where value > 0 {
+        var samples: [HKQuantitySample] = []
+        for (identifier, unit, value) in values where value > 0 {
             let qty = HKQuantity(unit: unit, doubleValue: value)
-            samples.append(HKQuantitySample(type: HKQuantityType(identifier), quantity: qty, start: date, end: date))
+            samples.append(
+                HKQuantitySample(
+                    type: HKQuantityType(identifier),
+                    quantity: qty,
+                    start: date,
+                    end: date,
+                    metadata: metadata
+                )
+            )
         }
-
         guard !samples.isEmpty else { return nil }
 
-        let correlation = HKCorrelation(
-            type: HKCorrelationType(.food),
-            start: date,
-            end: date,
-            objects: Set(samples),
-            metadata: [HKMetadataKeyFoodType: foodName, "HKMealSlot": mealType]
-        )
         do {
-            try await healthStore.save(correlation)
-            return correlation.uuid
+            try await healthStore.save(samples)
+            return entryID
         } catch {
-            print("[HealthKit] Failed to save food correlation: \(error)")
+            print("[HealthKit] Failed to save food samples: \(error)")
             return nil
         }
     }
@@ -425,19 +579,44 @@ class HealthKitManager {
         )
     }
 
+    /// Deletes the macro samples saved by `saveFoodEntry` for the given
+    /// entry ID. **Never touches HKCorrelationType** — works entirely
+    /// through quantity-sample queries gated by metadata.
+    ///
+    /// Backward-compat caveat: entries saved by the previous correlation-
+    /// based version stored an actual HKCorrelation.uuid in
+    /// `DiaryEntry.healthKitCorrelationID`. Those samples don't carry
+    /// our metadata key, so this function silently no-ops on them and
+    /// the orphaned correlation lingers in Apple Health. Acceptable
+    /// trade — alternative is the app crashing every diary edit. Users
+    /// can clean up legacy rows in the Health app.
     func deleteFoodEntry(correlationID: UUID) async {
         guard isAvailable else { return }
-        let predicate = HKQuery.predicateForObject(with: correlationID)
-        let descriptor = HKSampleQueryDescriptor(
-            predicates: [.correlation(type: HKCorrelationType(.food), predicate: predicate)],
-            sortDescriptors: []
+
+        let predicate = HKQuery.predicateForObjects(
+            withMetadataKey: Self.kFitTrackDiaryEntryIDKey,
+            operatorType: .equalTo,
+            value: correlationID.uuidString
         )
+
+        var allSamples: [HKQuantitySample] = []
+        for identifier in Self.foodMacroTypes {
+            let descriptor = HKSampleQueryDescriptor(
+                predicates: [.quantitySample(type: HKQuantityType(identifier), predicate: predicate)],
+                sortDescriptors: []
+            )
+            do {
+                let results = try await descriptor.result(for: healthStore)
+                allSamples.append(contentsOf: results)
+            } catch {
+                print("[HealthKit] Failed to query \(identifier) for delete: \(error)")
+            }
+        }
+        guard !allSamples.isEmpty else { return }
         do {
-            let results = try await descriptor.result(for: healthStore)
-            guard let correlation = results.first else { return }
-            try await healthStore.delete(correlation)
+            try await healthStore.delete(allSamples)
         } catch {
-            print("[HealthKit] Failed to delete food correlation: \(error)")
+            print("[HealthKit] Failed to delete food samples: \(error)")
         }
     }
 }
@@ -463,5 +642,6 @@ struct HKHabitTrigger: Identifiable, Hashable {
         HKHabitTrigger(id: "dietaryProtein",         displayName: "Dietary Protein",      unit: "g",       defaultThreshold: 100,   icon: "fork.knife"),
         HKHabitTrigger(id: "dietaryCarbohydrates",   displayName: "Dietary Carbs",        unit: "g",       defaultThreshold: 150,   icon: "leaf.fill"),
         HKHabitTrigger(id: "dietaryFatTotal",        displayName: "Dietary Fat",          unit: "g",       defaultThreshold: 50,    icon: "drop.circle.fill"),
+        HKHabitTrigger(id: "zoneTwoMinutes",         displayName: "Zone 2 Cardio",        unit: "min",     defaultThreshold: 30,    icon: "heart.fill"),
     ]
 }

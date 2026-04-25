@@ -219,6 +219,8 @@ struct HabitsView: View {
     @State private var pendingMilestones: (Habit, [Int])? = nil
     @State private var showingMilestone = false
     @State private var libraryPrefill: LibraryHabitTemplate? = nil
+    // Per-day note sheet (item 7)
+    @State private var noteTarget: (habit: Habit, date: Date)? = nil
 
     private var calendar: Calendar { Calendar.current }
 
@@ -308,7 +310,7 @@ struct HabitsView: View {
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                     Button(role: .destructive) {
                                         modelContext.delete(habit)
-                                        try? modelContext.save()
+                                        modelContext.saveOrLog("HabitsView.deleteHabitSwipe")
                                     } label: {
                                         Label("Delete", systemImage: "trash")
                                     }
@@ -332,7 +334,7 @@ struct HabitsView: View {
                                     }
                                     Button(role: .destructive) {
                                         modelContext.delete(habit)
-                                        try? modelContext.save()
+                                        modelContext.saveOrLog("HabitsView.deleteHabitContextMenu")
                                     } label: {
                                         Label("Delete", systemImage: "trash")
                                     }
@@ -391,6 +393,17 @@ struct HabitsView: View {
             .sheet(item: $habitToEdit) { habit in
                 EditHabitSheet(habit: habit)
             }
+            // Note sheet (item 7) — reuses HabitNoteSheet from HabitDetailView.swift.
+            .sheet(item: Binding(
+                get: {
+                    noteTarget.map { NoteTarget(habit: $0.habit, date: $0.date) }
+                },
+                set: { wrapper in
+                    noteTarget = wrapper.map { ($0.habit, $0.date) }
+                }
+            )) { target in
+                HabitNoteSheet(habit: target.habit, date: target.date)
+            }
             .sheet(isPresented: $showingLibrary) {
                 HabitLibrarySheet { template in
                     libraryPrefill = template
@@ -418,7 +431,7 @@ struct HabitsView: View {
         let newMilestones = habit.newlyEarnedMilestones()
         if !newMilestones.isEmpty {
             for m in newMilestones { habit.earnedBadges.append(m) }
-            try? modelContext.save()
+            modelContext.saveOrLog("HabitsView.completeHabit.milestones")
             pendingMilestones = (habit, newMilestones)
             showingMilestone = true
         }
@@ -433,7 +446,7 @@ struct HabitsView: View {
             all[globalIdx] = catHabits[pos]
         }
         for (i, habit) in all.enumerated() { habit.sortOrder = i }
-        try? modelContext.save()
+        modelContext.saveOrLog("HabitsView.moveHabits")
     }
 
     // MARK: - HealthKit
@@ -712,6 +725,23 @@ struct HabitsView: View {
 
                 Spacer()
 
+                // Visible note affordance (item 2 / r2 feedback).
+                // Filled icon when a note already exists, outline otherwise —
+                // so the note for today's date is one tap away, no long-press.
+                let existingNote = (habit.completions ?? []).first {
+                    calendar.isDate($0.date, inSameDayAs: selectedDate)
+                }?.note
+                Button {
+                    noteTarget = (habit, selectedDate)
+                } label: {
+                    Image(systemName: (existingNote?.isEmpty == false) ? "note.text" : "square.and.pencil")
+                        .font(.title3)
+                        .foregroundColor((existingNote?.isEmpty == false) ? colorValue(habit.color) : .slateText)
+                        .frame(width: 32, height: 32)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+
                 Button {
                     completeHabit(habit, on: selectedDate)
                 } label: {
@@ -722,6 +752,18 @@ struct HabitsView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(isHKHabit && calendar.isDateInToday(selectedDate))
+                // Long-press stays as a bonus path (also matches what a power
+                // user might try).
+                .contextMenu {
+                    Button {
+                        noteTarget = (habit, selectedDate)
+                    } label: {
+                        Label(
+                            (existingNote?.isEmpty == false) ? "Edit Note" : "Add Note",
+                            systemImage: "note.text"
+                        )
+                    }
+                }
             }
 
             let pct = Double(completionPercentage(for: habit)) / 100.0
@@ -851,7 +893,7 @@ struct AddHabitSheet: View {
             sortOrder: totalHabits
         )
         modelContext.insert(habit)
-        try? modelContext.save()
+        modelContext.saveOrLog("HabitsView.createHabit")
         if hasReminder {
             NotificationService.scheduleHabitNotification(
                 habitKey: "\(Int(habit.createdAt.timeIntervalSince1970))",
@@ -1237,7 +1279,7 @@ struct EditHabitSheet: View {
         habit.reminderTime = hasReminder ? reminderTime : nil
         habit.healthKitTrigger = selectedTrigger?.id
         habit.healthKitThreshold = Double(thresholdText) ?? selectedTrigger?.defaultThreshold ?? 0
-        try? modelContext.save()
+        modelContext.saveOrLog("HabitsView.editHabit.save")
 
         NotificationService.cancelHabitNotification(habitKey: oldKey)
         if hasReminder {
@@ -1574,4 +1616,12 @@ struct IconPickerView: View {
 #Preview {
     HabitsView()
         .modelContainer(for: [Habit.self, HabitCompletion.self], inMemory: true)
+}
+
+// MARK: - Note-sheet target wrapper (item 7)
+// `.sheet(item:)` requires an Identifiable, and a bare tuple isn't one.
+private struct NoteTarget: Identifiable {
+    let habit: Habit
+    let date: Date
+    var id: String { "\(habit.persistentModelID)-\(date.timeIntervalSince1970)" }
 }

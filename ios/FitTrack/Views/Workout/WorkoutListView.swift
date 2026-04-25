@@ -5,13 +5,11 @@ import WatchConnectivity
 struct WorkoutListView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var viewModel: WorkoutViewModel?
-    @State private var showingLogWorkout = false
     @ObservedObject private var watchManager = WatchConnectivityManager.shared
+    @ObservedObject private var session = WorkoutSessionManager.shared
     @State private var showingTemplates = false
     @State private var showingPRHistory = false
     @State private var showingProgress = false
-    @State private var showingManualWorkout = false
-    @State private var selectedTemplate: WorkoutTemplate?
 
     var body: some View {
         NavigationStack {
@@ -54,46 +52,24 @@ struct WorkoutListView: View {
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    // Menu instead of bare + — two clear entry paths:
-                    //   Log Workout: live timer flow (LogWorkoutView in
-                    //     the new "Ready" state from #2)
-                    //   Add Workout (no timer): backdated manual entry,
-                    //     new in this branch, skips timer + HK write
-                    Menu {
-                        Button {
-                            selectedTemplate = nil
-                            showingLogWorkout = true
-                        } label: {
-                            Label("Log Workout", systemImage: "timer")
-                        }
-                        Button {
-                            showingManualWorkout = true
-                        } label: {
-                            Label("Add Workout (no timer)", systemImage: "calendar.badge.plus")
-                        }
+                    Button {
+                        session.start()
                     } label: {
                         Image(systemName: "plus")
                             .foregroundStyle(Color.emerald)
                     }
                 }
             }
-            .sheet(isPresented: $showingLogWorkout, onDismiss: {
-                viewModel?.fetchWorkouts()
-            }) {
-                if let vm = viewModel {
-                    LogWorkoutView(viewModel: vm, template: selectedTemplate)
-                }
+            // LogWorkoutView is presented globally in ContentView (driven
+            // by WorkoutSessionManager). Refresh the local workout list
+            // when the session ends so a just-saved workout appears.
+            .onChange(of: session.isActive) { _, isActive in
+                if !isActive { viewModel?.fetchWorkouts() }
             }
             .sheet(isPresented: $showingTemplates) {
                 TemplateListView { template in
-                    selectedTemplate = template
-                    showingLogWorkout = true
+                    session.start(template: template)
                 }
-            }
-            .sheet(isPresented: $showingManualWorkout) {
-                ManualWorkoutView(onSave: {
-                    viewModel?.fetchWorkouts()
-                })
             }
             .sheet(isPresented: $showingPRHistory) {
                 NavigationStack {
@@ -123,13 +99,8 @@ struct WorkoutListView: View {
                 }
                 viewModel?.fetchWorkouts()
             }
-            .onChange(of: watchManager.pendingWorkoutStart) { _, newValue in
-                if newValue && viewModel != nil {
-                    selectedTemplate = nil
-                    showingLogWorkout = true
-                    watchManager.pendingWorkoutStart = false
-                }
-            }
+            // Watch-triggered workout start is handled globally by ContentView
+            // so it works regardless of which tab is currently selected.
         }
     }
 

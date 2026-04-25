@@ -25,6 +25,7 @@ struct FitTrackApp: App {
                         WeightEntry.self, JournalEntry.self,
                         WorkoutTemplate.self, TemplateExercise.self,
                         BodyMeasurement.self, FoodFavorite.self, ProgressPhoto.self,
+                    migrationPlan: FitTrackMigrationPlan.self,
                     configurations: cloudConfig)
             } catch {
                 cloudKitError = error
@@ -48,6 +49,7 @@ struct FitTrackApp: App {
                         WeightEntry.self, JournalEntry.self,
                         WorkoutTemplate.self, TemplateExercise.self,
                         BodyMeasurement.self, FoodFavorite.self, ProgressPhoto.self,
+                    migrationPlan: FitTrackMigrationPlan.self,
                     configurations: localConfig
                 )
             } catch {
@@ -68,6 +70,7 @@ struct FitTrackApp: App {
                             WeightEntry.self, JournalEntry.self,
                             WorkoutTemplate.self, TemplateExercise.self,
                             BodyMeasurement.self, FoodFavorite.self, ProgressPhoto.self,
+                        migrationPlan: FitTrackMigrationPlan.self,
                         configurations: localConfig
                     )
                 } catch {
@@ -81,6 +84,10 @@ struct FitTrackApp: App {
 
         let context = ModelContext(container)
         DataController.seedDataIfNeeded(context: context)
+        // CloudKit may re-sync exercises that were already seeded locally,
+        // producing duplicates. Collapse those on every launch so the
+        // exercise picker stays clean.
+        DataController.cleanupDuplicateExercises(context: context)
 
         WatchConnectivityManager.shared.activate()
     }

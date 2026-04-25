@@ -59,7 +59,7 @@ struct TemplateListView: View {
                             for index in offsets {
                                 modelContext.delete(templates[index])
                             }
-                            try? modelContext.save()
+                            modelContext.saveOrLog("TemplateListView.onDelete")
                         }
                     }
                     .listStyle(.insetGrouped)

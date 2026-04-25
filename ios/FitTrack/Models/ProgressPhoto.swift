@@ -38,6 +38,6 @@ final class ProgressPhoto {
         try? imageData.write(to: url)
         let photo = ProgressPhoto(date: date, filename: filename, caption: caption)
         context.insert(photo)
-        try? context.save()
+        context.saveOrLog("ProgressPhoto.save")
     }
 }

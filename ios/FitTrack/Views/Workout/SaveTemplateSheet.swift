@@ -82,7 +82,7 @@ struct SaveTemplateSheet: View {
             modelContext.insert(te)
         }
 
-        try? modelContext.save()
+        modelContext.saveOrLog("SaveTemplateSheet.save")
         dismiss()
     }
 }

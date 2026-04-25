@@ -23,6 +23,7 @@
 		A10000000000000000000008 /* Workout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* Workout.swift */; };
 		A10000000000000000000009 /* WorkoutSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000009 /* WorkoutSet.swift */; };
 		A1000000000000000000000A /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000A /* Extensions.swift */; };
+		L50000000000000000000001 /* AppLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = L50000000000000000000002 /* AppLogger.swift */; };
 		E10000000000000000000002 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000000000000000000002 /* AppTheme.swift */; };
 		E10000000000000000000003 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000000000000000000003 /* OnboardingView.swift */; };
 		A1000000000000000000000B /* MacroCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000B /* MacroCalculator.swift */; };
@@ -45,7 +46,6 @@
 		A1000000000000000000001C /* MacrosView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001C /* MacrosView.swift */; };
 		A1000000000000000000001D /* ExercisePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001D /* ExercisePickerView.swift */; };
 		A1000000000000000000001E /* LogWorkoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001E /* LogWorkoutView.swift */; };
-		MWV100000000000000000001 /* ManualWorkoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MWV200000000000000000001 /* ManualWorkoutView.swift */; };
 		A1000000000000000000001F /* ProgressChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001F /* ProgressChartView.swift */; };
 		A10000000000000000000020 /* SetRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000020 /* SetRowView.swift */; };
 		A10000000000000000000021 /* WorkoutDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000021 /* WorkoutDetailView.swift */; };
@@ -87,6 +87,10 @@
 		D00000000000000000000001 /* FoodAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D10000000000000000000001 /* FoodAPIService.swift */; };
 		E10000000000000000000001 /* HeartRateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000000000000000000001 /* HeartRateView.swift */; };
 		F10000000000000000000001 /* HeartRateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000001 /* HeartRateService.swift */; };
+		WSM100000000000000000001 /* WorkoutSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = WSM200000000000000000001 /* WorkoutSessionManager.swift */; };
+		WPS100000000000000000001 /* WorkoutPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = WPS200000000000000000001 /* WorkoutPersistence.swift */; };
+		MWB100000000000000000001 /* MiniWorkoutBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = MWB200000000000000000001 /* MiniWorkoutBar.swift */; };
+		ISV100000000000000000001 /* IntroSplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ISV200000000000000000001 /* IntroSplashView.swift */; };
 		F10000000000000000000002 /* WorkoutHeartRateCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000002 /* WorkoutHeartRateCard.swift */; };
 		G10000000000000000000001 /* JournalEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = G20000000000000000000001 /* JournalEntry.swift */; };
 		G10000000000000000000002 /* JournalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = G20000000000000000000002 /* JournalView.swift */; };
@@ -112,6 +116,7 @@
 		I10000000000000000000004 /* PRHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = I20000000000000000000004 /* PRHistoryView.swift */; };
 		J10000000000000000000001 /* WatchConnectivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000000000000000000001 /* WatchConnectivityManager.swift */; };
 		J10000000000000000000002 /* WatchSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000000000000000000002 /* WatchSessionManager.swift */; };
+		WWS100000000000000000001 /* WatchWorkoutSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = WWS200000000000000000001 /* WatchWorkoutSession.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -146,6 +151,7 @@
 		A20000000000000000000008 /* Workout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Workout.swift; sourceTree = "<group>"; };
 		A20000000000000000000009 /* WorkoutSet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutSet.swift; sourceTree = "<group>"; };
 		A2000000000000000000000A /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		L50000000000000000000002 /* AppLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLogger.swift; sourceTree = "<group>"; };
 		E20000000000000000000002 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
 		E20000000000000000000003 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		A2000000000000000000000B /* MacroCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroCalculator.swift; sourceTree = "<group>"; };
@@ -168,7 +174,6 @@
 		A2000000000000000000001C /* MacrosView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacrosView.swift; sourceTree = "<group>"; };
 		A2000000000000000000001D /* ExercisePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExercisePickerView.swift; sourceTree = "<group>"; };
 		A2000000000000000000001E /* LogWorkoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogWorkoutView.swift; sourceTree = "<group>"; };
-		MWV200000000000000000001 /* ManualWorkoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualWorkoutView.swift; sourceTree = "<group>"; };
 		A2000000000000000000001F /* ProgressChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressChartView.swift; sourceTree = "<group>"; };
 		A20000000000000000000020 /* SetRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetRowView.swift; sourceTree = "<group>"; };
 		A20000000000000000000021 /* WorkoutDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutDetailView.swift; sourceTree = "<group>"; };
@@ -211,6 +216,10 @@
 		D10000000000000000000001 /* FoodAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodAPIService.swift; sourceTree = "<group>"; };
 		E20000000000000000000001 /* HeartRateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartRateView.swift; sourceTree = "<group>"; };
 		F20000000000000000000001 /* HeartRateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartRateService.swift; sourceTree = "<group>"; };
+		WSM200000000000000000001 /* WorkoutSessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutSessionManager.swift; sourceTree = "<group>"; };
+		WPS200000000000000000001 /* WorkoutPersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutPersistence.swift; sourceTree = "<group>"; };
+		MWB200000000000000000001 /* MiniWorkoutBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniWorkoutBar.swift; sourceTree = "<group>"; };
+		ISV200000000000000000001 /* IntroSplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntroSplashView.swift; sourceTree = "<group>"; };
 		F20000000000000000000002 /* WorkoutHeartRateCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutHeartRateCard.swift; sourceTree = "<group>"; };
 		FFA64365D10993F43A4738C5 /* FitTrack Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "FitTrack Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		G20000000000000000000001 /* JournalEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntry.swift; sourceTree = "<group>"; };
@@ -237,6 +246,7 @@
 		I20000000000000000000004 /* PRHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PRHistoryView.swift; sourceTree = "<group>"; };
 		J20000000000000000000001 /* WatchConnectivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConnectivityManager.swift; sourceTree = "<group>"; };
 		J20000000000000000000002 /* WatchSessionManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatchSessionManager.swift; sourceTree = "<group>"; };
+		WWS200000000000000000001 /* WatchWorkoutSession.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatchWorkoutSession.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -354,10 +364,13 @@
 			children = (
 				H20000000000000000000014 /* DataExportService.swift */,
 				A2000000000000000000000A /* Extensions.swift */,
+				L50000000000000000000002 /* AppLogger.swift */,
 				E20000000000000000000002 /* AppTheme.swift */,
 				D10000000000000000000001 /* FoodAPIService.swift */,
 				C20000000000000000000006 /* HealthKitManager.swift */,
 				F20000000000000000000001 /* HeartRateService.swift */,
+				WSM200000000000000000001 /* WorkoutSessionManager.swift */,
+				WPS200000000000000000001 /* WorkoutPersistence.swift */,
 				A2000000000000000000000B /* MacroCalculator.swift */,
 				H20000000000000000000011 /* NotificationService.swift */,
 				H20000000000000000000006 /* PRService.swift */,
@@ -422,6 +435,7 @@
 			isa = PBXGroup;
 			children = (
 				E20000000000000000000003 /* OnboardingView.swift */,
+				ISV200000000000000000001 /* IntroSplashView.swift */,
 			);
 			path = Onboarding;
 			sourceTree = "<group>";
@@ -453,7 +467,7 @@
 			children = (
 				A2000000000000000000001D /* ExercisePickerView.swift */,
 				A2000000000000000000001E /* LogWorkoutView.swift */,
-				MWV200000000000000000001 /* ManualWorkoutView.swift */,
+				MWB200000000000000000001 /* MiniWorkoutBar.swift */,
 				H20000000000000000000007 /* PRBadgeView.swift */,
 				I20000000000000000000004 /* PRHistoryView.swift */,
 				A2000000000000000000001F /* ProgressChartView.swift */,
@@ -483,6 +497,7 @@
 				386ACDE9B9AE78D3BE830989 /* WatchContentView.swift */,
 				40F0807AFAE78D702353BD1B /* FitTrackWatchApp.swift */,
 				J20000000000000000000002 /* WatchSessionManager.swift */,
+				WWS200000000000000000001 /* WatchWorkoutSession.swift */,
 				82FC10748D15A43C3CCAE52C /* Info.plist */,
 				3C946087B78751B8870890B4 /* Assets.xcassets */,
 			);
@@ -692,6 +707,7 @@
 				B267CBA7DAFCBFFA4641AFB5 /* WatchContentView.swift in Sources */,
 				3DA3E8459EE68339AF3F2A63 /* FitTrackWatchApp.swift in Sources */,
 				J10000000000000000000002 /* WatchSessionManager.swift in Sources */,
+				WWS100000000000000000001 /* WatchWorkoutSession.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -711,6 +727,7 @@
 				A10000000000000000000008 /* Workout.swift in Sources */,
 				A10000000000000000000009 /* WorkoutSet.swift in Sources */,
 				A1000000000000000000000A /* Extensions.swift in Sources */,
+				L50000000000000000000001 /* AppLogger.swift in Sources */,
 				E10000000000000000000002 /* AppTheme.swift in Sources */,
 				E10000000000000000000003 /* OnboardingView.swift in Sources */,
 				A1000000000000000000000B /* MacroCalculator.swift in Sources */,
@@ -733,7 +750,10 @@
 				A1000000000000000000001C /* MacrosView.swift in Sources */,
 				A1000000000000000000001D /* ExercisePickerView.swift in Sources */,
 				A1000000000000000000001E /* LogWorkoutView.swift in Sources */,
-				MWV100000000000000000001 /* ManualWorkoutView.swift in Sources */,
+				WSM100000000000000000001 /* WorkoutSessionManager.swift in Sources */,
+				WPS100000000000000000001 /* WorkoutPersistence.swift in Sources */,
+				MWB100000000000000000001 /* MiniWorkoutBar.swift in Sources */,
+				ISV100000000000000000001 /* IntroSplashView.swift in Sources */,
 				A1000000000000000000001F /* ProgressChartView.swift in Sources */,
 				A10000000000000000000020 /* SetRowView.swift in Sources */,
 				A10000000000000000000021 /* WorkoutDetailView.swift in Sources */,
@@ -795,7 +815,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = FitTrackWatch/FitTrackWatch.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 26;
+				CURRENT_PROJECT_VERSION = 31;
 				DEVELOPMENT_TEAM = 95BHKMD86H;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = FitTrackWatch/Info.plist;
@@ -826,7 +846,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = FitTrackWatch/FitTrackWatch.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 26;
+				CURRENT_PROJECT_VERSION = 31;
 				DEVELOPMENT_TEAM = 95BHKMD86H;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = FitTrackWatch/Info.plist;
@@ -982,7 +1002,7 @@
 				CODE_SIGN_ENTITLEMENTS = FitTrack/FitTrack.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 26;
+				CURRENT_PROJECT_VERSION = 31;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = FitTrack/Info.plist;
@@ -1011,7 +1031,7 @@
 				CODE_SIGN_ENTITLEMENTS = FitTrack/FitTrack.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 26;
+				CURRENT_PROJECT_VERSION = 31;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = FitTrack/Info.plist;
