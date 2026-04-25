@@ -848,6 +848,8 @@ struct AddHabitSheet: View {
             }
             .navigationTitle("New Habit")
             .navigationBarTitleDisplayMode(.inline)
+            // HK-trigger threshold field uses .decimalPad — Done dismisses.
+            .keyboardDoneToolbar()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { onDismissed(); dismiss() }.foregroundColor(.slateText)
@@ -1235,6 +1237,8 @@ struct EditHabitSheet: View {
             }
             .navigationTitle("Edit Habit")
             .navigationBarTitleDisplayMode(.inline)
+            // HK-trigger threshold field uses .decimalPad — Done dismisses.
+            .keyboardDoneToolbar()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }.foregroundColor(.slateText)

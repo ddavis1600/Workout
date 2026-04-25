@@ -205,6 +205,9 @@ struct AddMeasurementSheet: View {
             }
             .navigationTitle("Add Measurement")
             .navigationBarTitleDisplayMode(.inline)
+            // ~10 .decimalPad fields in this sheet — every one of them
+            // would otherwise leave the user stuck with no Return key.
+            .keyboardDoneToolbar()
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") { dismiss() }

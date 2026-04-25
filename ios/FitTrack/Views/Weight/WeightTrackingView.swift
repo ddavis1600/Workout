@@ -444,6 +444,8 @@ struct LogWeightSheet: View {
                     .foregroundColor(.emerald)
                 }
             }
+            // Weight field uses .decimalPad — no Return key.
+            .keyboardDoneToolbar()
         }
         .presentationDetents([.medium])
     }

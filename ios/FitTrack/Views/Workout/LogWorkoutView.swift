@@ -125,6 +125,12 @@ struct LogWorkoutView: View {
                     .fontWeight(.semibold)
                 }
             }
+            // SetRowView's reps/weight/RPE fields use .numberPad and
+            // .decimalPad — and the new distance field at line ~299
+            // also uses .decimalPad. Neither keyboard has a Return key,
+            // so without this Done toolbar the user gets stuck after
+            // typing.
+            .keyboardDoneToolbar()
             .sheet(isPresented: $showingExercisePicker) {
                 ExercisePickerView { exercise in
                     let initialSet = SetEntry()

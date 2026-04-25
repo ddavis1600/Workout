@@ -80,6 +80,9 @@ struct MacrosView: View {
             .background(Color.slateBackground)
             .toolbarBackground(Color.slateBackground, for: .navigationBar)
             .navigationTitle("Macros")
+            // Manual-mode TextFields + BodyStatsForm fields all use
+            // .decimalPad / .numberPad. Done dismisses any of them.
+            .keyboardDoneToolbar()
             .task {
                 if viewModel == nil {
                     let vm = MacrosViewModel(modelContext: modelContext)

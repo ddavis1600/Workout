@@ -81,3 +81,41 @@ extension Color {
             : UIColor(red: 139/255, green:  58/255, blue:  42/255, alpha: 1) // #8B3A2A
     })
 }
+
+// MARK: - Keyboard Done toolbar
+
+extension View {
+    /// Adds a `Done` button to the keyboard's accessory toolbar that
+    /// dismisses any active text field. Use on screens with `.numberPad`
+    /// or `.decimalPad` keyboards — those keyboards have no Return key,
+    /// so without this the user gets stuck after typing into them
+    /// (tapping outside in a List/Form is unreliable on iOS 17+).
+    ///
+    /// HeartRateView introduced the original pattern with a `@FocusState`
+    /// + per-field binding; this modifier sidesteps that plumbing by
+    /// resigning the first responder globally via UIResponder. Same UX,
+    /// one-line drop-in for any screen.
+    func keyboardDoneToolbar() -> some View {
+        modifier(KeyboardDoneToolbarModifier())
+    }
+}
+
+private struct KeyboardDoneToolbarModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content.toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") {
+                    UIApplication.shared.sendAction(
+                        #selector(UIResponder.resignFirstResponder),
+                        to: nil,
+                        from: nil,
+                        for: nil
+                    )
+                }
+                .foregroundStyle(Color.emerald)
+                .fontWeight(.semibold)
+            }
+        }
+    }
+}
