@@ -121,6 +121,7 @@
 		WIDG10000003 /* TodayStatsWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = WIDG20000003 /* TodayStatsWidget.swift */; };
 		WIDG10000004 /* StreakWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = WIDG20000004 /* StreakWidget.swift */; };
 		WIDG10000005 /* TodayWorkoutWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = WIDG20000005 /* TodayWorkoutWidget.swift */; };
+		TRND10000001 /* TrendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TRND20000001 /* TrendsView.swift */; };
 		WIDG10000010 /* FitTrackWidgets.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = WIDG20000008 /* FitTrackWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -265,6 +266,7 @@
 		WIDG20000003 /* TodayStatsWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayStatsWidget.swift; sourceTree = "<group>"; };
 		WIDG20000004 /* StreakWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakWidget.swift; sourceTree = "<group>"; };
 		WIDG20000005 /* TodayWorkoutWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayWorkoutWidget.swift; sourceTree = "<group>"; };
+		TRND20000001 /* TrendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsView.swift; sourceTree = "<group>"; };
 		WIDG20000006 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		WIDG20000007 /* FitTrackWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FitTrackWidgets.entitlements; sourceTree = "<group>"; };
 		WIDG20000008 /* FitTrackWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FitTrackWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -434,6 +436,7 @@
 				H40000000000000000000002 /* Measurements */,
 				I40000000000000000000001 /* Progress */,
 				G40000000000000000000002 /* Settings */,
+				TRND50000001 /* Trends */,
 				C4000000000000000000000E /* Weight */,
 				A4000000000000000000000C /* Workout */,
 			);
@@ -597,6 +600,14 @@
 				I20000000000000000000003 /* ProgressPhotoTimelineView.swift */,
 			);
 			path = Progress;
+			sourceTree = "<group>";
+		};
+		TRND50000001 /* Trends */ = {
+			isa = PBXGroup;
+			children = (
+				TRND20000001 /* TrendsView.swift */,
+			);
+			path = Trends;
 			sourceTree = "<group>";
 		};
 		WIDG50000001 /* FitTrackWidgets */ = {
@@ -857,6 +868,7 @@
 				J10000000000000000000001 /* WatchConnectivityManager.swift in Sources */,
 				AGRP10000001 /* AppGroup.swift in Sources (FitTrack) */,
 				WSNP10000001 /* WidgetSnapshot.swift in Sources (FitTrack) */,
+				TRND10000001 /* TrendsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
