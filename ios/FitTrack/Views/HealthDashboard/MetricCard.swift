@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import Charts
 
 // One Tier 1 card — label, big value, unit. The sparkline area is a
 // placeholder rectangle in this commit; the per-metric Charts variants
@@ -19,7 +20,7 @@ struct MetricCard: View {
             VStack(alignment: .leading, spacing: 12) {
                 header
                 value
-                sparklinePlaceholder
+                sparkline
             }
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -54,11 +55,21 @@ struct MetricCard: View {
         }
     }
 
-    private var sparklinePlaceholder: some View {
-        Rectangle()
-            .fill(Color.slateBorder.opacity(0.25))
-            .frame(height: 40)
-            .cornerRadius(4)
+    @ViewBuilder
+    private var sparkline: some View {
+        switch summary.metric.chart {
+        case .sleepStackedBar:
+            SleepStackedSparkline(samples: summary.series)
+        case .line:
+            LineSparkline(samples: summary.series, accent: Color.emerald)
+        case .bar:
+            BarSparkline(samples: summary.series, accent: Color.emerald)
+        case .weightLine:
+            // Weight uses raw kg values from the service; sparkline is
+            // unitless (no axis labels), so the relative shape reads
+            // identically regardless of user's unit pref.
+            LineSparkline(samples: summary.series, accent: Color.emerald)
+        }
     }
 
     private var unitSystem: String {
@@ -90,5 +101,105 @@ struct MetricCard: View {
         default:
             return v.formatted(.number)
         }
+    }
+}
+
+// MARK: - Sparkline subviews
+
+// Smoothed line — resting HR (7d) and weight (30d). Catmull-Rom keeps
+// the curve from looking jagged on sparse weight samples without
+// over-smoothing dense daily HR readings.
+private struct LineSparkline: View {
+    let samples: [MetricSample]
+    let accent: Color
+
+    var body: some View {
+        Chart(samples) { sample in
+            LineMark(
+                x: .value("Date", sample.date),
+                y: .value("Value", sample.value)
+            )
+            .interpolationMethod(.catmullRom)
+            .foregroundStyle(accent)
+            .lineStyle(StrokeStyle(lineWidth: 2))
+        }
+        .chartXAxis(.hidden)
+        .chartYAxis(.hidden)
+        .frame(height: 44)
+    }
+}
+
+// Bars per day — steps. Day-bucketed values from the service.
+private struct BarSparkline: View {
+    let samples: [MetricSample]
+    let accent: Color
+
+    var body: some View {
+        Chart(samples) { sample in
+            BarMark(
+                x: .value("Date", sample.date, unit: .day),
+                y: .value("Value", sample.value)
+            )
+            .foregroundStyle(accent)
+            .cornerRadius(2)
+        }
+        .chartXAxis(.hidden)
+        .chartYAxis(.hidden)
+        .frame(height: 44)
+    }
+}
+
+// Stacked bar per night — sleep stages. Pre-iOS-16-style data only
+// reports `asleepUnspecified`; in that case we drop in a single-color
+// bar so old data still renders something sensible.
+private struct SleepStackedSparkline: View {
+    let samples: [MetricSample]
+
+    private static let stageOrder = ["Core", "REM", "Deep"]
+
+    var body: some View {
+        Chart {
+            ForEach(samples) { sample in
+                if let stages = sample.stages {
+                    if isLegacyOnly(stages) {
+                        BarMark(
+                            x: .value("Night", sample.date, unit: .day),
+                            y: .value("Hours", stages.unspecified / 3600.0)
+                        )
+                        .foregroundStyle(Color.emerald)
+                        .cornerRadius(2)
+                    } else {
+                        BarMark(
+                            x: .value("Night", sample.date, unit: .day),
+                            y: .value("Hours", stages.core / 3600.0)
+                        )
+                        .foregroundStyle(by: .value("Stage", "Core"))
+                        BarMark(
+                            x: .value("Night", sample.date, unit: .day),
+                            y: .value("Hours", stages.rem / 3600.0)
+                        )
+                        .foregroundStyle(by: .value("Stage", "REM"))
+                        BarMark(
+                            x: .value("Night", sample.date, unit: .day),
+                            y: .value("Hours", stages.deep / 3600.0)
+                        )
+                        .foregroundStyle(by: .value("Stage", "Deep"))
+                    }
+                }
+            }
+        }
+        .chartXAxis(.hidden)
+        .chartYAxis(.hidden)
+        .chartLegend(.hidden)
+        .chartForegroundStyleScale([
+            "Core": Color.emerald.opacity(0.55),
+            "REM":  Color.emerald.opacity(0.85),
+            "Deep": Color.emerald,
+        ])
+        .frame(height: 44)
+    }
+
+    private func isLegacyOnly(_ stages: SleepStages) -> Bool {
+        stages.unspecified > 0 && stages.core == 0 && stages.deep == 0 && stages.rem == 0
     }
 }
