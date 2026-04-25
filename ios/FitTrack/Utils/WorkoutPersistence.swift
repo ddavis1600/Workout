@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import HealthKit
 
 /// Commits the current `WorkoutSessionManager` state to SwiftData + HealthKit
 /// and ends the session. Pulled out of LogWorkoutView so the same flow can
@@ -120,16 +121,35 @@ enum WorkoutPersistence {
 
         // Write to Apple Health. Fire-and-forget — HK failures shouldn't
         // block UI dismiss.
+        //
+        // Gate the auth prompt (P3 sweep): without this, every workout
+        // save re-fired `requestAuthorization()` even when the user had
+        // long since granted (or denied). XPC round-trip plus a brief
+        // sheet flash on some paths. After the first save the flag is
+        // set; subsequent saves skip the call. Status check on the
+        // workout write type also re-prompts if Settings revoked.
         let activityType = HealthKitManager.hkActivityType(from: session.workoutType)
         let hk = HealthKitManager.shared
         if hk.isAvailable {
-            _ = await hk.requestAuthorization()
-            await hk.saveWorkoutToHealth(
-                startDate: workoutStartDate,
-                endDate:   workoutEndDate,
-                activityType: activityType,
-                distanceMeters: distanceMeters
-            )
+            if hk.shouldRequestAuthorization(
+                writeType: HKWorkoutType.workoutType(),
+                flagKey: "hasRequestedWorkoutAuth"
+            ) {
+                _ = await hk.requestAuthorization()
+                hk.markAuthorizationRequested(flagKey: "hasRequestedWorkoutAuth")
+            }
+            // Skip the actual write cleanly when the user denied —
+            // saveWorkoutToHealth would otherwise log a non-fatal
+            // error to the console on every denied save.
+            let status = hk.healthStore.authorizationStatus(for: HKWorkoutType.workoutType())
+            if status == .sharingAuthorized {
+                await hk.saveWorkoutToHealth(
+                    startDate: workoutStartDate,
+                    endDate:   workoutEndDate,
+                    activityType: activityType,
+                    distanceMeters: distanceMeters
+                )
+            }
         }
 
         session.end()

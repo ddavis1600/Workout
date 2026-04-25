@@ -511,9 +511,26 @@ class HeartRateViewModel: ObservableObject {
         // sees the prompt and the app has no HR access for the session.
         try? await Task.sleep(for: .milliseconds(500))
 
-        let authorized = await HealthKitManager.shared.requestAuthorization()
-        isAuthorized = authorized
-        if authorized {
+        // Gate (P3 sweep): if the user already granted/denied HR auth
+        // on a prior visit, skip the prompt. Tab-switch back to Heart
+        // would otherwise re-hit `requestAuthorization()` every time.
+        // The .requestAccess() user-gesture button below remains
+        // un-gated — it's an explicit "ask me again" affordance.
+        let hk = HealthKitManager.shared
+        let alreadyAsked = !hk.shouldRequestAuthorization(flagKey: "hasRequestedHRAuth")
+        if !alreadyAsked {
+            let authorized = await hk.requestAuthorization()
+            hk.markAuthorizationRequested(flagKey: "hasRequestedHRAuth")
+            isAuthorized = authorized
+        } else {
+            // Already asked. We can't read the actual decision (read
+            // types report `.sharingDenied` regardless), so optimistically
+            // try to start monitoring; if auth was denied, the queries
+            // return empty and isAuthorized stays falsy via the live
+            // sample count.
+            isAuthorized = true
+        }
+        if isAuthorized {
             await service.startMonitoring()
             await fetchStats()
         }

@@ -119,8 +119,21 @@ final class HeartRateService {
 
     func startMonitoring() async {
         guard manager.isAvailable else { return }
-        let authorized = await manager.requestAuthorization()
-        guard authorized else { return }
+        // Gate the auth prompt (P3 sweep). `startMonitoring` runs every
+        // time LogWorkoutView calls `beginWorkout()` — without gating
+        // we'd re-hit HK auth on every workout start.
+        //
+        // Read-only path: we only consume HR samples here, never write.
+        // `authorizationStatus(for:)` is uninformative for read types,
+        // so rely on the flag. Share the flag key with HeartRateView
+        // (`hasRequestedHRAuth`) — if the user has already visited the
+        // HR view and made a decision, the workout flow doesn't need
+        // to ask again.
+        if manager.shouldRequestAuthorization(flagKey: "hasRequestedHRAuth") {
+            let authorized = await manager.requestAuthorization()
+            manager.markAuthorizationRequested(flagKey: "hasRequestedHRAuth")
+            guard authorized else { return }
+        }
 
         // If resetSession() wasn't called (rare), stamp a start date now.
         if sessionStartDate == .distantPast {
