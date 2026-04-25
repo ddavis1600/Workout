@@ -142,26 +142,33 @@ struct DashboardView: View {
 
     // MARK: - Macro Summary
 
+    @ViewBuilder
     private func macroSummarySection(vm: DashboardViewModel) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Today's Nutrition")
-                .font(.headline)
-                .foregroundStyle(Color.ink)
+        // Caller in `body` already guards on `vm.profile != nil`, but the
+        // guard is far away and easy to regress. Optional-chain the read
+        // here so any future refactor that reaches this section with a
+        // nil profile degrades to "no rings" instead of crashing on
+        // release. (AUDIT M6.)
+        if let profile = vm.profile {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Today's Nutrition")
+                    .font(.headline)
+                    .foregroundStyle(Color.ink)
 
-            let profile = vm.profile!
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                MacroRing(label: "Calories", current: vm.todayCalories, target: profile.calorieTarget, color: .emerald)
-                MacroRing(label: "Protein", current: vm.todayProtein, target: profile.proteinTarget, color: .blue)
-                MacroRing(label: "Carbs", current: vm.todayCarbs, target: profile.carbTarget, color: .orange)
-                MacroRing(label: "Fat", current: vm.todayFat, target: profile.fatTarget, color: .pink)
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
+                    MacroRing(label: "Calories", current: vm.todayCalories, target: profile.calorieTarget, color: .emerald)
+                    MacroRing(label: "Protein", current: vm.todayProtein, target: profile.proteinTarget, color: .blue)
+                    MacroRing(label: "Carbs", current: vm.todayCarbs, target: profile.carbTarget, color: .orange)
+                    MacroRing(label: "Fat", current: vm.todayFat, target: profile.fatTarget, color: .pink)
+                }
+                .padding()
+                .background(Color.slateCard)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.slateBorder, lineWidth: 1)
+                )
             }
-            .padding()
-            .background(Color.slateCard)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(Color.slateBorder, lineWidth: 1)
-            )
         }
     }
 
