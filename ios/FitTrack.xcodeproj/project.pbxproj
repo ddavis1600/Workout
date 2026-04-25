@@ -115,6 +115,11 @@
 		WAKA10000001 /* WorkoutActivityAttributes.swift in Sources (FitTrack) */ = {isa = PBXBuildFile; fileRef = WAKA20000001 /* WorkoutActivityAttributes.swift */; };
 		WAKA10000002 /* WorkoutActivityAttributes.swift in Sources (FitTrackWidgets) */ = {isa = PBXBuildFile; fileRef = WAKA20000001 /* WorkoutActivityAttributes.swift */; };
 		LIVM10000001 /* LiveActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = LIVM20000001 /* LiveActivityManager.swift */; };
+		STOP10000001 /* StopWorkoutIntent.swift in Sources (FitTrack) */ = {isa = PBXBuildFile; fileRef = STOP20000001 /* StopWorkoutIntent.swift */; };
+		STOP10000002 /* StopWorkoutIntent.swift in Sources (FitTrackWidgets) */ = {isa = PBXBuildFile; fileRef = STOP20000001 /* StopWorkoutIntent.swift */; };
+		WIDB10000001 /* FitTrackWidgetsBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = WIDB20000001 /* FitTrackWidgetsBundle.swift */; };
+		WLIV10000001 /* WorkoutLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = WLIV20000001 /* WorkoutLiveActivity.swift */; };
+		WIDX10000001 /* FitTrackWidgets.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = WIDX20000001 /* FitTrackWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -127,6 +132,17 @@
 				7836344C2451134116929FF4 /* FitTrack Watch App.app in Embed Watch Content */,
 			);
 			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		WIDX30000001 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				WIDX10000001 /* FitTrackWidgets.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -242,6 +258,12 @@
 		J20000000000000000000002 /* WatchSessionManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatchSessionManager.swift; sourceTree = "<group>"; };
 		WAKA20000001 /* WorkoutActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutActivityAttributes.swift; sourceTree = "<group>"; };
 		LIVM20000001 /* LiveActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityManager.swift; sourceTree = "<group>"; };
+		STOP20000001 /* StopWorkoutIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StopWorkoutIntent.swift; sourceTree = "<group>"; };
+		WIDB20000001 /* FitTrackWidgetsBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitTrackWidgetsBundle.swift; sourceTree = "<group>"; };
+		WLIV20000001 /* WorkoutLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutLiveActivity.swift; sourceTree = "<group>"; };
+		WIDX20000002 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		WIDX20000003 /* FitTrackWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FitTrackWidgets.entitlements; sourceTree = "<group>"; };
+		WIDX20000001 /* FitTrackWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FitTrackWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -257,6 +279,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				1A414DF587780BA6BB19E93E /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		WIDX40000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -278,12 +307,34 @@
 				A40000000000000000000003 /* Products */,
 				E800C32A62119D0E5EF23712 /* Frameworks */,
 				A705AA0176D6428C5FB2DCFB /* FitTrackWatch */,
+				WIDX50000001 /* FitTrackWidgets */,
 			);
+			sourceTree = "<group>";
+		};
+		WIDX50000001 /* FitTrackWidgets */ = {
+			isa = PBXGroup;
+			children = (
+				WIDB20000001 /* FitTrackWidgetsBundle.swift */,
+				WLIV20000001 /* WorkoutLiveActivity.swift */,
+				WIDX20000002 /* Info.plist */,
+				WIDX20000003 /* FitTrackWidgets.entitlements */,
+			);
+			name = FitTrackWidgets;
+			path = FitTrackWidgets;
+			sourceTree = "<group>";
+		};
+		AINT50000001 /* AppIntents */ = {
+			isa = PBXGroup;
+			children = (
+				STOP20000001 /* StopWorkoutIntent.swift */,
+			);
+			path = AppIntents;
 			sourceTree = "<group>";
 		};
 		A40000000000000000000002 /* FitTrack */ = {
 			isa = PBXGroup;
 			children = (
+				AINT50000001 /* AppIntents */,
 				A2000000000000000000009A /* Assets.xcassets */,
 				ALT0000000000000000000001 /* AppIcon-ocean.png */,
 				ALT0000000000000000000011 /* AppIcon-ocean@2x.png */,
@@ -328,6 +379,7 @@
 				A20000000000000000000099 /* FitTrack.app */,
 				47883AB36CFCAEA904FA873E /* FitTrack Watch App.app */,
 				FFA64365D10993F43A4738C5 /* FitTrack Watch App.app */,
+				WIDX20000001 /* FitTrackWidgets.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -592,17 +644,36 @@
 				A60000000000000000000001 /* Sources */,
 				A30000000000000000000001 /* Frameworks */,
 				1A77FEDC08E66DF4A6154783 /* Embed Watch Content */,
+				WIDX30000001 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				7D00D6B651A3305064F1D1DB /* PBXTargetDependency */,
 				698DBB7A0F37FD324833930D /* PBXTargetDependency */,
+				WIDX90000001 /* PBXTargetDependency */,
 			);
 			name = FitTrack;
 			productName = FitTrack;
 			productReference = A20000000000000000000099 /* FitTrack.app */;
 			productType = "com.apple.product-type.application";
+		};
+		WIDX60000001 /* FitTrackWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = WIDXA0000003 /* Build configuration list for PBXNativeTarget "FitTrackWidgets" */;
+			buildPhases = (
+				WIDX80000001 /* Sources */,
+				WIDX40000001 /* Frameworks */,
+				WIDX70000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FitTrackWidgets;
+			productName = FitTrackWidgets;
+			productReference = WIDX20000001 /* FitTrackWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -642,6 +713,7 @@
 			targets = (
 				A50000000000000000000001 /* FitTrack */,
 				66218F0049E1C4C0691D4595 /* FitTrack Watch App */,
+				WIDX60000001 /* FitTrackWidgets */,
 			);
 		};
 /* End PBXProject section */
@@ -685,6 +757,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				69B448E53E2E01493B6767E7 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		WIDX70000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -780,6 +859,18 @@
 				J10000000000000000000001 /* WatchConnectivityManager.swift in Sources */,
 				WAKA10000001 /* WorkoutActivityAttributes.swift in Sources (FitTrack) */,
 				LIVM10000001 /* LiveActivityManager.swift in Sources */,
+				STOP10000001 /* StopWorkoutIntent.swift in Sources (FitTrack) */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		WIDX80000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				WIDB10000001 /* FitTrackWidgetsBundle.swift in Sources */,
+				WLIV10000001 /* WorkoutLiveActivity.swift in Sources */,
+				WAKA10000002 /* WorkoutActivityAttributes.swift in Sources (FitTrackWidgets) */,
+				STOP10000002 /* StopWorkoutIntent.swift in Sources (FitTrackWidgets) */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -793,7 +884,22 @@
 		7D00D6B651A3305064F1D1DB /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 		};
+		WIDX90000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = WIDX60000001 /* FitTrackWidgets */;
+			targetProxy = WIDX90000002 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
+
+/* Begin PBXContainerItemProxy section */
+		WIDX90000002 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A70000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = WIDX60000001;
+			remoteInfo = FitTrackWidgets;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin XCBuildConfiguration section */
 		1A33E3A639E3B930742166BC /* Debug */ = {
@@ -1040,6 +1146,69 @@
 			};
 			name = Release;
 		};
+		WIDXA0000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_ENTITLEMENTS = FitTrackWidgets/FitTrackWidgets.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 26;
+				DEVELOPMENT_TEAM = 95BHKMD86H;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = FitTrackWidgets/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.danieldavis16.fittrack.widgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "WIDGET_EXTENSION DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		WIDXA0000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_ENTITLEMENTS = FitTrackWidgets/FitTrackWidgets.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 26;
+				DEVELOPMENT_TEAM = 95BHKMD86H;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = FitTrackWidgets/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.danieldavis16.fittrack.widgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "WIDGET_EXTENSION $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1066,6 +1235,15 @@
 			buildConfigurations = (
 				B10000000000000000000003 /* Debug */,
 				B10000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		WIDXA0000003 /* Build configuration list for PBXNativeTarget "FitTrackWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				WIDXA0000001 /* Debug */,
+				WIDXA0000002 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
