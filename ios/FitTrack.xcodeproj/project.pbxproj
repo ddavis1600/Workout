@@ -124,6 +124,7 @@
 		ILGF10000001 /* LogFoodIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = ILGF20000001 /* LogFoodIntent.swift */; };
 		ILGT10000001 /* LogWeightIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = ILGT20000001 /* LogWeightIntent.swift */; };
 		ILGH10000001 /* LogHabitIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = ILGH20000001 /* LogHabitIntent.swift */; };
+		FTSC10000001 /* FitTrackShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = FTSC20000001 /* FitTrackShortcuts.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -272,6 +273,7 @@
 		ILGF20000001 /* LogFoodIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogFoodIntent.swift; sourceTree = "<group>"; };
 		ILGT20000001 /* LogWeightIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogWeightIntent.swift; sourceTree = "<group>"; };
 		ILGH20000001 /* LogHabitIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogHabitIntent.swift; sourceTree = "<group>"; };
+		FTSC20000001 /* FitTrackShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitTrackShortcuts.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -334,6 +336,7 @@
 		AINT50000001 /* AppIntents */ = {
 			isa = PBXGroup;
 			children = (
+				FTSC20000001 /* FitTrackShortcuts.swift */,
 				ILGF20000001 /* LogFoodIntent.swift */,
 				ILGH20000001 /* LogHabitIntent.swift */,
 				ILGT20000001 /* LogWeightIntent.swift */,
@@ -876,6 +879,7 @@
 				ILGF10000001 /* LogFoodIntent.swift in Sources */,
 				ILGT10000001 /* LogWeightIntent.swift in Sources */,
 				ILGH10000001 /* LogHabitIntent.swift in Sources */,
+				FTSC10000001 /* FitTrackShortcuts.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
