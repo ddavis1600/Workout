@@ -139,6 +139,9 @@
 		WAKA10000001 /* WorkoutActivityAttributes.swift in Sources (FitTrack) */ = {isa = PBXBuildFile; fileRef = WAKA20000001 /* WorkoutActivityAttributes.swift */; };
 		WAKA10000002 /* WorkoutActivityAttributes.swift in Sources (FitTrackWidgets) */ = {isa = PBXBuildFile; fileRef = WAKA20000001 /* WorkoutActivityAttributes.swift */; };
 		LIVM10000001 /* LiveActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = LIVM20000001 /* LiveActivityManager.swift */; };
+		STOP10000001 /* StopWorkoutIntent.swift in Sources (FitTrack) */ = {isa = PBXBuildFile; fileRef = STOP20000001 /* StopWorkoutIntent.swift */; };
+		STOP10000002 /* StopWorkoutIntent.swift in Sources (FitTrackWidgets) */ = {isa = PBXBuildFile; fileRef = STOP20000001 /* StopWorkoutIntent.swift */; };
+		WLIV10000001 /* WorkoutLiveActivity.swift in Sources (FitTrackWidgets) */ = {isa = PBXBuildFile; fileRef = WLIV20000001 /* WorkoutLiveActivity.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -301,6 +304,8 @@
 		ONBS20000001 /* OnboardingSampleData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSampleData.swift; sourceTree = "<group>"; };
 		WAKA20000001 /* WorkoutActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutActivityAttributes.swift; sourceTree = "<group>"; };
 		LIVM20000001 /* LiveActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityManager.swift; sourceTree = "<group>"; };
+		STOP20000001 /* StopWorkoutIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StopWorkoutIntent.swift; sourceTree = "<group>"; };
+		WLIV20000001 /* WorkoutLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutLiveActivity.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -380,6 +385,7 @@
 				MIGR200000000000000000001 /* FitTrackMigrationPlan.swift */,
 				PRIV200000000000000000001 /* PrivacyInfo.xcprivacy */,
 				A20000000000000000000002 /* ContentView.swift */,
+				AINT50000001 /* AppIntents */,
 				A40000000000000000000010 /* Data */,
 				A40000000000000000000004 /* Models */,
 				A40000000000000000000005 /* Utils */,
@@ -387,6 +393,14 @@
 				A40000000000000000000007 /* Views */,
 			);
 			path = FitTrack;
+			sourceTree = "<group>";
+		};
+		AINT50000001 /* AppIntents */ = {
+			isa = PBXGroup;
+			children = (
+				STOP20000001 /* StopWorkoutIntent.swift */,
+			);
+			path = AppIntents;
 			sourceTree = "<group>";
 		};
 		A40000000000000000000003 /* Products */ = {
@@ -672,6 +686,7 @@
 				WIDG20000003 /* TodayStatsWidget.swift */,
 				WIDG20000004 /* StreakWidget.swift */,
 				WIDG20000005 /* TodayWorkoutWidget.swift */,
+				WLIV20000001 /* WorkoutLiveActivity.swift */,
 				WIDG20000006 /* Info.plist */,
 				WIDG20000007 /* FitTrackWidgets.entitlements */,
 			);
@@ -932,6 +947,7 @@
 				ONBS10000001 /* OnboardingSampleData.swift in Sources */,
 				WAKA10000001 /* WorkoutActivityAttributes.swift in Sources (FitTrack) */,
 				LIVM10000001 /* LiveActivityManager.swift in Sources */,
+				STOP10000001 /* StopWorkoutIntent.swift in Sources (FitTrack) */,
 				HD1000000000000000000001 /* HealthMetric.swift in Sources */,
 				HD1000000000000000000002 /* HealthDashboardService.swift in Sources */,
 				HD1000000000000000000003 /* HealthDashboardView.swift in Sources */,
@@ -950,8 +966,11 @@
 				WIDG10000003 /* TodayStatsWidget.swift in Sources */,
 				WIDG10000004 /* StreakWidget.swift in Sources */,
 				WIDG10000005 /* TodayWorkoutWidget.swift in Sources */,
+				WLIV10000001 /* WorkoutLiveActivity.swift in Sources (FitTrackWidgets) */,
 				AGRP10000002 /* AppGroup.swift in Sources (FitTrackWidgets) */,
 				WSNP10000002 /* WidgetSnapshot.swift in Sources (FitTrackWidgets) */,
+				WAKA10000002 /* WorkoutActivityAttributes.swift in Sources (FitTrackWidgets) */,
+				STOP10000002 /* StopWorkoutIntent.swift in Sources (FitTrackWidgets) */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
