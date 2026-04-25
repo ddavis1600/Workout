@@ -112,6 +112,9 @@
 		I10000000000000000000004 /* PRHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = I20000000000000000000004 /* PRHistoryView.swift */; };
 		J10000000000000000000001 /* WatchConnectivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000000000000000000001 /* WatchConnectivityManager.swift */; };
 		J10000000000000000000002 /* WatchSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000000000000000000002 /* WatchSessionManager.swift */; };
+		WAKA10000001 /* WorkoutActivityAttributes.swift in Sources (FitTrack) */ = {isa = PBXBuildFile; fileRef = WAKA20000001 /* WorkoutActivityAttributes.swift */; };
+		WAKA10000002 /* WorkoutActivityAttributes.swift in Sources (FitTrackWidgets) */ = {isa = PBXBuildFile; fileRef = WAKA20000001 /* WorkoutActivityAttributes.swift */; };
+		LIVM10000001 /* LiveActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = LIVM20000001 /* LiveActivityManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -237,6 +240,8 @@
 		I20000000000000000000004 /* PRHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PRHistoryView.swift; sourceTree = "<group>"; };
 		J20000000000000000000001 /* WatchConnectivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConnectivityManager.swift; sourceTree = "<group>"; };
 		J20000000000000000000002 /* WatchSessionManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatchSessionManager.swift; sourceTree = "<group>"; };
+		WAKA20000001 /* WorkoutActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutActivityAttributes.swift; sourceTree = "<group>"; };
+		LIVM20000001 /* LiveActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -358,11 +363,13 @@
 				D10000000000000000000001 /* FoodAPIService.swift */,
 				C20000000000000000000006 /* HealthKitManager.swift */,
 				F20000000000000000000001 /* HeartRateService.swift */,
+				LIVM20000001 /* LiveActivityManager.swift */,
 				A2000000000000000000000B /* MacroCalculator.swift */,
 				H20000000000000000000011 /* NotificationService.swift */,
 				H20000000000000000000006 /* PRService.swift */,
 				A2000000000000000000000C /* SeedData.swift */,
 				J20000000000000000000001 /* WatchConnectivityManager.swift */,
+				WAKA20000001 /* WorkoutActivityAttributes.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -771,6 +778,8 @@
 				I10000000000000000000003 /* ProgressPhotoTimelineView.swift in Sources */,
 				I10000000000000000000004 /* PRHistoryView.swift in Sources */,
 				J10000000000000000000001 /* WatchConnectivityManager.swift in Sources */,
+				WAKA10000001 /* WorkoutActivityAttributes.swift in Sources (FitTrack) */,
+				LIVM10000001 /* LiveActivityManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
