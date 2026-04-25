@@ -244,6 +244,19 @@ struct SettingsView: View {
                     .listRowBackground(Color.slateCard)
 
                     NavigationLink {
+                        ShortcutsSettingsView()
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "mic.fill")
+                                .foregroundColor(.emerald)
+                                .frame(width: 24)
+                            Text("Siri & Shortcuts")
+                                .foregroundColor(Color.ink)
+                        }
+                    }
+                    .listRowBackground(Color.slateCard)
+
+                    NavigationLink {
                         DataExportView()
                     } label: {
                         HStack(spacing: 12) {

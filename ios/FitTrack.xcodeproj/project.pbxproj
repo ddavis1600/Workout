@@ -142,6 +142,12 @@
 		STOP10000001 /* StopWorkoutIntent.swift in Sources (FitTrack) */ = {isa = PBXBuildFile; fileRef = STOP20000001 /* StopWorkoutIntent.swift */; };
 		STOP10000002 /* StopWorkoutIntent.swift in Sources (FitTrackWidgets) */ = {isa = PBXBuildFile; fileRef = STOP20000001 /* StopWorkoutIntent.swift */; };
 		WLIV10000001 /* WorkoutLiveActivity.swift in Sources (FitTrackWidgets) */ = {isa = PBXBuildFile; fileRef = WLIV20000001 /* WorkoutLiveActivity.swift */; };
+		ILGW10000001 /* LogWorkoutIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = ILGW20000001 /* LogWorkoutIntent.swift */; };
+		ILGF10000001 /* LogFoodIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = ILGF20000001 /* LogFoodIntent.swift */; };
+		ILGT10000001 /* LogWeightIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = ILGT20000001 /* LogWeightIntent.swift */; };
+		ILGH10000001 /* LogHabitIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = ILGH20000001 /* LogHabitIntent.swift */; };
+		FTSC10000001 /* FitTrackShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = FTSC20000001 /* FitTrackShortcuts.swift */; };
+		SHST10000001 /* ShortcutsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHST20000001 /* ShortcutsSettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -306,6 +312,12 @@
 		LIVM20000001 /* LiveActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityManager.swift; sourceTree = "<group>"; };
 		STOP20000001 /* StopWorkoutIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StopWorkoutIntent.swift; sourceTree = "<group>"; };
 		WLIV20000001 /* WorkoutLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutLiveActivity.swift; sourceTree = "<group>"; };
+		ILGW20000001 /* LogWorkoutIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogWorkoutIntent.swift; sourceTree = "<group>"; };
+		ILGF20000001 /* LogFoodIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogFoodIntent.swift; sourceTree = "<group>"; };
+		ILGT20000001 /* LogWeightIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogWeightIntent.swift; sourceTree = "<group>"; };
+		ILGH20000001 /* LogHabitIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogHabitIntent.swift; sourceTree = "<group>"; };
+		FTSC20000001 /* FitTrackShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitTrackShortcuts.swift; sourceTree = "<group>"; };
+		SHST20000001 /* ShortcutsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsSettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -398,6 +410,11 @@
 		AINT50000001 /* AppIntents */ = {
 			isa = PBXGroup;
 			children = (
+				FTSC20000001 /* FitTrackShortcuts.swift */,
+				ILGF20000001 /* LogFoodIntent.swift */,
+				ILGH20000001 /* LogHabitIntent.swift */,
+				ILGT20000001 /* LogWeightIntent.swift */,
+				ILGW20000001 /* LogWorkoutIntent.swift */,
 				STOP20000001 /* StopWorkoutIntent.swift */,
 			);
 			path = AppIntents;
@@ -650,6 +667,7 @@
 				H20000000000000000000015 /* DataExportView.swift */,
 				H20000000000000000000012 /* NotificationSettingsView.swift */,
 				G20000000000000000000003 /* SettingsView.swift */,
+				SHST20000001 /* ShortcutsSettingsView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -948,6 +966,12 @@
 				WAKA10000001 /* WorkoutActivityAttributes.swift in Sources (FitTrack) */,
 				LIVM10000001 /* LiveActivityManager.swift in Sources */,
 				STOP10000001 /* StopWorkoutIntent.swift in Sources (FitTrack) */,
+				ILGW10000001 /* LogWorkoutIntent.swift in Sources */,
+				ILGF10000001 /* LogFoodIntent.swift in Sources */,
+				ILGT10000001 /* LogWeightIntent.swift in Sources */,
+				ILGH10000001 /* LogHabitIntent.swift in Sources */,
+				FTSC10000001 /* FitTrackShortcuts.swift in Sources */,
+				SHST10000001 /* ShortcutsSettingsView.swift in Sources */,
 				HD1000000000000000000001 /* HealthMetric.swift in Sources */,
 				HD1000000000000000000002 /* HealthDashboardService.swift in Sources */,
 				HD1000000000000000000003 /* HealthDashboardView.swift in Sources */,
