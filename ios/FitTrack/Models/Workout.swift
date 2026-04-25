@@ -19,12 +19,32 @@ final class Workout {
     @Relationship(deleteRule: .cascade) var sets: [WorkoutSet]?
     var createdAt: Date = Date()
 
-    init(name: String = "", date: Date = Date(), notes: String = "", durationMinutes: Int? = nil, photoData: Data? = nil) {
+    /// Maps to `HKWorkoutActivityType` on save.
+    /// Values: "strength" (default), "running", "cycling", "walking",
+    /// "hiit", "yoga", "swimming", "other". Stored as a tag string
+    /// rather than an enum so future activity kinds (e.g. "rowing")
+    /// can be added without a schema bump.
+    ///
+    /// Optional with `nil` default so SwiftData performs a lightweight
+    /// inferred migration on existing stores — workouts written before
+    /// this field existed simply have `workoutType == nil`, which the
+    /// HK save path treats as `.traditionalStrengthTraining`.
+    var workoutType: String? = nil
+
+    init(
+        name: String = "",
+        date: Date = Date(),
+        notes: String = "",
+        durationMinutes: Int? = nil,
+        photoData: Data? = nil,
+        workoutType: String? = nil
+    ) {
         self.name = name
         self.date = date
         self.notes = notes
         self.durationMinutes = durationMinutes
         self.photoData = photoData
+        self.workoutType = workoutType
         self.createdAt = Date()
     }
 }

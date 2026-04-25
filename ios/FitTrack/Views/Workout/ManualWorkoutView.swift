@@ -21,8 +21,23 @@ struct ManualWorkoutView: View {
     @State private var workoutDate: Date = .now
     @State private var durationMinutes: Int = 30
     @State private var workoutNotes = ""
+    @State private var workoutType: String = "strength"
     @State private var exerciseGroups: [ExerciseGroup] = []
     @State private var showingExercisePicker = false
+
+    /// Mirrors `LogWorkoutView.workoutTypeOptions`. Kept inline rather
+    /// than imported because both views deliberately stay independent
+    /// — a future refactor can hoist the catalog into a shared file.
+    private static let workoutTypeOptions: [(id: String, label: String, icon: String)] = [
+        ("strength",  "Strength",     "dumbbell.fill"),
+        ("running",   "Running",      "figure.run"),
+        ("cycling",   "Cycling",      "bicycle"),
+        ("walking",   "Walking",      "figure.walk"),
+        ("hiit",      "HIIT",         "flame.fill"),
+        ("yoga",      "Yoga",         "figure.mind.and.body"),
+        ("swimming",  "Swimming",     "figure.pool.swim"),
+        ("other",     "Other",        "figure.flexibility"),
+    ]
 
     // Minimal local types mirroring LogWorkoutView's — same shapes so
     // the save path writes identical WorkoutSet rows.
@@ -87,6 +102,21 @@ struct ManualWorkoutView: View {
                 .background(Color.slateCard)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
                 .foregroundStyle(Color.ink)
+
+            // Workout-type picker — same catalog as LogWorkoutView so
+            // a manually-entered workout shows up correctly tagged in
+            // the dashboard / history list.
+            Picker("Type", selection: $workoutType) {
+                ForEach(Self.workoutTypeOptions, id: \.id) { option in
+                    Label(option.label, systemImage: option.icon).tag(option.id)
+                }
+            }
+            .pickerStyle(.menu)
+            .tint(.emerald)
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.slateCard)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
 
             DatePicker("Date", selection: $workoutDate, displayedComponents: .date)
                 .datePickerStyle(.compact)
@@ -219,7 +249,8 @@ struct ManualWorkoutView: View {
             date: workoutDate,
             notes: workoutNotes,
             durationMinutes: durationMinutes > 0 ? durationMinutes : nil,
-            photoData: nil
+            photoData: nil,
+            workoutType: workoutType
         )
 
         modelContext.insert(workout)

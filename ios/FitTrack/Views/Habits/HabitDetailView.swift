@@ -5,6 +5,8 @@ struct HabitDetailView: View {
     @Environment(\.modelContext) private var modelContext
     let habit: Habit
 
+    @State private var selectedDate: Date? = nil
+
     private var calendar: Calendar { Calendar.current }
 
     // 12 weeks × 7 days grid (columns=weeks left→right, rows=Sun→Sat)
@@ -39,6 +41,13 @@ struct HabitDetailView: View {
         .navigationTitle(habit.name)
         .navigationBarTitleDisplayMode(.large)
         .toolbarBackground(Color.slateBackground, for: .navigationBar)
+        // Per-day detail / note-edit sheet (item 7).
+        .sheet(item: Binding(
+            get: { selectedDate.map { IdentifiedDate(date: $0) } },
+            set: { selectedDate = $0?.date }
+        )) { wrapped in
+            HabitNoteSheet(habit: habit, date: wrapped.date)
+        }
     }
 
     // MARK: - Stats
@@ -103,15 +112,35 @@ struct HabitDetailView: View {
         let frozen = date.map { d in
             habit.freezeAppliedDates.contains { calendar.isDate($0, inSameDayAs: d) }
         } ?? false
+        let hasNote = date.map { d in
+            (habit.completions ?? []).contains { c in
+                calendar.isDate(c.date, inSameDayAs: d) && !(c.note ?? "").isEmpty
+            }
+        } ?? false
 
-        return RoundedRectangle(cornerRadius: 2)
-            .fill(
-                date == nil   ? Color.clear :
-                frozen        ? Color.blue.opacity(0.55) :
-                completed     ? Color.emerald.opacity(0.85) :
-                                Color.slateBorder.opacity(0.5)
-            )
+        return Button {
+            if let d = date { selectedDate = d }
+        } label: {
+            ZStack {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(
+                        date == nil   ? Color.clear :
+                        frozen        ? Color.blue.opacity(0.55) :
+                        completed     ? Color.emerald.opacity(0.85) :
+                                        Color.slateBorder.opacity(0.5)
+                    )
+                if hasNote {
+                    // Tiny dot in the corner to signal a note exists
+                    Circle()
+                        .fill(Color.ink)
+                        .frame(width: 3, height: 3)
+                        .offset(x: 4, y: -4)
+                }
+            }
             .frame(width: 14, height: 14)
+        }
+        .buttonStyle(.plain)
+        .disabled(date == nil)
     }
 
     // MARK: - Badges
@@ -140,5 +169,118 @@ struct HabitDetailView: View {
         case 100: return "🥇"
         default:  return "⭐️"
         }
+    }
+}
+
+// MARK: - Per-Day Note Sheet (Item 7)
+
+/// Wrapper so we can use `.sheet(item:)` with a plain Date.
+struct IdentifiedDate: Identifiable {
+    let date: Date
+    var id: TimeInterval { date.timeIntervalSince1970 }
+}
+
+/// Sheet for viewing or editing the note on a habit's per-day completion.
+/// Handles three states: (1) no completion for this date — offer to create
+/// one with a note; (2) completion exists with no note — add one;
+/// (3) completion exists with note — edit/delete.
+struct HabitNoteSheet: View {
+    let habit: Habit
+    let date: Date
+
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
+
+    @State private var noteText: String = ""
+    @State private var existingCompletion: HabitCompletion?
+
+    private var calendar: Calendar { Calendar.current }
+
+    private var dateLabel: String {
+        date.formatted(.dateTime.weekday(.wide).month(.wide).day().year())
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.slateBackground.ignoresSafeArea()
+                VStack(alignment: .leading, spacing: 16) {
+                    // Date header
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(dateLabel)
+                            .font(.headline)
+                            .foregroundStyle(Color.ink)
+                        Text(existingCompletion == nil ? "Not completed" : "Completed")
+                            .font(.caption)
+                            .foregroundStyle(existingCompletion == nil ? Color.slateText : Color.emerald)
+                    }
+
+                    Text("Note")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Color.slateText)
+
+                    TextEditor(text: $noteText)
+                        .frame(minHeight: 140)
+                        .padding(8)
+                        .background(Color.slateCard)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.slateBorder, lineWidth: 1)
+                        )
+                        .foregroundStyle(Color.ink)
+
+                    Spacer()
+                }
+                .padding()
+            }
+            .navigationTitle("Habit Entry")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") { dismiss() }
+                        .foregroundStyle(Color.slateText)
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Save") { save() }
+                        .foregroundStyle(Color.emerald)
+                        .fontWeight(.semibold)
+                }
+            }
+            .task { loadExisting() }
+        }
+    }
+
+    private func loadExisting() {
+        let match = (habit.completions ?? []).first { c in
+            calendar.isDate(c.date, inSameDayAs: date)
+        }
+        existingCompletion = match
+        noteText = match?.note ?? ""
+    }
+
+    /// Persist the note. If no completion exists for this day and a note was
+    /// entered, creating one makes sense — a note with no completion is
+    /// meaningless. If the user entered an empty note and one already exists,
+    /// we preserve the completion but clear the note.
+    private func save() {
+        let trimmed = noteText.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if let existing = existingCompletion {
+            existing.note = trimmed.isEmpty ? nil : trimmed
+        } else if !trimmed.isEmpty {
+            let completion = HabitCompletion(date: date, note: trimmed)
+            completion.habit = habit
+            if habit.completions != nil {
+                habit.completions!.append(completion)
+            } else {
+                habit.completions = [completion]
+            }
+            modelContext.insert(completion)
+        }
+        // If no existing completion and no note entered, nothing to save — just dismiss.
+
+        try? modelContext.save()
+        dismiss()
     }
 }
