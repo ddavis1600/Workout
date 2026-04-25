@@ -136,6 +136,7 @@ struct LogWorkoutView: View {
                 // DO NOT start the timer / HR / watch — wait for the user
                 // to tap the Start button in the ready-state card.
                 loadTemplate()
+                consumePendingIntentParameters()
             }
             .onDisappear {
                 // stopTimer/stopMonitoring are no-ops if nothing was
@@ -287,6 +288,29 @@ struct LogWorkoutView: View {
 
     /// Transition from "ready" → actively timing. Kicks off the timer
     /// and begins HR monitoring. Called from the Start button in
+    /// Read parameters deposited by `LogWorkoutIntent.perform()`
+    /// — workout type and duration get pre-filled into the form
+    /// fields and the keys are cleared so a future launch doesn't
+    /// re-apply them.
+    private func consumePendingIntentParameters() {
+        let defaults = UserDefaults.standard
+        if let type = defaults.string(forKey: "pendingIntent_workoutType"), !type.isEmpty {
+            workoutName = type
+            defaults.removeObject(forKey: "pendingIntent_workoutType")
+        }
+        // Duration arrives as Int; LogWorkoutView doesn't yet expose
+        // a "target duration" field, so we drop the value into a
+        // note so the user sees the requested duration without us
+        // making up where to render it. Future revision: surface a
+        // proper target-duration field that the Live Activity can
+        // use for its progress bar.
+        let duration = defaults.integer(forKey: "pendingIntent_workoutDuration")
+        if duration > 0 {
+            workoutNotes = "Target: \(duration) min (via Shortcuts)"
+            defaults.removeObject(forKey: "pendingIntent_workoutDuration")
+        }
+    }
+
     /// `readyStateCard`. HR samples flow through HealthKit regardless
     /// of which device (phone or watch) the user taps Start on, so we
     /// don't need to signal the watch from here.
