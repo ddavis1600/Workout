@@ -112,6 +112,8 @@
 		I10000000000000000000004 /* PRHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = I20000000000000000000004 /* PRHistoryView.swift */; };
 		J10000000000000000000001 /* WatchConnectivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000000000000000000001 /* WatchConnectivityManager.swift */; };
 		J10000000000000000000002 /* WatchSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000000000000000000002 /* WatchSessionManager.swift */; };
+		ONBF10000001 /* OnboardingFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = ONBF20000001 /* OnboardingFlow.swift */; };
+		ONBS10000001 /* OnboardingSampleData.swift in Sources */ = {isa = PBXBuildFile; fileRef = ONBS20000001 /* OnboardingSampleData.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -237,6 +239,8 @@
 		I20000000000000000000004 /* PRHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PRHistoryView.swift; sourceTree = "<group>"; };
 		J20000000000000000000001 /* WatchConnectivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConnectivityManager.swift; sourceTree = "<group>"; };
 		J20000000000000000000002 /* WatchSessionManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatchSessionManager.swift; sourceTree = "<group>"; };
+		ONBF20000001 /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlow.swift; sourceTree = "<group>"; };
+		ONBS20000001 /* OnboardingSampleData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSampleData.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -360,6 +364,7 @@
 				F20000000000000000000001 /* HeartRateService.swift */,
 				A2000000000000000000000B /* MacroCalculator.swift */,
 				H20000000000000000000011 /* NotificationService.swift */,
+				ONBS20000001 /* OnboardingSampleData.swift */,
 				H20000000000000000000006 /* PRService.swift */,
 				A2000000000000000000000C /* SeedData.swift */,
 				J20000000000000000000001 /* WatchConnectivityManager.swift */,
@@ -421,6 +426,7 @@
 		E40000000000000000000002 /* Onboarding */ = {
 			isa = PBXGroup;
 			children = (
+				ONBF20000001 /* OnboardingFlow.swift */,
 				E20000000000000000000003 /* OnboardingView.swift */,
 			);
 			path = Onboarding;
@@ -771,6 +777,8 @@
 				I10000000000000000000003 /* ProgressPhotoTimelineView.swift in Sources */,
 				I10000000000000000000004 /* PRHistoryView.swift in Sources */,
 				J10000000000000000000001 /* WatchConnectivityManager.swift in Sources */,
+				ONBF10000001 /* OnboardingFlow.swift in Sources */,
+				ONBS10000001 /* OnboardingSampleData.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
