@@ -86,6 +86,51 @@ class HealthKitManager {
         }
     }
 
+    // MARK: - Authorization gating
+    //
+    // Calling `requestAuthorization` repeatedly once permission has been
+    // decided is technically safe (iOS returns immediately without
+    // re-presenting the system sheet for already-decided types), but
+    //   1. the call still trips a synchronous XPC round-trip to healthd —
+    //      not free, especially in hot paths like every workout-save or
+    //      every workout-start;
+    //   2. on some paths iOS does briefly flash the sheet on repeat
+    //      calls, the same UX hitch HeartRateView's `hasRequestedHRAuth`
+    //      flag was originally added to silence.
+    //
+    // Two-helper pattern: views call `shouldRequestAuthorization(flagKey:)`
+    // before invoking `requestAuthorization()`, then call
+    // `markAuthorizationRequested(flagKey:)` once the prompt has been
+    // shown. The flag is per-surface so each entry point's first-time
+    // moment is independent.
+
+    /// True when `requestAuthorization()` should actually fire for the
+    /// given surface. `flagKey` is a per-view UserDefaults boolean
+    /// that the caller flips via `markAuthorizationRequested` after
+    /// the prompt has run.
+    ///
+    /// For surfaces that write a specific HK type, pass `writeType` so
+    /// we'll also re-prompt if its status is `.notDetermined` (e.g. the
+    /// user revoked via Settings). For read-only flows pass `nil` —
+    /// `authorizationStatus` always reads `.sharingDenied` for read
+    /// types and isn't a useful signal.
+    func shouldRequestAuthorization(writeType: HKSampleType? = nil, flagKey: String) -> Bool {
+        guard isAvailable else { return false }
+        if !UserDefaults.standard.bool(forKey: flagKey) { return true }
+        if let writeType,
+           healthStore.authorizationStatus(for: writeType) == .notDetermined {
+            return true
+        }
+        return false
+    }
+
+    /// Mark a surface as having asked for authorization. Call this
+    /// after `requestAuthorization()` returns, regardless of whether
+    /// the user granted or denied — the point is that we've asked.
+    func markAuthorizationRequested(flagKey: String) {
+        UserDefaults.standard.set(true, forKey: flagKey)
+    }
+
     // MARK: - Workout
 
     /// Maps the stored `Workout.workoutType` string (from the in-app picker)
