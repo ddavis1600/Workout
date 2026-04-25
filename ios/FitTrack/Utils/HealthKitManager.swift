@@ -60,6 +60,24 @@ class HealthKitManager {
 
     // MARK: - Workout
 
+    /// Maps the stored `Workout.workoutType` string (from the in-app
+    /// picker) to an `HKWorkoutActivityType` for Apple Health. Unknown
+    /// or `nil` values fall back to `.traditionalStrengthTraining` so
+    /// legacy workouts saved before the type picker was added still
+    /// report as strength training.
+    static func hkActivityType(from stored: String?) -> HKWorkoutActivityType {
+        switch stored {
+        case "running":   return .running
+        case "cycling":   return .cycling
+        case "walking":   return .walking
+        case "hiit":      return .highIntensityIntervalTraining
+        case "yoga":      return .yoga
+        case "swimming":  return .swimming
+        case "other":     return .other
+        default:          return .traditionalStrengthTraining
+        }
+    }
+
     /// Saves a completed workout to Apple Health / Fitness app.
     func saveWorkoutToHealth(
         startDate: Date,

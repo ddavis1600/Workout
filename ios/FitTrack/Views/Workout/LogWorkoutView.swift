@@ -13,10 +13,27 @@ struct LogWorkoutView: View {
     @State private var workoutName = ""
     @State private var workoutDate = Date.now
     @State private var workoutNotes = ""
+    @State private var workoutType: String = "strength"
     @State private var exerciseGroups: [ExerciseGroup] = []
     @State private var showingExercisePicker = false
     @State private var showingSaveTemplate = false
     var template: WorkoutTemplate?
+
+    /// Workout type catalog. Tag string is the canonical value
+    /// stored on `Workout.workoutType`; `HealthKitManager.hkActivityType(from:)`
+    /// maps it to the corresponding `HKWorkoutActivityType` on save.
+    /// Order roughly matches frequency-of-use (strength first, then
+    /// cardio, then specialty).
+    private static let workoutTypeOptions: [(id: String, label: String, icon: String)] = [
+        ("strength",  "Strength",     "dumbbell.fill"),
+        ("running",   "Running",      "figure.run"),
+        ("cycling",   "Cycling",      "bicycle"),
+        ("walking",   "Walking",      "figure.walk"),
+        ("hiit",      "HIIT",         "flame.fill"),
+        ("yoga",      "Yoga",         "figure.mind.and.body"),
+        ("swimming",  "Swimming",     "figure.pool.swim"),
+        ("other",     "Other",        "figure.flexibility"),
+    ]
 
     // Photo state
     @State private var selectedPhotoItem: PhotosPickerItem?
@@ -324,6 +341,21 @@ struct LogWorkoutView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 10))
                 .foregroundStyle(Color.ink)
 
+            // Workout-type picker. Stored as a tag string on
+            // `Workout.workoutType`; mapped to HKWorkoutActivityType
+            // at HK-save time via HealthKitManager.hkActivityType(from:).
+            Picker("Type", selection: $workoutType) {
+                ForEach(Self.workoutTypeOptions, id: \.id) { option in
+                    Label(option.label, systemImage: option.icon).tag(option.id)
+                }
+            }
+            .pickerStyle(.menu)
+            .tint(.emerald)
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.slateCard)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+
             DatePicker("Date", selection: $workoutDate, displayedComponents: .date)
                 .datePickerStyle(.compact)
                 .tint(.emerald)
@@ -562,7 +594,8 @@ struct LogWorkoutView: View {
             date: workoutDate,
             notes: workoutNotes,
             durationMinutes: elapsedSeconds > 0 ? durationMin : nil,
-            photoData: selectedPhotoData
+            photoData: selectedPhotoData,
+            workoutType: workoutType
         )
 
         // Save heart rate data if available
@@ -613,7 +646,16 @@ struct LogWorkoutView: View {
             let hk = HealthKitManager.shared
             guard hk.isAvailable else { return }
             _ = await hk.requestAuthorization()
-            await hk.saveWorkoutToHealth(startDate: workoutStartDate, endDate: workoutEndDate)
+            // Map the user-chosen workout type to the matching
+            // HKWorkoutActivityType so Apple Health categorizes the
+            // session correctly (running/cycling/yoga/etc.) instead
+            // of every workout showing up as "Strength Training".
+            let activityType = HealthKitManager.hkActivityType(from: workoutType)
+            await hk.saveWorkoutToHealth(
+                startDate: workoutStartDate,
+                endDate: workoutEndDate,
+                activityType: activityType
+            )
         }
 
         viewModel.fetchWorkouts()

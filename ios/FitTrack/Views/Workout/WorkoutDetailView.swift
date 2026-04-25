@@ -9,6 +9,37 @@ struct WorkoutDetailView: View {
         workout.name.isEmpty ? "Workout" : workout.name
     }
 
+    /// Map a stored `workoutType` tag to a human-friendly label.
+    /// Mirrors the catalog in `LogWorkoutView.workoutTypeOptions` —
+    /// kept inline so the detail view doesn't need to depend on the
+    /// log view's struct namespace.
+    private func workoutTypeLabel(_ id: String) -> String {
+        switch id {
+        case "strength":  return "Strength"
+        case "running":   return "Running"
+        case "cycling":   return "Cycling"
+        case "walking":   return "Walking"
+        case "hiit":      return "HIIT"
+        case "yoga":      return "Yoga"
+        case "swimming":  return "Swimming"
+        case "other":     return "Other"
+        default:          return id.capitalized
+        }
+    }
+
+    private func workoutTypeIcon(_ id: String) -> String {
+        switch id {
+        case "running":   return "figure.run"
+        case "cycling":   return "bicycle"
+        case "walking":   return "figure.walk"
+        case "hiit":      return "flame.fill"
+        case "yoga":      return "figure.mind.and.body"
+        case "swimming":  return "figure.pool.swim"
+        case "other":     return "figure.flexibility"
+        default:          return "dumbbell.fill"
+        }
+    }
+
     private var exerciseGroups: [(exercise: String, sets: [WorkoutSet])] {
         var groups: [String: [WorkoutSet]] = [:]
         var order: [String] = []
@@ -68,6 +99,19 @@ struct WorkoutDetailView: View {
                     icon: "clock",
                     title: "Duration",
                     value: "\(duration) min"
+                )
+            }
+
+            // Surface the workout type (strength / running / cycling /
+            // etc.) when set so the detail view reflects what the user
+            // picked at log time. Legacy workouts saved before the
+            // picker existed render no type row at all rather than
+            // a misleading "Strength" default.
+            if let typeID = workout.workoutType, !typeID.isEmpty {
+                StatCard(
+                    icon: workoutTypeIcon(typeID),
+                    title: "Type",
+                    value: workoutTypeLabel(typeID)
                 )
             }
 
