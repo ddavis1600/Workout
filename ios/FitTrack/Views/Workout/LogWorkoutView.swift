@@ -151,6 +151,10 @@ struct LogWorkoutView: View {
             // computed from startDate — this just tells SwiftUI to recompute.
             .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { now in
                 timerTick = now
+                // F3 — push Live Activity state updates every 5 s.
+                // The session manager gates the cadence internally;
+                // we just call it on every 1 s tick.
+                session.pushLiveActivityUpdate()
             }
             // watchManager.pendingWorkoutStop is now handled globally in
             // ContentView so that watch-initiated stops save even when this

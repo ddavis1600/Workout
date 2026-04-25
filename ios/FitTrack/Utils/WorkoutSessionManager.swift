@@ -108,6 +108,7 @@ final class WorkoutSessionManager: ObservableObject {
         startDate = .now
         heartRateService.resetSession()
         Task { await heartRateService.startMonitoring() }
+        startLiveActivity()
     }
 
     /// Start a workout pre-loaded from a saved template.
@@ -121,6 +122,37 @@ final class WorkoutSessionManager: ObservableObject {
         pendingTemplate = template
         heartRateService.resetSession()
         Task { await heartRateService.startMonitoring() }
+        startLiveActivity()
+    }
+
+    // MARK: - Live Activity (P8 F3)
+
+    /// Push a fresh ContentState to the active Live Activity. Called from
+    /// the UI's 1 s timer tick, gated on a 5 s cadence to stay within the
+    /// activity's update budget. Time itself ticks via Text(timerInterval:)
+    /// from the static startDate so we don't need to push that field.
+    @MainActor
+    func pushLiveActivityUpdate() {
+        guard isActive, !isPaused else { return }
+        let elapsed = elapsedSeconds
+        guard elapsed.isMultiple(of: 5) else { return }
+        let calories = (elapsed / 60) * 6
+        let bpm = heartRateService.currentBPM
+        LiveActivityManager.shared.updateActivity(
+            elapsedSeconds: elapsed,
+            caloriesBurned: calories,
+            heartRateBPM: bpm > 0 ? bpm : nil
+        )
+    }
+
+    @MainActor
+    private func startLiveActivity() {
+        let start = startDate ?? .now
+        LiveActivityManager.shared.startActivity(
+            workoutName: workoutName.isEmpty ? "Workout" : workoutName,
+            workoutType: workoutType,
+            startDate: start
+        )
     }
 
     func minimize() { isMinimized = true }
@@ -153,6 +185,12 @@ final class WorkoutSessionManager: ObservableObject {
 
     /// Clear all state and mark the session inactive. Call after save or discard.
     func end() {
+        // F3 — end the Live Activity with a final calorie estimate so
+        // the lock-screen banner during the brief dismissal grace
+        // period shows the same number that just landed in SwiftData.
+        let finalCalories = (elapsedSeconds / 60) * 6
+        LiveActivityManager.shared.endActivity(finalCalories: finalCalories)
+
         heartRateService.stopMonitoring()
         reset()
         isActive = false
