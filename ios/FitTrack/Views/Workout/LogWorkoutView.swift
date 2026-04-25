@@ -606,6 +606,16 @@ struct LogWorkoutView: View {
             print("Failed to save workout: \(error)")
         }
 
+        // Suppress today's workout-nudge notification — the user
+        // just logged a workout, no need to ping them at 6pm. Only
+        // applies if the toggle is on; helper short-circuits on
+        // missing notification permission.
+        if UserDefaults.standard.bool(forKey: "workoutNudgeEnabled") {
+            let hour = UserDefaults.standard.object(forKey: "workoutNudgeHour") as? Int ?? 18
+            let minute = UserDefaults.standard.object(forKey: "workoutNudgeMinute") as? Int ?? 0
+            NotificationService.suppressWorkoutNudgeForToday(hour: hour, minute: minute)
+        }
+
         // Write to Apple Health after local save succeeds.
         // requestAuthorization() is a no-op if permission was already granted;
         // first-time users see the HK system sheet. If they deny, we skip silently.
