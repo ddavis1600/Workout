@@ -6,11 +6,12 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
 
     enum Tab: String, CaseIterable {
-        case dashboard, workouts, progress, habits, weight, macros, diary, journal, heartRate, measurements, photos, settings
+        case dashboard, health, workouts, progress, habits, weight, macros, diary, journal, heartRate, measurements, photos, settings
 
         var icon: String {
             switch self {
             case .dashboard: return "house.fill"
+            case .health: return "heart.text.square.fill"
             case .workouts: return "dumbbell.fill"
             case .progress: return "chart.line.uptrend.xyaxis"
             case .habits: return "checkmark.circle.fill"
@@ -28,6 +29,7 @@ struct ContentView: View {
         var label: String {
             switch self {
             case .dashboard: return "Home"
+            case .health: return "Health"
             case .workouts: return "Workouts"
             case .progress: return "Progress"
             case .habits: return "Habits"
@@ -51,6 +53,7 @@ struct ContentView: View {
 
     // Tab visibility from UserDefaults
     @AppStorage("tab_dashboard") private var showDashboard = true
+    @AppStorage("tab_health") private var showHealth = true
     @AppStorage("tab_workouts") private var showWorkouts = true
     @AppStorage("tab_progress") private var showProgress = true
     @AppStorage("tab_habits") private var showHabits = true
@@ -64,6 +67,7 @@ struct ContentView: View {
     private var visibleTabs: [Tab] {
         var tabs: [Tab] = []
         if showDashboard { tabs.append(.dashboard) }
+        if showHealth { tabs.append(.health) }
         if showWorkouts { tabs.append(.workouts) }
         if showProgress { tabs.append(.progress) }
         if showHabits { tabs.append(.habits) }
@@ -130,6 +134,7 @@ struct ContentView: View {
     private func tabContent(for tab: Tab) -> some View {
         switch tab {
         case .dashboard: DashboardView()
+        case .health:    HealthDashboardView()
         case .workouts:  WorkoutListView()
         case .progress:  ProgressChartView()
         case .habits:    HabitsView()

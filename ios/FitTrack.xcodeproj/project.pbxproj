@@ -111,6 +111,7 @@
 		J10000000000000000000001 /* WatchConnectivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000000000000000000001 /* WatchConnectivityManager.swift */; };
 		HD1000000000000000000001 /* HealthMetric.swift in Sources */ = {isa = PBXBuildFile; fileRef = HD2000000000000000000001 /* HealthMetric.swift */; };
 		HD1000000000000000000002 /* HealthDashboardService.swift in Sources */ = {isa = PBXBuildFile; fileRef = HD2000000000000000000002 /* HealthDashboardService.swift */; };
+		HD1000000000000000000003 /* HealthDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = HD2000000000000000000003 /* HealthDashboardView.swift */; };
 		J10000000000000000000002 /* WatchSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000000000000000000002 /* WatchSessionManager.swift */; };
 /* End PBXBuildFile section */
 
@@ -236,6 +237,7 @@
 		J20000000000000000000001 /* WatchConnectivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConnectivityManager.swift; sourceTree = "<group>"; };
 		HD2000000000000000000001 /* HealthMetric.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetric.swift; sourceTree = "<group>"; };
 		HD2000000000000000000002 /* HealthDashboardService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDashboardService.swift; sourceTree = "<group>"; };
+		HD2000000000000000000003 /* HealthDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDashboardView.swift; sourceTree = "<group>"; };
 		J20000000000000000000002 /* WatchSessionManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatchSessionManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -384,6 +386,7 @@
 			children = (
 				A40000000000000000000008 /* Components */,
 				A40000000000000000000009 /* Dashboard */,
+				HD4000000000000000000001 /* HealthDashboard */,
 				A4000000000000000000000A /* Diary */,
 				C4000000000000000000000D /* Habits */,
 				E40000000000000000000001 /* HeartRate */,
@@ -416,6 +419,14 @@
 				H20000000000000000000010 /* WeeklySummaryView.swift */,
 			);
 			path = Dashboard;
+			sourceTree = "<group>";
+		};
+		HD4000000000000000000001 /* HealthDashboard */ = {
+			isa = PBXGroup;
+			children = (
+				HD2000000000000000000003 /* HealthDashboardView.swift */,
+			);
+			path = HealthDashboard;
 			sourceTree = "<group>";
 		};
 		A4000000000000000000000A /* Diary */ = {
@@ -763,6 +774,7 @@
 				J10000000000000000000001 /* WatchConnectivityManager.swift in Sources */,
 				HD1000000000000000000001 /* HealthMetric.swift in Sources */,
 				HD1000000000000000000002 /* HealthDashboardService.swift in Sources */,
+				HD1000000000000000000003 /* HealthDashboardView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
