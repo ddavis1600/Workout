@@ -21,22 +21,21 @@ class HealthKitManager {
             HKQuantityType(.activeEnergyBurned),
             HKQuantityType(.appleExerciseTime),
             HKQuantityType(.dietaryWater),
-            // Every macro that `saveFoodEntry` puts inside an
-            // HKCorrelation(.food) also needs to appear in the READ
-            // set. HealthKit's auth sheet treats a correlation as a
-            // composite — if any of its constituent sample types is
-            // missing from reads, iOS won't register the correlation
-            // type at all. That's why Daniel's earlier v2 re-auth
-            // left `.food` at `.notDetermined` and `deleteFoodEntry`
-            // kept crashing with "Authorization to read … is
-            // disallowed: HKCorrelationTypeIdentifierFood".
+            // Macros are written + read as individual HKQuantitySamples
+            // (no HKCorrelation wrapper anymore — see saveFoodEntry).
+            // Each sample is tagged with `kFitTrackDiaryEntryIDKey`
+            // metadata so deleteFoodEntry can find them by predicate
+            // without ever touching HKCorrelationType.food, whose auth
+            // status iOS leaves at .notDetermined indefinitely for any
+            // user whose original grant predated the type — an
+            // unrecoverable crash for `deleteFoodEntry`'s correlation
+            // query.
             HKQuantityType(.dietaryEnergyConsumed),
             HKQuantityType(.dietaryProtein),
             HKQuantityType(.dietaryCarbohydrates),
             HKQuantityType(.dietaryFatTotal),
             HKQuantityType(.dietaryFiber),
             HKWorkoutType.workoutType(),
-            HKCorrelationType(.food),
         ]
         if let mindful = HKObjectType.categoryType(forIdentifier: .mindfulSession) {
             types.insert(mindful)
@@ -47,19 +46,24 @@ class HealthKitManager {
         return types
     }
 
+    /// Metadata key the macro samples carry so `deleteFoodEntry` can
+    /// find them later. Stored as the diary entry's UUID string. The
+    /// constant lives at the top so both save and delete paths see
+    /// the same key.
+    private static let kFitTrackDiaryEntryIDKey = "FitTrackDiaryEntryID"
+
     func requestAuthorization() async -> Bool {
         guard isAvailable else { return false }
-        // HKCorrelationType is deliberately NOT in shareTypes. HealthKit
-        // throws an uncaught NSInvalidArgumentException —
-        //   "Authorization to share the following types is disallowed:
-        //    HKCorrelationTypeIdentifierFood"
-        // — the moment `requestAuthorization(toShare:read:)` sees a
-        // correlation type in its share set. Apple only allows sharing
-        // the underlying sample types; `saveFoodEntry` builds the
-        // HKCorrelation from its contained HKQuantitySamples at write
-        // time, which HealthKit accepts because each sample's type is
-        // individually shareable. Reads are separately allowed and the
-        // correlation type lives in `allReadTypes`.
+        // No HKCorrelationType in either the share or the read set
+        // anymore. The food-diary writeback used to bundle macros into
+        // an HKCorrelation(.food); we now save individual quantity
+        // samples tagged with metadata. The correlation type's auth
+        // status is gated on every constituent's per-user decision —
+        // once iOS has recorded a `denied` for any constituent (going
+        // back to a prior app version), the correlation stays at
+        // `.notDetermined` indefinitely and any query against it
+        // throws an uncatchable NSInvalidArgumentException. Avoiding
+        // the type entirely sidesteps the unrecoverable state.
         let shareTypes: Set<HKSampleType> = [
             HKQuantityType(.bodyMass),
             HKQuantityType(.dietaryWater),
@@ -94,27 +98,33 @@ class HealthKitManager {
     ///        activeEnergyBurned, appleExerciseTime, dietaryWater,
     ///        workoutType, mindfulSession, sleepAnalysis.
     ///   v2 — adds dietaryProtein/Carbs/Fat reads + HKCorrelationType(.food)
-    ///        + matching share types for food-diary writeback. **Was
-    ///        broken in practice**: HealthKit treats a correlation as a
-    ///        composite — every constituent sample type must be in the
-    ///        read set or iOS silently drops the correlation from the
-    ///        auth sheet. v2's read set was missing dietaryEnergyConsumed
-    ///        and dietaryFiber (which `saveFoodEntry` packs into the
-    ///        correlation), so the sheet never registered `.food` and
-    ///        existing users kept crashing in `deleteFoodEntry`.
-    ///   v3 — **current**: adds the missing dietaryEnergyConsumed and
-    ///        dietaryFiber reads. With every constituent of the food
-    ///        correlation now in the read set, iOS will surface `.food`
-    ///        in the v3 re-auth sheet and the user's decision finally
-    ///        gets recorded. Bumping the bundle version forces v2 users
-    ///        to flow through the sheet one more time — they only see
-    ///        the previously missing two macros + the correlation.
+    ///        + matching share types for food-diary writeback. **Broken
+    ///        in practice**: a correlation's auth presentation requires
+    ///        every constituent sample type in the read set. v2 was
+    ///        missing dietaryEnergyConsumed + dietaryFiber, so iOS never
+    ///        surfaced `.food` and queries kept crashing.
+    ///   v3 — adds the missing constituents. **Still broken**: even with
+    ///        every constituent in reads, iOS leaves `.food` at
+    ///        `.notDetermined` indefinitely for any user whose prior
+    ///        grant recorded a `denied` on any constituent. There's no
+    ///        recovery path within the auth system.
+    ///   v4 — **current**: removes HKCorrelationType(.food) from the read
+    ///        set entirely. The food-diary writeback is refactored to
+    ///        save individual macro `HKQuantitySample`s tagged with a
+    ///        `FitTrackDiaryEntryID` metadata key. `deleteFoodEntry`
+    ///        finds them by metadata predicate without touching any
+    ///        correlation type. Smaller bundle, no unrecoverable
+    ///        permission states. Existing v3 users get one more pass
+    ///        through the auth sheet — iOS won't actually re-prompt
+    ///        anything since the new bundle is a strict subset of v3,
+    ///        but the `requestAuthorization` call is still required to
+    ///        bump the stored version.
     ///
     /// When future read-set expansions happen, change the constant here
     /// and every install that opens the app gets exactly one re-auth
     /// sheet covering only the newly added types. Existing decisions
     /// are preserved.
-    static let currentAuthBundleVersion = 3
+    static let currentAuthBundleVersion = 4
 
     private static let bundleVersionKey = "hkAuthBundleVersion"
 
@@ -471,8 +481,37 @@ class HealthKitManager {
 
     // MARK: - Food Diary
 
-    /// Saves a food diary entry as an HKCorrelation of type .food containing individual macro samples.
-    /// Returns the correlation UUID, which should be stored on DiaryEntry.healthKitCorrelationID.
+    /// HealthKit-backed quantity types we save for a food diary entry.
+    /// Used by both save and delete paths so they stay in sync.
+    private static let foodMacroTypes: [(HKQuantityTypeIdentifier, HKUnit)] = [
+        (.dietaryEnergyConsumed, .kilocalorie()),
+        (.dietaryProtein,        .gram()),
+        (.dietaryCarbohydrates,  .gram()),
+        (.dietaryFatTotal,       .gram()),
+        (.dietaryFiber,          .gram()),
+    ]
+
+    /// Saves a food diary entry as a set of individual `HKQuantitySample`s,
+    /// one per non-zero macro. Returns a stable UUID the caller persists
+    /// on `DiaryEntry.healthKitCorrelationID` (the field name is now a
+    /// historical misnomer — kept to avoid a model migration; the value
+    /// is no longer a correlation UUID, just our own per-entry key).
+    ///
+    /// **No HKCorrelation involved.** The previous implementation wrapped
+    /// the macros in `HKCorrelation(.food)` so Apple Health grouped them
+    /// as a meal, but the correlation type's auth status is gated on
+    /// every constituent sample type's per-user decision — and once iOS
+    /// has recorded a `denied` for any constituent (going back to a prior
+    /// app version), the correlation stays at `.notDetermined` forever.
+    /// `deleteFoodEntry`'s sample query against `.food` then throws
+    /// `NSInvalidArgumentException("Authorization to read … is
+    /// disallowed: HKCorrelationTypeIdentifierFood")`, an uncatchable
+    /// ObjC exception that crashes the app at every diary edit.
+    ///
+    /// The trade-off: Apple Health no longer shows the macros as a single
+    /// "meal" entry, just five separate dietary-energy / protein / carb /
+    /// fat / fiber samples for the same timestamp. The macros still
+    /// contribute correctly to the day's totals.
     @discardableResult
     func saveFoodEntry(
         date: Date,
@@ -485,39 +524,46 @@ class HealthKitManager {
         fiber: Double
     ) async -> UUID? {
         guard isAvailable else { return nil }
-        // Ensure auth for v2 types (macros + food correlation) is settled
-        // before HealthKit touches the correlation machinery. Idempotent —
-        // a user who's already on v2 falls through immediately.
         await ensureAuthorizationCurrent()
 
-        var samples: [HKQuantitySample] = []
+        let entryID = UUID()
+        // Metadata travels with each sample so `deleteFoodEntry` can find
+        // the whole set later via `HKQuery.predicateForObjects(withMetadataKey:)`.
+        // HKMetadataKeyFoodType + HKMealSlot are kept for users who view
+        // the entry in Apple Health — informational only.
+        let metadata: [String: Any] = [
+            Self.kFitTrackDiaryEntryIDKey: entryID.uuidString,
+            HKMetadataKeyFoodType: foodName,
+            "HKMealSlot": mealType,
+        ]
 
-        let typeValuePairs: [(HKQuantityTypeIdentifier, HKUnit, Double)] = [
+        let values: [(HKQuantityTypeIdentifier, HKUnit, Double)] = [
             (.dietaryEnergyConsumed, .kilocalorie(), calories),
             (.dietaryProtein,        .gram(),         protein),
             (.dietaryCarbohydrates,  .gram(),         carbs),
             (.dietaryFatTotal,       .gram(),         fat),
             (.dietaryFiber,          .gram(),         fiber),
         ]
-        for (identifier, unit, value) in typeValuePairs where value > 0 {
+        var samples: [HKQuantitySample] = []
+        for (identifier, unit, value) in values where value > 0 {
             let qty = HKQuantity(unit: unit, doubleValue: value)
-            samples.append(HKQuantitySample(type: HKQuantityType(identifier), quantity: qty, start: date, end: date))
+            samples.append(
+                HKQuantitySample(
+                    type: HKQuantityType(identifier),
+                    quantity: qty,
+                    start: date,
+                    end: date,
+                    metadata: metadata
+                )
+            )
         }
-
         guard !samples.isEmpty else { return nil }
 
-        let correlation = HKCorrelation(
-            type: HKCorrelationType(.food),
-            start: date,
-            end: date,
-            objects: Set(samples),
-            metadata: [HKMetadataKeyFoodType: foodName, "HKMealSlot": mealType]
-        )
         do {
-            try await healthStore.save(correlation)
-            return correlation.uuid
+            try await healthStore.save(samples)
+            return entryID
         } catch {
-            print("[HealthKit] Failed to save food correlation: \(error)")
+            print("[HealthKit] Failed to save food samples: \(error)")
             return nil
         }
     }
@@ -540,32 +586,46 @@ class HealthKitManager {
         )
     }
 
+    /// Deletes the macro samples saved by `saveFoodEntry` for the given
+    /// entry ID. **Never touches HKCorrelationType** — works entirely
+    /// through quantity-sample queries gated by metadata.
+    ///
+    /// Backward-compat caveat: entries saved by the previous correlation-
+    /// based version stored an actual `HKCorrelation.uuid` in
+    /// `DiaryEntry.healthKitCorrelationID`. Those samples don't carry our
+    /// metadata key, so this function silently fails to find them and
+    /// leaves the orphaned correlation in Apple Health. Acceptable trade
+    /// — the alternative is the app crashing every time the user edits
+    /// any diary entry. Users can clean up old orphan rows in the Health
+    /// app if it bothers them.
     func deleteFoodEntry(correlationID: UUID) async {
         guard isAvailable else { return }
-        // THE crash vector on v1 users before this fix. Without the ensure
-        // call, the HKSampleQueryDescriptor below throws
-        //   NSInvalidArgumentException("Authorization to read the
-        //   following types is disallowed: HKCorrelationTypeIdentifierFood")
-        // because iOS never collected a per-type decision for .food on
-        // that user's auth grant. `ensureAuthorizationCurrent` forces the
-        // v2 auth sheet, which materializes the .food decision before we
-        // touch the query.
         await ensureAuthorizationCurrent()
 
-        // After the ensure call, `.food` has either been authorized (query
-        // works) or denied (query returns no results, no throw). Either
-        // outcome is safe.
-        let predicate = HKQuery.predicateForObject(with: correlationID)
-        let descriptor = HKSampleQueryDescriptor(
-            predicates: [.correlation(type: HKCorrelationType(.food), predicate: predicate)],
-            sortDescriptors: []
+        let predicate = HKQuery.predicateForObjects(
+            withMetadataKey: Self.kFitTrackDiaryEntryIDKey,
+            operatorType: .equalTo,
+            value: correlationID.uuidString
         )
+
+        var allSamples: [HKQuantitySample] = []
+        for (identifier, _) in Self.foodMacroTypes {
+            let descriptor = HKSampleQueryDescriptor(
+                predicates: [.quantitySample(type: HKQuantityType(identifier), predicate: predicate)],
+                sortDescriptors: []
+            )
+            do {
+                let results = try await descriptor.result(for: healthStore)
+                allSamples.append(contentsOf: results)
+            } catch {
+                print("[HealthKit] Failed to query \(identifier) for delete: \(error)")
+            }
+        }
+        guard !allSamples.isEmpty else { return }
         do {
-            let results = try await descriptor.result(for: healthStore)
-            guard let correlation = results.first else { return }
-            try await healthStore.delete(correlation)
+            try await healthStore.delete(allSamples)
         } catch {
-            print("[HealthKit] Failed to delete food correlation: \(error)")
+            print("[HealthKit] Failed to delete food samples: \(error)")
         }
     }
 }
