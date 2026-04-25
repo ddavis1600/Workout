@@ -110,6 +110,7 @@
 		I10000000000000000000004 /* PRHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = I20000000000000000000004 /* PRHistoryView.swift */; };
 		J10000000000000000000001 /* WatchConnectivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000000000000000000001 /* WatchConnectivityManager.swift */; };
 		HD1000000000000000000001 /* HealthMetric.swift in Sources */ = {isa = PBXBuildFile; fileRef = HD2000000000000000000001 /* HealthMetric.swift */; };
+		HD1000000000000000000002 /* HealthDashboardService.swift in Sources */ = {isa = PBXBuildFile; fileRef = HD2000000000000000000002 /* HealthDashboardService.swift */; };
 		J10000000000000000000002 /* WatchSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000000000000000000002 /* WatchSessionManager.swift */; };
 /* End PBXBuildFile section */
 
@@ -234,6 +235,7 @@
 		I20000000000000000000004 /* PRHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PRHistoryView.swift; sourceTree = "<group>"; };
 		J20000000000000000000001 /* WatchConnectivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConnectivityManager.swift; sourceTree = "<group>"; };
 		HD2000000000000000000001 /* HealthMetric.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetric.swift; sourceTree = "<group>"; };
+		HD2000000000000000000002 /* HealthDashboardService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDashboardService.swift; sourceTree = "<group>"; };
 		J20000000000000000000002 /* WatchSessionManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatchSessionManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -355,6 +357,7 @@
 				D10000000000000000000001 /* FoodAPIService.swift */,
 				C20000000000000000000006 /* HealthKitManager.swift */,
 				HD2000000000000000000001 /* HealthMetric.swift */,
+				HD2000000000000000000002 /* HealthDashboardService.swift */,
 				F20000000000000000000001 /* HeartRateService.swift */,
 				A2000000000000000000000B /* MacroCalculator.swift */,
 				H20000000000000000000011 /* NotificationService.swift */,
@@ -759,6 +762,7 @@
 				I10000000000000000000004 /* PRHistoryView.swift in Sources */,
 				J10000000000000000000001 /* WatchConnectivityManager.swift in Sources */,
 				HD1000000000000000000001 /* HealthMetric.swift in Sources */,
+				HD1000000000000000000002 /* HealthDashboardService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
