@@ -153,22 +153,37 @@ struct DiaryView: View {
     }
 
     private func saveMealPhoto(mealType: String, image: UIImage) {
+        // Off-main encode + disk write (audit M2). The previous code did
+        // jpegData() (80–200 ms hitch) + createDirectory + write all on
+        // main, overlapping the camera-dismiss animation. The async
+        // path lets the dismiss complete cleanly while compression and
+        // I/O run in a detached userInitiated Task. Token bump still
+        // happens on main after the write finishes so MealSectionView
+        // reloads.
         let key = mealPhotoKey(mealType: mealType)
-        let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("MealPhotos", isDirectory: true)
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        if let jpeg = image.jpegData(compressionQuality: 0.75) {
-            try? jpeg.write(to: dir.appendingPathComponent(key))
+        Task {
+            guard let jpeg = await ImageCompression.compressedJPEG(from: image) else { return }
+            await Task.detached(priority: .userInitiated) {
+                let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                    .appendingPathComponent("MealPhotos", isDirectory: true)
+                try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+                try? jpeg.write(to: dir.appendingPathComponent(key))
+            }.value
+            mealPhotoTokens[mealType] = UUID()
         }
-        mealPhotoTokens[mealType] = UUID()
     }
 
     private func deleteMealPhoto(mealType: String) {
+        // Fire-and-forget detached Task — sub-millisecond removal isn't
+        // user-visible, and the caller doesn't need to wait. Token
+        // bump fires immediately so the UI updates ahead of the I/O.
         let key = mealPhotoKey(mealType: mealType)
-        let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("MealPhotos")
-            .appendingPathComponent(key)
-        try? FileManager.default.removeItem(at: url)
+        Task.detached(priority: .utility) {
+            let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                .appendingPathComponent("MealPhotos")
+                .appendingPathComponent(key)
+            try? FileManager.default.removeItem(at: url)
+        }
         mealPhotoTokens[mealType] = UUID()
     }
 

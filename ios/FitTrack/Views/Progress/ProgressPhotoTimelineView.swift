@@ -185,11 +185,9 @@ struct AddProgressPhotoSheet: View {
                             }
                             .onChange(of: photoPickerItem) { _, newItem in
                                 Task {
-                                    if let data = try? await newItem?.loadTransferable(type: Data.self),
-                                       let ui = UIImage(data: data),
-                                       let jpeg = ui.jpegData(compressionQuality: 0.8) {
-                                        selectedImageData = jpeg
-                                    }
+                                    guard let data = try? await newItem?.loadTransferable(type: Data.self) else { return }
+                                    // Off-main downscale + JPEG encode (audit M2).
+                                    selectedImageData = await ImageCompression.compressedJPEG(from: data)
                                 }
                             }
 
@@ -243,8 +241,9 @@ struct AddProgressPhotoSheet: View {
             }
             .sheet(isPresented: $showingCamera) {
                 MealCameraView { image in
-                    if let jpeg = image.jpegData(compressionQuality: 0.8) {
-                        selectedImageData = jpeg
+                    Task {
+                        // Off-main downscale + JPEG encode (audit M2).
+                        selectedImageData = await ImageCompression.compressedJPEG(from: image)
                     }
                 }
             }

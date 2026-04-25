@@ -157,14 +157,12 @@ struct LogWorkoutView: View {
             // view isn't mounted (minimized / different tab).
             .onChange(of: selectedPhotoItem) { _, newItem in
                 Task {
-                    if let data = try? await newItem?.loadTransferable(type: Data.self) {
-                        if let uiImage = UIImage(data: data),
-                           let compressed = uiImage.jpegData(compressionQuality: 0.7) {
-                            session.selectedPhotoData = compressed
-                        } else {
-                            session.selectedPhotoData = data
-                        }
-                    }
+                    guard let data = try? await newItem?.loadTransferable(type: Data.self) else { return }
+                    // Off-main downscale + JPEG encode (audit M2). Was
+                    // `UIImage(data:).jpegData(...)` on the main actor —
+                    // 80–200 ms hitch on a 12 MP capture, visible as
+                    // PhotosPicker-dismiss jank.
+                    session.selectedPhotoData = await ImageCompression.compressedJPEG(from: data) ?? data
                 }
             }
         }

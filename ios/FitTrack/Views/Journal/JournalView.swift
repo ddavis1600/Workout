@@ -339,14 +339,9 @@ struct NewJournalEntryView: View {
             }
             .onChange(of: selectedPhotoItem) { _, newItem in
                 Task {
-                    if let data = try? await newItem?.loadTransferable(type: Data.self) {
-                        if let uiImage = UIImage(data: data),
-                           let compressed = uiImage.jpegData(compressionQuality: 0.7) {
-                            photoData = compressed
-                        } else {
-                            photoData = data
-                        }
-                    }
+                    guard let data = try? await newItem?.loadTransferable(type: Data.self) else { return }
+                    // Off-main downscale + JPEG encode (audit M2).
+                    photoData = await ImageCompression.compressedJPEG(from: data) ?? data
                 }
             }
         }
