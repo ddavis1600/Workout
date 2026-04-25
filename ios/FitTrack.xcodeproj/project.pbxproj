@@ -112,6 +112,9 @@
 		HD1000000000000000000001 /* HealthMetric.swift in Sources */ = {isa = PBXBuildFile; fileRef = HD2000000000000000000001 /* HealthMetric.swift */; };
 		HD1000000000000000000002 /* HealthDashboardService.swift in Sources */ = {isa = PBXBuildFile; fileRef = HD2000000000000000000002 /* HealthDashboardService.swift */; };
 		HD1000000000000000000003 /* HealthDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = HD2000000000000000000003 /* HealthDashboardView.swift */; };
+		HD1000000000000000000004 /* TierSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = HD2000000000000000000004 /* TierSection.swift */; };
+		HD1000000000000000000005 /* MetricCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = HD2000000000000000000005 /* MetricCard.swift */; };
+		HD1000000000000000000006 /* MetricDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = HD2000000000000000000006 /* MetricDetailSheet.swift */; };
 		J10000000000000000000002 /* WatchSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = J20000000000000000000002 /* WatchSessionManager.swift */; };
 /* End PBXBuildFile section */
 
@@ -238,6 +241,9 @@
 		HD2000000000000000000001 /* HealthMetric.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetric.swift; sourceTree = "<group>"; };
 		HD2000000000000000000002 /* HealthDashboardService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDashboardService.swift; sourceTree = "<group>"; };
 		HD2000000000000000000003 /* HealthDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDashboardView.swift; sourceTree = "<group>"; };
+		HD2000000000000000000004 /* TierSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TierSection.swift; sourceTree = "<group>"; };
+		HD2000000000000000000005 /* MetricCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricCard.swift; sourceTree = "<group>"; };
+		HD2000000000000000000006 /* MetricDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricDetailSheet.swift; sourceTree = "<group>"; };
 		J20000000000000000000002 /* WatchSessionManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatchSessionManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -425,6 +431,9 @@
 			isa = PBXGroup;
 			children = (
 				HD2000000000000000000003 /* HealthDashboardView.swift */,
+				HD2000000000000000000004 /* TierSection.swift */,
+				HD2000000000000000000005 /* MetricCard.swift */,
+				HD2000000000000000000006 /* MetricDetailSheet.swift */,
 			);
 			path = HealthDashboard;
 			sourceTree = "<group>";
@@ -775,6 +784,9 @@
 				HD1000000000000000000001 /* HealthMetric.swift in Sources */,
 				HD1000000000000000000002 /* HealthDashboardService.swift in Sources */,
 				HD1000000000000000000003 /* HealthDashboardView.swift in Sources */,
+				HD1000000000000000000004 /* TierSection.swift in Sources */,
+				HD1000000000000000000005 /* MetricCard.swift in Sources */,
+				HD1000000000000000000006 /* MetricDetailSheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

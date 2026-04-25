@@ -1,23 +1,27 @@
 import SwiftUI
 
-// Phase A entry-point view. The tier sections, metric cards, and chart
-// rendering land in subsequent commits; this commit wires the tab into
-// ContentView and stands up the auth + refresh lifecycle so the rest
-// of the dashboard can layer on without changing the entry point.
+// Phase A entry-point. Renders the three tier sections; Tier 1 holds
+// the four MVP metric cards (sleep, resting HR, steps, weight),
+// Tiers 2/3 are header-only placeholders for Phase B.
+//
+// Empty-card policy: cards self-hide when their MetricSummary lacks
+// a latest sample. On the very first launch — before HK auth has been
+// requested — Tier 1 shows a single AuthHandshakeCard that fires the
+// batched authorization. After auth has been requested at least once,
+// the strict hide-when-no-data rule applies (no lock CTAs, no nags).
 struct HealthDashboardView: View {
     private let service = HealthDashboardService.shared
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 16) {
-                    Text("Health dashboard")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                        .padding(.top, 32)
+                LazyVStack(alignment: .leading, spacing: 24) {
+                    coreVitalsSection
+                    fitnessSection
+                    wellnessSection
                 }
-                .frame(maxWidth: .infinity)
-                .padding()
+                .padding(16)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
             .background(Color.slateBackground)
             .navigationTitle("Health")
@@ -26,6 +30,88 @@ struct HealthDashboardView: View {
                 await service.refreshIfStale()
             }
         }
+    }
+
+    // MARK: Tier 1 — Core Vitals
+
+    private var coreVitalsSection: some View {
+        TierSection(tier: .coreVitals, icon: "cross.case.fill", hasContent: tier1HasContent) {
+            VStack(spacing: 12) {
+                if shouldShowAuthHandshake {
+                    AuthHandshakeCard {
+                        Task {
+                            await service.requestAuthorizationIfNeeded()
+                            await service.refresh()
+                        }
+                    }
+                }
+                ForEach(coreVitalsCards) { summary in
+                    MetricCard(summary: summary)
+                }
+            }
+        }
+    }
+
+    private var fitnessSection: some View {
+        TierSection(tier: .fitness, icon: "figure.run", hasContent: false) { EmptyView() }
+    }
+
+    private var wellnessSection: some View {
+        TierSection(tier: .wellness, icon: "leaf.fill", hasContent: false) { EmptyView() }
+    }
+
+    // MARK: Filtering
+
+    private var coreVitalsCards: [MetricSummary] {
+        HealthMetric.all
+            .filter { $0.tier == .coreVitals }
+            .compactMap { service.summaries[$0.id] }
+            .filter { $0.hasData }
+    }
+
+    private var shouldShowAuthHandshake: Bool {
+        // Show only when we've never asked AND no metric has any data.
+        // Once auth has been asked once (granted or denied), the strict
+        // hide-when-no-data rule takes over.
+        !service.hasRequestedAuth && coreVitalsCards.isEmpty
+    }
+
+    private var tier1HasContent: Bool {
+        shouldShowAuthHandshake || !coreVitalsCards.isEmpty
+    }
+}
+
+// MARK: - Auth handshake card
+
+// First-launch placeholder. Once `hasRequestedDashboardAuth` is set,
+// it never appears again — even on deny. The user explicitly opted out
+// of lock-CTA / re-prompt nags.
+private struct AuthHandshakeCard: View {
+    let onConnect: () -> Void
+
+    var body: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "heart.text.square.fill")
+                .font(.system(size: 40))
+                .foregroundStyle(Color.emerald)
+            Text("Connect Apple Health")
+                .font(.headline)
+            Text("See your sleep, resting heart rate, steps, and weight at a glance.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+            Button(action: onConnect) {
+                Text("Connect")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(Color.emerald)
+            .padding(.top, 4)
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity)
+        .background(Color.slateCard)
+        .cornerRadius(12)
     }
 }
 
