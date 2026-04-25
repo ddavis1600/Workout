@@ -39,18 +39,21 @@ struct WorkoutListView: View {
                             Image(systemName: "doc.on.doc")
                                 .foregroundStyle(Color.emerald)
                         }
+                        .accessibilityLabel("Workout templates")
                         Button {
                             showingPRHistory = true
                         } label: {
                             Image(systemName: "trophy.fill")
                                 .foregroundStyle(.yellow)
                         }
+                        .accessibilityLabel("Personal records")
                         Button {
                             showingProgress = true
                         } label: {
                             Image(systemName: "chart.line.uptrend.xyaxis")
                                 .foregroundStyle(Color.emerald)
                         }
+                        .accessibilityLabel("Progress chart")
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
@@ -60,6 +63,7 @@ struct WorkoutListView: View {
                         Image(systemName: "plus")
                             .foregroundStyle(Color.emerald)
                     }
+                    .accessibilityLabel("Start workout")
                 }
             }
             // LogWorkoutView is presented globally in ContentView (driven

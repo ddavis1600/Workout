@@ -91,6 +91,7 @@ struct HeartRateView: View {
                         Image(systemName: "gearshape")
                             .foregroundColor(.slateText)
                     }
+                    .accessibilityLabel("Heart rate zone settings")
                 }
                 // The Age field uses .numberPad — there's no Return / Done key
                 // on that keyboard, so without this toolbar the user has no

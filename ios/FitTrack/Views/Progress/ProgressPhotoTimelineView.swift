@@ -41,6 +41,7 @@ struct ProgressPhotoTimelineView: View {
                         Image(systemName: "plus")
                             .foregroundStyle(Color.emerald)
                     }
+                    .accessibilityLabel("Add progress photo")
                 }
             }
             .sheet(isPresented: $showingAddSheet) {

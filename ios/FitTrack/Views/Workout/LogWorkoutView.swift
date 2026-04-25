@@ -116,6 +116,7 @@ struct LogWorkoutView: View {
                             .font(.title3)
                             .foregroundStyle(Color.slateText)
                     }
+                    .accessibilityLabel("Minimize workout")
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Save") {
