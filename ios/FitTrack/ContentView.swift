@@ -8,17 +8,20 @@ struct ContentView: View {
     private var unitSystem: String { userProfiles.first?.unitSystem ?? "imperial" }
 
     enum Tab: String, CaseIterable {
-        case dashboard, workouts, habits, weight, diary, journal, heartRate, measurements, photos, settings
+        case dashboard, health, workouts, progress, habits, weight, macros, diary, journal, heartRate, measurements, photos, settings
 
         var icon: String {
             switch self {
-            case .dashboard:    return "house.fill"
-            case .workouts:     return "dumbbell.fill"
-            case .habits:       return "checkmark.circle.fill"
-            case .weight:       return "scalemass.fill"
-            case .diary:        return "book.fill"
-            case .journal:      return "book.closed.fill"
-            case .heartRate:    return "heart.fill"
+            case .dashboard: return "house.fill"
+            case .health: return "heart.text.square.fill"
+            case .workouts: return "dumbbell.fill"
+            case .progress: return "chart.line.uptrend.xyaxis"
+            case .habits: return "checkmark.circle.fill"
+            case .weight: return "scalemass.fill"
+            case .macros: return "chart.pie.fill"
+            case .diary: return "book.fill"
+            case .journal: return "book.closed.fill"
+            case .heartRate: return "heart.fill"
             case .measurements: return "ruler"
             case .photos:       return "photo.on.rectangle.angled"
             case .settings:     return "gearshape.fill"
@@ -27,13 +30,16 @@ struct ContentView: View {
 
         var label: String {
             switch self {
-            case .dashboard:    return "Home"
-            case .workouts:     return "Workouts"
-            case .habits:       return "Habits"
-            case .weight:       return "Weight"
-            case .diary:        return "Diary"
-            case .journal:      return "Journal"
-            case .heartRate:    return "Heart"
+            case .dashboard: return "Home"
+            case .health: return "Health"
+            case .workouts: return "Workouts"
+            case .progress: return "Progress"
+            case .habits: return "Habits"
+            case .weight: return "Weight"
+            case .macros: return "Macros"
+            case .diary: return "Diary"
+            case .journal: return "Journal"
+            case .heartRate: return "Heart"
             case .measurements: return "Measure"
             case .photos:       return "Photos"
             case .settings:     return "Settings"
@@ -52,25 +58,31 @@ struct ContentView: View {
     @ObservedObject private var session = WorkoutSessionManager.shared
 
     // Tab visibility from UserDefaults
-    @AppStorage("tab_dashboard")    private var showDashboard    = true
-    @AppStorage("tab_workouts")     private var showWorkouts     = true
-    @AppStorage("tab_habits")       private var showHabits       = true
-    @AppStorage("tab_weight")       private var showWeight       = true
-    @AppStorage("tab_diary")        private var showDiary        = true
-    @AppStorage("tab_journal")      private var showJournal      = true
-    @AppStorage("tab_heartRate")    private var showHeartRate    = true
+    @AppStorage("tab_dashboard") private var showDashboard = true
+    @AppStorage("tab_health") private var showHealth = true
+    @AppStorage("tab_workouts") private var showWorkouts = true
+    @AppStorage("tab_progress") private var showProgress = true
+    @AppStorage("tab_habits") private var showHabits = true
+    @AppStorage("tab_weight") private var showWeight = true
+    @AppStorage("tab_macros") private var showMacros = true
+    @AppStorage("tab_diary") private var showDiary = true
+    @AppStorage("tab_journal") private var showJournal = true
+    @AppStorage("tab_heartRate") private var showHeartRate = true
     @AppStorage("tab_measurements") private var showMeasurements = true
     @AppStorage("tab_photos")       private var showPhotos       = true
 
     private var visibleTabs: [Tab] {
         var tabs: [Tab] = []
-        if showDashboard    { tabs.append(.dashboard) }
-        if showWorkouts     { tabs.append(.workouts) }
-        if showHabits       { tabs.append(.habits) }
-        if showWeight       { tabs.append(.weight) }
-        if showDiary        { tabs.append(.diary) }
-        if showJournal      { tabs.append(.journal) }
-        if showHeartRate    { tabs.append(.heartRate) }
+        if showDashboard { tabs.append(.dashboard) }
+        if showHealth { tabs.append(.health) }
+        if showWorkouts { tabs.append(.workouts) }
+        if showProgress { tabs.append(.progress) }
+        if showHabits { tabs.append(.habits) }
+        if showWeight { tabs.append(.weight) }
+        if showMacros { tabs.append(.macros) }
+        if showDiary { tabs.append(.diary) }
+        if showJournal { tabs.append(.journal) }
+        if showHeartRate { tabs.append(.heartRate) }
         if showMeasurements { tabs.append(.measurements) }
         if showPhotos       { tabs.append(.photos) }
         tabs.append(.settings)
@@ -212,13 +224,16 @@ struct ContentView: View {
     @ViewBuilder
     private func tabContent(for tab: Tab) -> some View {
         switch tab {
-        case .dashboard:    DashboardView()
-        case .workouts:     WorkoutListView()
-        case .habits:       HabitsView()
-        case .weight:       WeightTrackingView()
-        case .diary:        DiaryView()
-        case .journal:      JournalView()
-        case .heartRate:    HeartRateView()
+        case .dashboard: DashboardView()
+        case .health:    HealthDashboardView()
+        case .workouts:  WorkoutListView()
+        case .progress:  ProgressChartView()
+        case .habits:    HabitsView()
+        case .weight:    WeightTrackingView()
+        case .macros:    MacrosView()
+        case .diary:     DiaryView()
+        case .journal:   JournalView()
+        case .heartRate: HeartRateView()
         case .measurements: BodyMeasurementsView()
         case .photos:       ProgressPhotoTimelineView()
         case .settings:     SettingsView()
