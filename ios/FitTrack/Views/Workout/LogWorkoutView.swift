@@ -606,6 +606,10 @@ struct LogWorkoutView: View {
             print("Failed to save workout: \(error)")
         }
 
+        // Refresh the Home Screen widgets — "Today's Workout" reads the
+        // most recent same-day entry from the App Group snapshot.
+        WidgetSnapshot.refresh(from: modelContext)
+
         // Write to Apple Health after local save succeeds.
         // requestAuthorization() is a no-op if permission was already granted;
         // first-time users see the HK system sheet. If they deny, we skip silently.

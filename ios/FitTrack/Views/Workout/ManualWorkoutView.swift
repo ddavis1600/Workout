@@ -253,6 +253,10 @@ struct ManualWorkoutView: View {
             print("[ManualWorkoutView] save failed: \(error)")
         }
 
+        // Refresh the Home Screen widgets so a manually-entered workout
+        // for today shows up immediately.
+        WidgetSnapshot.refresh(from: modelContext)
+
         // Deliberately NOT calling HealthKitManager.saveWorkoutToHealth —
         // backdated manual entries would write bogus timestamps into
         // Apple Health. If the user actually performed this workout and
