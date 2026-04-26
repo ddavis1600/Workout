@@ -297,6 +297,15 @@ class HealthKitManager {
                 }
             }
         }
+
+        // Invalidate workout-affected dashboard cards (steps,
+        // active energy, exercise minutes, energy balance). The
+        // continuation above settles when the workout has been
+        // committed to HK; running invalidate after it ensures
+        // the refetched cache reads the new data.
+        await MainActor.run {
+            HealthDashboardService.shared.invalidate(after: .workout)
+        }
     }
 
     // MARK: - Weight
@@ -308,6 +317,11 @@ class HealthKitManager {
         let sample = HKQuantitySample(type: weightType, quantity: quantity, start: date, end: date)
         do {
             try await healthStore.save(sample)
+            // Refresh the Weight dashboard card so the new entry
+            // appears without waiting for the 5-min TTL.
+            await MainActor.run {
+                HealthDashboardService.shared.invalidate(after: .weight)
+            }
         } catch {
             print("Failed to save weight to HealthKit: \(error)")
         }
@@ -372,6 +386,9 @@ class HealthKitManager {
         )
         do {
             try await healthStore.save(sample)
+            await MainActor.run {
+                HealthDashboardService.shared.invalidate(after: .mindful)
+            }
         } catch {
             print("Failed to save mindful session to HealthKit: \(error)")
         }
@@ -386,6 +403,9 @@ class HealthKitManager {
         let sample = HKQuantitySample(type: waterType, quantity: quantity, start: date, end: date)
         do {
             try await healthStore.save(sample)
+            await MainActor.run {
+                HealthDashboardService.shared.invalidate(after: .water)
+            }
         } catch {
             print("Failed to save water to HealthKit: \(error)")
         }
@@ -707,6 +727,9 @@ class HealthKitManager {
 
         do {
             try await healthStore.save(samples)
+            await MainActor.run {
+                HealthDashboardService.shared.invalidate(after: .food)
+            }
             return entryID
         } catch {
             print("[HealthKit] Failed to save food samples: \(error)")

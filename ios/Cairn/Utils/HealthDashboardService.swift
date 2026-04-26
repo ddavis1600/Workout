@@ -172,6 +172,67 @@ final class HealthDashboardService {
         await Self.fetchSummary(for: metric, overrideDays: days).series
     }
 
+    // MARK: Targeted invalidation (Phase C — F-cache)
+
+    /// Refetch the named metrics in parallel, replacing their
+    /// cached summaries. Used by save paths so a fresh write to
+    /// HealthKit (workout, weight, food, water) shows on the
+    /// dashboard immediately rather than waiting for the 5-min TTL.
+    /// No-op for metric IDs not in `HealthMetric.all`.
+    func invalidate(metricIDs: [String]) {
+        let metrics = HealthMetric.all.filter { metricIDs.contains($0.id) }
+        guard !metrics.isEmpty else { return }
+        Task {
+            await withTaskGroup(of: (String, MetricSummary).self) { group in
+                for metric in metrics {
+                    group.addTask {
+                        let summary = await Self.fetchSummary(for: metric)
+                        return (metric.id, summary)
+                    }
+                }
+                for await (id, summary) in group {
+                    summaries[id] = summary
+                }
+            }
+        }
+    }
+
+    /// Convenience for the common single-metric case.
+    func invalidate(metricID: String) {
+        invalidate(metricIDs: [metricID])
+    }
+
+    /// Map of "what kind of write happened" → "which dashboard
+    /// metric IDs it affects". Save-path call sites use this so
+    /// they don't have to know the catalog's metric IDs by name.
+    enum WriteKind {
+        case workout            // steps + active energy + exercise minutes
+        case weight             // weight
+        case bodyFat            // (not currently a card, no-op)
+        case food               // nutrition balance + energy balance
+        case water              // hydration (+ nutrition balance)
+        case mindful            // mindful minutes
+    }
+
+    func invalidate(after kind: WriteKind) {
+        switch kind {
+        case .workout:
+            invalidate(metricIDs: ["steps", "activeEnergy", "exerciseMinutes", "energyBalance"])
+        case .weight:
+            invalidate(metricID: "weight")
+        case .bodyFat:
+            // No body-fat dashboard card today; placeholder so
+            // future call-site additions stay typesafe.
+            return
+        case .food:
+            invalidate(metricIDs: ["nutritionBalance", "energyBalance"])
+        case .water:
+            invalidate(metricIDs: ["hydration", "nutritionBalance"])
+        case .mindful:
+            invalidate(metricID: "mindfulMinutes")
+        }
+    }
+
     // MARK: Per-metric fetch (off-main)
 
     private nonisolated static func fetchSummary(
