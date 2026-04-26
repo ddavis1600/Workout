@@ -124,6 +124,11 @@ struct MetricCard: View {
                 return "\(sys)/\(Int(dia.rounded()))"
             }
             return "\(sys)"
+        case "spo2":
+            // HK reports oxygenSaturation as a fraction (0.0–1.0);
+            // multiply for percentage display. One decimal — Watch
+            // SpO2 readings are stable enough to read as e.g. 97.5%.
+            return String(format: "%.1f", v * 100)
         default:
             return v.formatted(.number)
         }

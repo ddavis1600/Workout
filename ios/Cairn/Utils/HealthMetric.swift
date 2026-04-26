@@ -170,6 +170,22 @@ struct HealthMetric: Identifiable, Hashable {
             hkQuantity: nil,
             hkCategory: nil
         ),
+        HealthMetric(
+            id: "spo2",
+            label: "Blood Oxygen",
+            icon: "lungs.fill",
+            unit: "%",
+            tier: .coreVitals,
+            aggregation: .average,
+            chart: .dotBand,
+            // 7-day window: SpO2 is sampled sporadically (often only
+            // overnight on newer Watches), so a short window keeps the
+            // chart from looking empty between readings.
+            windowDays: 7,
+            healthAppPath: "Browse/Respiratory/Blood%20Oxygen",
+            hkQuantity: .oxygenSaturation,
+            hkCategory: nil
+        ),
     ]
 
     // Used by the dashboard to scope queries to currently-shipping metrics
