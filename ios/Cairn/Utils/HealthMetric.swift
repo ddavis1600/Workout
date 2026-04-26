@@ -217,6 +217,25 @@ struct HealthMetric: Identifiable, Hashable {
             hkQuantity: .bodyTemperature,
             hkCategory: nil
         ),
+
+        // MARK: Tier 2 — Fitness
+
+        HealthMetric(
+            id: "vo2Max",
+            label: "VO2 Max",
+            // Cardio capacity — Apple's "Cardio Fitness" metric.
+            // Updated infrequently (one Watch outdoor walk/run per
+            // week or so) so the on-card sparkline trails 90 days.
+            icon: "lungs.fill",
+            unit: "ml/kg·min",
+            tier: .fitness,
+            aggregation: .latest,
+            chart: .sparkline,
+            windowDays: 90,
+            healthAppPath: "Browse/Heart/Cardio%20Fitness",
+            hkQuantity: .vo2Max,
+            hkCategory: nil
+        ),
     ]
 
     // Used by the dashboard to scope queries to currently-shipping metrics

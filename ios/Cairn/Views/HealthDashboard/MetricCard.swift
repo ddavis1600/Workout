@@ -142,6 +142,11 @@ struct MetricCard: View {
             // tenths around a meaningful range.
             let display = unitSystem == "metric" ? v : v * 9/5 + 32
             return String(format: "%.1f", display)
+        case "vo2Max":
+            // VO2 max is reported in ml/(kg·min); typical adult
+            // values are 25–60. One decimal preserves Apple's
+            // displayed precision in the Health app.
+            return String(format: "%.1f", v)
         default:
             return v.formatted(.number)
         }
