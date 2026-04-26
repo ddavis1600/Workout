@@ -113,6 +113,17 @@ struct MetricDetailSheet: View {
                 )
                 .frame(minHeight: 260)
             }
+
+            // Per-metric "what's normal" caption — shown only for
+            // metrics where context helps the user read the chart
+            // (HRV, SpO2). Source: Apple Health guidance / common
+            // adult medical references.
+            if let caption = MetricSpec.normalCaption(for: summary.metric) {
+                Text(caption)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 4)
+            }
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -261,11 +272,55 @@ private struct StatTile: View {
     }
 }
 
+// MARK: - Per-metric specs
+
+/// Per-metric overlays + captions for the detail sheet. Centralised
+/// so the chart variants stay generic; specifics (HRV's 20–80 ms
+/// band, SpO2's 95% threshold, Exercise's 30-min goal, Stand's 12-
+/// hour goal) live here as data, not view-tree branching.
+enum MetricSpec {
+    /// Filled band drawn behind the chart line — useful for "this
+    /// is the normal range" framing on HRV/SpO2.
+    static func normalBand(for metric: HealthMetric) -> ClosedRange<Double>? {
+        switch metric.id {
+        case "hrv":   return 20.0...80.0   // ms; broad adult range
+        case "spo2":  return 95.0...100.0  // % displayed (post-conversion)
+        default:      return nil
+        }
+    }
+
+    /// Single horizontal goal line — exercise / stand rings.
+    static func goalLine(for metric: HealthMetric) -> Double? {
+        switch metric.id {
+        case "exerciseMinutes": return 30
+        case "standHours":      return 12
+        default:                return nil
+        }
+    }
+
+    /// One-liner shown below the chart for context-helpful metrics.
+    static func normalCaption(for metric: HealthMetric) -> String? {
+        switch metric.id {
+        case "hrv":
+            return "Normal adult HRV (SDNN) typically falls between 20–80 ms — higher tends to mean better recovery."
+        case "spo2":
+            return "Healthy resting blood oxygen is 95–100%. Sustained readings below 95% are worth checking with a clinician."
+        case "exerciseMinutes":
+            return "Apple's default Exercise ring goal is 30 minutes per day."
+        case "standHours":
+            return "Apple's default Stand ring goal is 12 hours per day."
+        default:
+            return nil
+        }
+    }
+}
+
 // MARK: - Detail chart
 
 /// Full-height chart used inside the detail sheet. Dispatches off
 /// `metric.chart` the same way the on-card sparkline does, but
-/// renders axes + legend (and per-metric overlays once C13 lands).
+/// renders axes, a legend, and per-metric overlays from MetricSpec
+/// (threshold bands, goal lines).
 struct MetricDetailChart: View {
     let metric: HealthMetric
     let samples: [MetricSample]
@@ -274,19 +329,37 @@ struct MetricDetailChart: View {
     var body: some View {
         switch metric.chart {
         case .line, .sparkline, .weightLine:
-            LineDetailChart(samples: displaySamples, accent: Color.emerald)
+            LineDetailChart(
+                samples: displaySamples,
+                accent: Color.emerald,
+                overlayBand: MetricSpec.normalBand(for: metric)
+            )
         case .bar:
-            BarDetailChart(samples: samples, accent: Color.emerald)
+            BarDetailChart(
+                samples: samples,
+                accent: Color.emerald,
+                goalLine: MetricSpec.goalLine(for: metric)
+            )
         case .barWithGoal:
-            // Goal-line overlay for Exercise / Stand lands in C13.
-            BarDetailChart(samples: samples, accent: Color.emerald)
+            BarDetailChart(
+                samples: samples,
+                accent: Color.emerald,
+                goalLine: MetricSpec.goalLine(for: metric)
+            )
         case .bloodPressureLines:
             BloodPressureDetailChart(samples: samples, accent: Color.emerald)
         case .sparseDot:
-            DotDetailChart(samples: displaySamples, accent: Color.emerald)
+            DotDetailChart(
+                samples: displaySamples,
+                accent: Color.emerald,
+                overlayBand: MetricSpec.normalBand(for: metric)
+            )
         case .dotBand:
-            // SpO2 threshold band lands in C13.
-            DotDetailChart(samples: displaySamples, accent: Color.emerald)
+            DotDetailChart(
+                samples: displaySamples,
+                accent: Color.emerald,
+                overlayBand: MetricSpec.normalBand(for: metric)
+            )
         case .sleepStackedBar:
             SleepDetailChart(samples: samples)
         }
@@ -314,15 +387,31 @@ struct MetricDetailChart: View {
 private struct LineDetailChart: View {
     let samples: [MetricSample]
     let accent: Color
+    /// Optional "normal range" band drawn behind the line (e.g. HRV
+    /// 20–80 ms). When nil, no band renders.
+    let overlayBand: ClosedRange<Double>?
+
     var body: some View {
-        Chart(samples) { sample in
-            LineMark(
-                x: .value("Date", sample.date),
-                y: .value("Value", sample.value)
-            )
-            .interpolationMethod(.catmullRom)
-            .foregroundStyle(accent)
-            .lineStyle(StrokeStyle(lineWidth: 2))
+        Chart {
+            if let band = overlayBand {
+                // RectangleMark anchored to a constant range pair —
+                // SwiftUI Charts paints a horizontal stripe across
+                // the full plot width.
+                RectangleMark(
+                    yStart: .value("Lower", band.lowerBound),
+                    yEnd:   .value("Upper", band.upperBound)
+                )
+                .foregroundStyle(accent.opacity(0.12))
+            }
+            ForEach(samples) { sample in
+                LineMark(
+                    x: .value("Date", sample.date),
+                    y: .value("Value", sample.value)
+                )
+                .interpolationMethod(.catmullRom)
+                .foregroundStyle(accent)
+                .lineStyle(StrokeStyle(lineWidth: 2))
+            }
         }
         .chartYAxis { AxisMarks(position: .leading) }
     }
@@ -331,14 +420,30 @@ private struct LineDetailChart: View {
 private struct BarDetailChart: View {
     let samples: [MetricSample]
     let accent: Color
+    /// Horizontal goal line drawn over the bars (e.g. Exercise's
+    /// 30-min default goal). When nil, no line renders.
+    let goalLine: Double?
+
     var body: some View {
-        Chart(samples) { sample in
-            BarMark(
-                x: .value("Date", sample.date, unit: .day),
-                y: .value("Value", sample.value)
-            )
-            .foregroundStyle(accent)
-            .cornerRadius(2)
+        Chart {
+            ForEach(samples) { sample in
+                BarMark(
+                    x: .value("Date", sample.date, unit: .day),
+                    y: .value("Value", sample.value)
+                )
+                .foregroundStyle(accent)
+                .cornerRadius(2)
+            }
+            if let goal = goalLine {
+                RuleMark(y: .value("Goal", goal))
+                    .foregroundStyle(accent.opacity(0.7))
+                    .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [4, 4]))
+                    .annotation(position: .top, alignment: .trailing) {
+                        Text("Goal \(Int(goal))")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+            }
         }
         .chartYAxis { AxisMarks(position: .leading) }
     }
@@ -347,14 +452,26 @@ private struct BarDetailChart: View {
 private struct DotDetailChart: View {
     let samples: [MetricSample]
     let accent: Color
+    /// Threshold band — SpO2's 95–100% healthy range, etc.
+    let overlayBand: ClosedRange<Double>?
+
     var body: some View {
-        Chart(samples) { sample in
-            PointMark(
-                x: .value("Date", sample.date),
-                y: .value("Value", sample.value)
-            )
-            .foregroundStyle(accent)
-            .symbolSize(36)
+        Chart {
+            if let band = overlayBand {
+                RectangleMark(
+                    yStart: .value("Lower", band.lowerBound),
+                    yEnd:   .value("Upper", band.upperBound)
+                )
+                .foregroundStyle(accent.opacity(0.12))
+            }
+            ForEach(samples) { sample in
+                PointMark(
+                    x: .value("Date", sample.date),
+                    y: .value("Value", sample.value)
+                )
+                .foregroundStyle(accent)
+                .symbolSize(36)
+            }
         }
         .chartYAxis { AxisMarks(position: .leading) }
     }
