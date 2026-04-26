@@ -316,6 +316,24 @@ struct HealthMetric: Identifiable, Hashable {
             hkQuantity: .dietaryWater,
             hkCategory: nil
         ),
+        HealthMetric(
+            id: "nutritionBalance",
+            label: "Nutrition Balance",
+            icon: "fork.knife",
+            // Big-value carries kcal; the chart's stacked bar shows
+            // grams per macro. The unit string here is what the
+            // card's value caption reads beside the kcal number.
+            unit: "kcal",
+            tier: .wellness,
+            aggregation: .macroBalance,
+            chart: .macroStackedBar,
+            windowDays: 14,
+            healthAppPath: "Browse/Nutrition",
+            // No single hkQuantity — the composite fetcher pulls
+            // four parallel queries and zips them into MacroSplit.
+            hkQuantity: nil,
+            hkCategory: nil
+        ),
     ]
 
     // Used by the dashboard to scope queries to currently-shipping metrics

@@ -179,6 +179,9 @@ struct MetricCard: View {
             // L and oz read naturally with one place.
             let display = unitSystem == "metric" ? v : v * 33.814
             return String(format: "%.1f", display)
+        case "nutritionBalance":
+            // Big value = kcal for the day. Integer-rounded.
+            return "\(Int(v.rounded()))"
         default:
             return v.formatted(.number)
         }
