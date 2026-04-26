@@ -199,6 +199,24 @@ struct HealthMetric: Identifiable, Hashable {
             hkQuantity: .respiratoryRate,
             hkCategory: nil
         ),
+        HealthMetric(
+            id: "bodyTemperature",
+            label: "Body Temperature",
+            icon: "thermometer.medium",
+            // Display unit — MetricCard reformats based on
+            // UserProfile.unitSystem (imperial → °F, metric → °C).
+            unit: "°F",
+            tier: .coreVitals,
+            aggregation: .average,
+            chart: .sparseDot,
+            // 90-day window: body temp is sampled occasionally (basal
+            // tracking, sick-day check, Watch overnight). Three months
+            // gives a real chart even with sparse data.
+            windowDays: 90,
+            healthAppPath: "Browse/Body%20Measurements/Body%20Temperature",
+            hkQuantity: .bodyTemperature,
+            hkCategory: nil
+        ),
     ]
 
     // Used by the dashboard to scope queries to currently-shipping metrics

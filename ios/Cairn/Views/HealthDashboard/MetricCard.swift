@@ -92,6 +92,9 @@ struct MetricCard: View {
         if summary.metric.id == "weight" {
             return unitSystem == "metric" ? "kg" : "lb"
         }
+        if summary.metric.id == "bodyTemperature" {
+            return unitSystem == "metric" ? "°C" : "°F"
+        }
         return summary.metric.unit
     }
 
@@ -133,6 +136,12 @@ struct MetricCard: View {
             // Adult resting RR clusters around 12–20; one decimal so
             // the value isn't visually pinned to "12 → 13" jumps.
             return String(format: "%.1f", v)
+        case "bodyTemperature":
+            // Service stores °C from HK; convert when user pref is
+            // imperial. One decimal — both °C and °F change in
+            // tenths around a meaningful range.
+            let display = unitSystem == "metric" ? v : v * 9/5 + 32
+            return String(format: "%.1f", display)
         default:
             return v.formatted(.number)
         }
