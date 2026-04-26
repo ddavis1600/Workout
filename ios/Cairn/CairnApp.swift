@@ -114,11 +114,13 @@ struct CairnApp: App {
     /// (palette change → root rebuild → wizard `@State` destroyed).
     @AppStorage("hasCompletedPreOnboarding") private var hasCompletedPreOnboarding = false
 
-    /// Theme prefs duplicated here from `ContentView` so the
-    /// pre-onboarding screen + wizard (which both render BEFORE
-    /// ContentView mounts) also get themed.
-    @AppStorage("appTheme")   private var appTheme   = "system"
-    @AppStorage("colorTheme") private var colorTheme = "fieldNotes"
+    /// Brightness pref duplicated here from `ContentView` so the
+    /// pre-onboarding screen + wizard (which render BEFORE
+    /// ContentView mounts) get the user's chosen light/dark mode.
+    /// `colorTheme` is NOT read here — palette tinting is driven
+    /// by per-token `ThemePalette.current` resolution at leaf
+    /// views, not by a root-level rebuild trigger.
+    @AppStorage("appTheme") private var appTheme = "system"
 
     var body: some Scene {
         WindowGroup {
@@ -144,20 +146,25 @@ struct CairnApp: App {
             }
             // Brightness pref → SwiftUI color scheme. `nil` = follow
             // system. Lives on the WindowGroup root so every branch
-            // is covered.
+            // is covered. Safe at the root because preferredColorScheme
+            // is environment propagation, not a subtree rebuild.
             .preferredColorScheme(
                 appTheme == "system" ? nil :
                 appTheme == "dark"   ? .dark : .light
             )
-            // Force a rebuild of the entire root subtree when either
-            // pref changes. The semantic Color tokens read
-            // `ThemePalette.current` on each render pass, so the
-            // rebuild is what actually swaps the palette in-place.
-            // NB: this also destroys any state held above
-            // ContentView (e.g. OnboardingFlow's @State). The
-            // follow-up commit scopes this `.id` down to ContentView
-            // only — see fix(theme): scope .id() to ContentView.
-            .id(colorTheme + appTheme)
+            // NB: NO `.id(colorTheme + appTheme)` here — that
+            // modifier rebuilds the entire subtree when the palette
+            // changes, which destroyed `OnboardingFlow`'s @State on
+            // every swatch tap (Daniel: "wizard restarts from
+            // scratch"). The palette-rebuild trigger is now scoped
+            // to ContentView (see ContentView.swift) so it only
+            // re-paints the main app subtree.
+            //
+            // ThemePickerScreen handles its own live preview because
+            // its body reads `@AppStorage("colorTheme")`, so the
+            // body re-runs on tap. OnboardingFlow doesn't change
+            // theme at all, so it doesn't need a rebuild trigger
+            // either.
         }
         .modelContainer(container)
         .onChange(of: scenePhase) { _, newPhase in
