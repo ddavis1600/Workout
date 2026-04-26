@@ -151,6 +151,25 @@ struct HealthMetric: Identifiable, Hashable {
             hkQuantity: .heartRateVariabilitySDNN,
             hkCategory: nil
         ),
+        HealthMetric(
+            id: "bloodPressure",
+            label: "Blood Pressure",
+            icon: "heart.circle.fill",
+            unit: "mmHg",
+            tier: .coreVitals,
+            // Custom correlation fetch — paired systolic + diastolic
+            // (`value` / `secondary` on each MetricSample).
+            aggregation: .bloodPressure,
+            chart: .bloodPressureLines,
+            // 30-day window matches HRV; BP is sampled occasionally
+            // not daily, so we want to see a month of dots.
+            windowDays: 30,
+            healthAppPath: "Browse/Heart/Blood%20Pressure",
+            // No single hkQuantity — the service uses the
+            // .bloodPressure correlation type internally.
+            hkQuantity: nil,
+            hkCategory: nil
+        ),
     ]
 
     // Used by the dashboard to scope queries to currently-shipping metrics

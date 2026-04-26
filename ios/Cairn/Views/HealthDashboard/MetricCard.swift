@@ -114,6 +114,16 @@ struct MetricCard: View {
             // SDNN reads as an integer in HK; sub-ms precision is
             // noise on a sparkline.
             return "\(Int(v.rounded()))"
+        case "bloodPressure":
+            // Paired systolic / diastolic. `.value` carries systolic,
+            // `.secondary` carries diastolic — populated by the
+            // correlation fetcher in HealthDashboardService. Fallback
+            // to a single value if diastolic is unexpectedly absent.
+            let sys = Int(v.rounded())
+            if let dia = summary.latest?.secondary {
+                return "\(sys)/\(Int(dia.rounded()))"
+            }
+            return "\(sys)"
         default:
             return v.formatted(.number)
         }
