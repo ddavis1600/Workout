@@ -34,9 +34,21 @@ struct MetricDetailSheet: View {
     private let service = HealthDashboardService.shared
 
     /// Persists the selected range across sheet dismiss/restore
-    /// AND across launches. Single key (not per-metric) — the
-    /// user's preferred granularity tends to be consistent.
-    @AppStorage("metric.detailRangeDays") private var rangeDays: Int = 30
+    /// AND across launches. Per-metric key (Phase C — F-range)
+    /// so the user's preferred view-window for Weight (90d) doesn't
+    /// get clobbered by viewing Sleep (7d). The first time the
+    /// sheet opens for a metric, falls back to the catalog's
+    /// `windowDays` so we start from a reasonable default rather
+    /// than always 30d.
+    @AppStorage private var rangeDays: Int
+
+    init(summary: MetricSummary) {
+        self.summary = summary
+        self._rangeDays = AppStorage(
+            wrappedValue: summary.metric.windowDays,
+            "metric.\(summary.metric.id).detailRangeDays"
+        )
+    }
 
     /// Samples fetched for the current `rangeDays`. Populated on
     /// appear and on range change.
