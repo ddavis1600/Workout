@@ -82,7 +82,7 @@ struct StreakWidgetView: View {
                 .font(.title3.weight(.semibold))
                 .foregroundStyle(.primary)
 
-            Text("Tap to open FitTrack")
+            Text("Tap to open Cairn")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
         }

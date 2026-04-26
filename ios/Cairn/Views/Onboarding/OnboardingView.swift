@@ -27,7 +27,7 @@ struct OnboardingView: View {
                         .font(.system(size: 40, weight: .semibold))
                         .foregroundStyle(Color(accent(selectedPalette)))
                         .padding(.bottom, 4)
-                    Text("Welcome to FitTrack")
+                    Text("Welcome to Cairn")
                         .font(.title.bold())
                         .foregroundStyle(Color(text(selectedPalette)))
                     Text("Pick a style that feels like you")

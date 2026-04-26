@@ -69,7 +69,7 @@ actor FoodAPIService {
 
         do {
             var request = URLRequest(url: url)
-            request.setValue("FitTrack iOS App - Contact: dev@fittrack.app", forHTTPHeaderField: "User-Agent")
+            request.setValue("Cairn iOS App - Contact: dev@fittrack.app", forHTTPHeaderField: "User-Agent")
             request.timeoutInterval = 10
 
             let (data, response) = try await URLSession.shared.data(for: request)
@@ -133,7 +133,7 @@ actor FoodAPIService {
 
         do {
             var request = URLRequest(url: url)
-            request.setValue("FitTrack iOS App - Contact: dev@fittrack.app", forHTTPHeaderField: "User-Agent")
+            request.setValue("Cairn iOS App - Contact: dev@fittrack.app", forHTTPHeaderField: "User-Agent")
             request.timeoutInterval = 10
 
             let (data, response) = try await URLSession.shared.data(for: request)

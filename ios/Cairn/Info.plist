@@ -103,15 +103,15 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>FitTrack uses your camera to scan food barcodes.</string>
+	<string>Cairn uses your camera to scan food barcodes.</string>
 	<key>NSHealthShareUsageDescription</key>
-	<string>FitTrack reads your health data from Apple Health including steps, energy, workouts, sleep, mindfulness, water, and nutrition to power habit tracking and progress features.</string>
+	<string>Cairn reads your health data from Apple Health including steps, energy, workouts, sleep, mindfulness, water, and nutrition to power habit tracking and progress features.</string>
 	<key>NSHealthUpdateUsageDescription</key>
-	<string>FitTrack saves your weight entries to Apple Health to keep your data in sync.</string>
+	<string>Cairn saves your weight entries to Apple Health to keep your data in sync.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>FitTrack uses the microphone to record voice notes in your journal.</string>
+	<string>Cairn uses the microphone to record voice notes in your journal.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>FitTrack saves meal photos and progress photos to your photo library.</string>
+	<string>Cairn saves meal photos and progress photos to your photo library.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>

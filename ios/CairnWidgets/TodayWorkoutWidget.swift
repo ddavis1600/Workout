@@ -96,7 +96,7 @@ struct TodayWorkoutWidgetView: View {
                 .font(.headline)
                 .foregroundStyle(.primary)
 
-            Text("Tap to start one in FitTrack")
+            Text("Tap to start one in Cairn")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 

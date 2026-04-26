@@ -165,7 +165,7 @@ struct NotificationSettingsView: View {
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.ink)
             }
-            Text("Toggling these on saves your preference, but iOS won't deliver them until you re-enable notifications for FitTrack in the Settings app.")
+            Text("Toggling these on saves your preference, but iOS won't deliver them until you re-enable notifications for Cairn in the Settings app.")
                 .font(.caption)
                 .foregroundStyle(Color.slateText)
             if let url = URL(string: UIApplication.openSettingsURLString) {

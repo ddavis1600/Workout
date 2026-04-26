@@ -17,7 +17,7 @@ import UserNotifications
 ///      1 week of habit completions so empty states aren't lonely.
 ///
 /// On completion the view sets `@AppStorage("hasCompletedOnboarding")`
-/// to true. `FitTrackApp` reads that to decide which root view to
+/// to true. `CairnApp` reads that to decide which root view to
 /// show on launch.
 ///
 /// Why a new file rather than expanding the existing
@@ -108,7 +108,7 @@ struct OnboardingFlow: View {
                 .font(.system(size: 92, weight: .semibold))
                 .foregroundStyle(Color.emerald)
             VStack(spacing: 10) {
-                Text("Welcome to FitTrack")
+                Text("Welcome to Cairn")
                     .font(.largeTitle.weight(.bold))
                     .foregroundStyle(Color.ink)
                     .multilineTextAlignment(.center)

@@ -29,7 +29,7 @@ struct IntroSplashView: View {
                     .scaleEffect(iconScale)
                     .rotationEffect(.degrees(rotation))
 
-                Text("FitTrack")
+                Text("Cairn")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundStyle(Color.ink)
                     .opacity(wordmarkOpacity)

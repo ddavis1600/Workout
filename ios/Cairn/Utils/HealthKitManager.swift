@@ -22,7 +22,7 @@ class HealthKitManager {
     // WatchWorkoutSession, WatchHeartRateService) each asked for their own
     // distinct subset. Every new subset introduced a still-undecided tuple,
     // which triggered a fresh sheet. Result: user kept getting the
-    // "FitTrack would like to access Health data" prompt on every new
+    // "Cairn would like to access Health data" prompt on every new
     // action until every subset had been covered.
 
     /// Every HK type the app might ever WRITE. Keep this in sync with the

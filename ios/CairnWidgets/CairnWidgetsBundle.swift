@@ -1,7 +1,7 @@
 import WidgetKit
 import SwiftUI
 
-/// Entry point for the FitTrack Home Screen widget extension.
+/// Entry point for the Cairn Home Screen widget extension.
 ///
 /// Three widgets ship in this bundle (audit ref F1):
 ///   - **Today's Stats** (small + medium): calories in/out + steps.
