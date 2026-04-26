@@ -289,11 +289,18 @@ enum MetricSpec {
         }
     }
 
-    /// Single horizontal goal line — exercise / stand rings.
-    static func goalLine(for metric: HealthMetric) -> Double? {
+    /// Single horizontal goal line — exercise / stand rings,
+    /// hydration target. Hydration goal is expressed in the
+    /// SAME unit the chart's samples are in (litres for metric
+    /// users, ounces for imperial), so look-up needs to know
+    /// which unit system is active.
+    static func goalLine(for metric: HealthMetric, unitSystem: String = "imperial") -> Double? {
         switch metric.id {
         case "exerciseMinutes": return 30
         case "standHours":      return 12
+        case "hydration":
+            // 64 oz ≈ 1.89 L — the common "8 cups" guideline.
+            return unitSystem == "metric" ? 1.9 : 64
         default:                return nil
         }
     }
@@ -336,15 +343,15 @@ struct MetricDetailChart: View {
             )
         case .bar:
             BarDetailChart(
-                samples: samples,
+                samples: displaySamples,
                 accent: Color.emerald,
-                goalLine: MetricSpec.goalLine(for: metric)
+                goalLine: MetricSpec.goalLine(for: metric, unitSystem: unitSystem)
             )
         case .barWithGoal:
             BarDetailChart(
-                samples: samples,
+                samples: displaySamples,
                 accent: Color.emerald,
-                goalLine: MetricSpec.goalLine(for: metric)
+                goalLine: MetricSpec.goalLine(for: metric, unitSystem: unitSystem)
             )
         case .bloodPressureLines:
             BloodPressureDetailChart(samples: samples, accent: Color.emerald)
@@ -381,7 +388,11 @@ struct MetricDetailChart: View {
             return samples.map { MetricSample(date: $0.date, value: $0.value * 9/5 + 32, secondary: $0.secondary, stages: $0.stages) }
         case "spo2":
             // Display %, not fraction.
-            return samples.map { MetricSample(date: $0.date, value: $0.value * 100, secondary: $0.secondary, stages: $0.stages) }
+            return samples.map { MetricSample(date: $0.date, value: $0.value * 100, secondary: $0.secondary, stages: $0.stages, macros: $0.macros) }
+        case "hydration" where unitSystem != "metric":
+            // Liters → US fluid ounces so the chart and goal line
+            // both read in oz when the user's pref is imperial.
+            return samples.map { MetricSample(date: $0.date, value: $0.value * 33.814, secondary: $0.secondary, stages: $0.stages, macros: $0.macros) }
         default:
             return samples
         }

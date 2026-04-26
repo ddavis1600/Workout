@@ -102,6 +102,9 @@ struct MetricCard: View {
         if summary.metric.id == "bodyTemperature" {
             return unitSystem == "metric" ? "°C" : "°F"
         }
+        if summary.metric.id == "hydration" {
+            return unitSystem == "metric" ? "L" : "oz"
+        }
         return summary.metric.unit
     }
 
@@ -170,6 +173,12 @@ struct MetricCard: View {
             // Daily total of meditation minutes — usually small
             // integer-ish; round to whole minutes for the card.
             return "\(Int(v.rounded()))"
+        case "hydration":
+            // Service stores liters. Convert to ounces (US fluid)
+            // when the user pref is imperial. One decimal — both
+            // L and oz read naturally with one place.
+            let display = unitSystem == "metric" ? v : v * 33.814
+            return String(format: "%.1f", display)
         default:
             return v.formatted(.number)
         }

@@ -208,6 +208,7 @@ final class HealthDashboardService {
         case .appleExerciseTime:            return .minute()
         case .bloodPressureSystolic,
              .bloodPressureDiastolic:       return .millimeterOfMercury()
+        case .dietaryWater:                 return .liter()
         default:                            return .count()
         }
     }

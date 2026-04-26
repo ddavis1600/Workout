@@ -299,6 +299,23 @@ struct HealthMetric: Identifiable, Hashable {
             hkQuantity: nil,
             hkCategory: .mindfulSession
         ),
+        HealthMetric(
+            id: "hydration",
+            label: "Hydration",
+            icon: "drop.fill",
+            // Display unit — MetricCard reformats to oz when
+            // unitSystem == "imperial". Service stores liters.
+            unit: "L",
+            tier: .wellness,
+            aggregation: .sum,
+            chart: .barWithGoal,
+            // 14-day window — short enough that the bars read
+            // clearly, long enough to spot day-to-day patterns.
+            windowDays: 14,
+            healthAppPath: "Browse/Nutrition/Water",
+            hkQuantity: .dietaryWater,
+            hkCategory: nil
+        ),
     ]
 
     // Used by the dashboard to scope queries to currently-shipping metrics
