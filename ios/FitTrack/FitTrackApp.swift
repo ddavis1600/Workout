@@ -8,7 +8,7 @@ struct FitTrackApp: App {
     let container: ModelContainer
 
     init() {
-        let log = Logger(subsystem: "com.danieldavis16.fittrack", category: "storage")
+        let log = Logger(subsystem: "com.danieldavis16.cairn", category: "storage")
 
         // Attempt 1: CloudKit-backed store (requires iCloud entitlement in provisioning profile).
         // Falls back to local storage if CloudKit is unavailable (entitlement not yet provisioned,

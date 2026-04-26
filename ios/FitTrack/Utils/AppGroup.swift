@@ -22,7 +22,7 @@ import Foundation
 ///     `WidgetSnapshot.refresh`) and call `WidgetCenter.reloadAllTimelines()`,
 ///     so the widget always sees fresh data after a relevant mutation.
 enum AppGroup {
-    static let identifier = "group.com.danieldavis16.fittrack"
+    static let identifier = "group.com.danieldavis16.cairn"
 
     /// Shared `UserDefaults` suite for cross-process reads/writes.
     /// Falls back to `.standard` if the suite can't be opened — happens
