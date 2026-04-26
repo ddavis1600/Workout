@@ -3,24 +3,37 @@ import HealthKit
 import Observation
 
 // One sample point in a metric's time series. For most metrics `value`
-// is the per-day aggregate (sum or average) and `secondary`/`stages`
-// are nil. Sleep uses `stages` for per-stage breakdown; blood pressure
-// uses `secondary` for the diastolic value (systolic in `value`).
+// is the per-day aggregate (sum or average) and the carrier slots
+// below are nil. Specialised metrics fill the carrier that fits:
+// - Sleep:            `stages` (per-night Core/Deep/REM/Unspec)
+// - Blood Pressure:   `secondary` (diastolic; systolic in `value`)
+// - Energy Balance:   `secondary` (kcal burned; intake in `value`)
+// - Nutrition Balance: `macros` (per-day protein/carbs/fat in grams;
+//                       `value` carries dietary energy in kcal so the
+//                       chart Y-axis can read calorie totals if useful)
 struct MetricSample: Hashable, Identifiable {
     let id: UUID
     let date: Date
     let value: Double
-    /// Companion value for paired metrics. Only set for blood pressure
-    /// today (diastolic) — extra correlations may reuse this slot.
+    /// Companion value for paired metrics — diastolic for BP,
+    /// kcal-burned for energy balance.
     let secondary: Double?
     let stages: SleepStages?
+    let macros: MacroSplit?
 
-    init(date: Date, value: Double, secondary: Double? = nil, stages: SleepStages? = nil) {
+    init(
+        date: Date,
+        value: Double,
+        secondary: Double? = nil,
+        stages: SleepStages? = nil,
+        macros: MacroSplit? = nil
+    ) {
         self.id = UUID()
         self.date = date
         self.value = value
         self.secondary = secondary
         self.stages = stages
+        self.macros = macros
     }
 }
 
@@ -37,6 +50,18 @@ struct SleepStages: Hashable {
     var totalHours: Double {
         totalSeconds / 3600.0
     }
+}
+
+/// Per-day macro breakdown in grams. Used by the Tier 3 Nutrition
+/// Balance card's stacked-bar chart. All three values are independent
+/// reads (HK exposes protein / carbs / fat as separate quantity
+/// types), aggregated daily by the service.
+struct MacroSplit: Hashable {
+    let proteinGrams: Double
+    let carbsGrams:   Double
+    let fatGrams:     Double
+
+    var totalGrams: Double { proteinGrams + carbsGrams + fatGrams }
 }
 
 // What the dashboard renders per metric: most-recent reading + the
@@ -161,6 +186,9 @@ final class HealthDashboardService {
         case .sleepCategory:        return await fetchSleepSummary(for: metric)
         case .bloodPressure:        return await fetchBloodPressureSummary(for: metric, days: days)
         case .standHourCategory:    return await fetchStandHourSummary(for: metric, days: days)
+        case .mindfulCategory:      return await fetchMindfulSummary(for: metric, days: days)
+        case .macroBalance:         return await fetchMacroBalanceSummary(for: metric, days: days)
+        case .energyBalance:        return await fetchEnergyBalanceSummary(for: metric, days: days)
         }
     }
 
@@ -460,5 +488,152 @@ final class HealthDashboardService {
         }
         let latest = series.last(where: { $0.value > 0 }) ?? series.last
         return MetricSummary(metric: metric, latest: latest, series: series)
+    }
+
+    // MARK: Mindful minutes (custom — sum category-sample durations per day)
+
+    /// Mindful sessions are HKCategoryType samples whose duration
+    /// (endDate − startDate) is the meditation length. We bucket
+    /// by calendar day and convert to minutes for the on-card
+    /// big-value + bar chart.
+    private nonisolated static func fetchMindfulSummary(
+        for metric: HealthMetric,
+        days: Int
+    ) async -> MetricSummary {
+        guard
+            let cid = metric.hkCategory,
+            let mindfulType = HKObjectType.categoryType(forIdentifier: cid)
+        else { return empty(metric) }
+
+        let cal = Calendar.current
+        let end = cal.startOfDay(for: Date()).addingTimeInterval(86400)
+        let start = cal.date(byAdding: .day, value: -days, to: end) ?? end
+        let predicate = HKQuery.predicateForSamples(withStart: start, end: end)
+
+        let descriptor = HKSampleQueryDescriptor(
+            predicates: [.categorySample(type: mindfulType, predicate: predicate)],
+            sortDescriptors: [SortDescriptor(\.startDate, order: .forward)]
+        )
+        let samples: [HKCategorySample]
+        do {
+            samples = try await descriptor.result(for: HealthKitManager.shared.healthStore)
+        } catch {
+            return empty(metric)
+        }
+
+        // Sum durations per calendar day (start-of-day key).
+        var minutesPerDay: [Date: Double] = [:]
+        for sample in samples {
+            let key = cal.startOfDay(for: sample.startDate)
+            let durMin = sample.endDate.timeIntervalSince(sample.startDate) / 60.0
+            minutesPerDay[key, default: 0] += durMin
+        }
+
+        var series: [MetricSample] = []
+        for offset in (0..<days).reversed() {
+            guard let day = cal.date(byAdding: .day, value: -offset, to: cal.startOfDay(for: Date())) else { continue }
+            series.append(MetricSample(date: day, value: minutesPerDay[day] ?? 0))
+        }
+        let latest = series.last(where: { $0.value > 0 }) ?? series.last
+        return MetricSummary(metric: metric, latest: latest, series: series)
+    }
+
+    // MARK: Macro balance (composite — protein/carbs/fat per day)
+
+    /// Issues four parallel daily-sum statistics queries
+    /// (`dietaryEnergyConsumed`, `.dietaryProtein`, `.dietaryCarbohydrates`,
+    /// `.dietaryFatTotal`) and zips them into a per-day MetricSample
+    /// whose `value` carries kcal and `macros` carries grams of each
+    /// macronutrient. Used by the Tier 3 Nutrition Balance card.
+    private nonisolated static func fetchMacroBalanceSummary(
+        for metric: HealthMetric,
+        days: Int
+    ) async -> MetricSummary {
+        let cal = Calendar.current
+        let end = cal.startOfDay(for: Date()).addingTimeInterval(86400)
+        let start = cal.date(byAdding: .day, value: -days, to: end) ?? end
+
+        async let kcal    = dailySums(.dietaryEnergyConsumed, unit: .kilocalorie(), start: start, end: end)
+        async let protein = dailySums(.dietaryProtein,        unit: .gram(),        start: start, end: end)
+        async let carbs   = dailySums(.dietaryCarbohydrates,  unit: .gram(),        start: start, end: end)
+        async let fat     = dailySums(.dietaryFatTotal,       unit: .gram(),        start: start, end: end)
+
+        let kc = await kcal, p = await protein, c = await carbs, f = await fat
+
+        var series: [MetricSample] = []
+        for offset in (0..<days).reversed() {
+            guard let day = cal.date(byAdding: .day, value: -offset, to: cal.startOfDay(for: Date())) else { continue }
+            let macros = MacroSplit(
+                proteinGrams: p[day] ?? 0,
+                carbsGrams:   c[day] ?? 0,
+                fatGrams:     f[day] ?? 0
+            )
+            series.append(MetricSample(date: day, value: kc[day] ?? 0, macros: macros))
+        }
+        let latest = series.last(where: { ($0.macros?.totalGrams ?? 0) > 0 }) ?? series.last
+        return MetricSummary(metric: metric, latest: latest, series: series)
+    }
+
+    // MARK: Energy balance (intake − burned, per day)
+
+    /// Pulls daily dietaryEnergyConsumed (intake) + activeEnergyBurned
+    /// (burned) and writes them into `value` / `secondary`. The detail
+    /// chart renders them as a dual line — green for intake, amber
+    /// for burned — with a sign-aware delta in the stats card.
+    private nonisolated static func fetchEnergyBalanceSummary(
+        for metric: HealthMetric,
+        days: Int
+    ) async -> MetricSummary {
+        let cal = Calendar.current
+        let end = cal.startOfDay(for: Date()).addingTimeInterval(86400)
+        let start = cal.date(byAdding: .day, value: -days, to: end) ?? end
+
+        async let intake = dailySums(.dietaryEnergyConsumed, unit: .kilocalorie(), start: start, end: end)
+        async let burned = dailySums(.activeEnergyBurned,    unit: .kilocalorie(), start: start, end: end)
+        let i = await intake, b = await burned
+
+        var series: [MetricSample] = []
+        for offset in (0..<days).reversed() {
+            guard let day = cal.date(byAdding: .day, value: -offset, to: cal.startOfDay(for: Date())) else { continue }
+            series.append(MetricSample(date: day, value: i[day] ?? 0, secondary: b[day] ?? 0))
+        }
+        let latest = series.last(where: { $0.value > 0 || ($0.secondary ?? 0) > 0 }) ?? series.last
+        return MetricSummary(metric: metric, latest: latest, series: series)
+    }
+
+    /// Shared helper — daily-sum statistics over an arbitrary
+    /// quantity type, returning a `[startOfDay: total]` dictionary.
+    /// Used by the composite Phase C aggregations (macro balance,
+    /// energy balance) so each one can fan out four queries in
+    /// parallel without duplicating boilerplate.
+    private nonisolated static func dailySums(
+        _ identifier: HKQuantityTypeIdentifier,
+        unit: HKUnit,
+        start: Date,
+        end: Date
+    ) async -> [Date: Double] {
+        guard let qType = HKObjectType.quantityType(forIdentifier: identifier) else { return [:] }
+        let predicate = HKQuery.predicateForSamples(withStart: start, end: end)
+        let cal = Calendar.current
+
+        return await withCheckedContinuation { continuation in
+            let query = HKStatisticsCollectionQuery(
+                quantityType: qType,
+                quantitySamplePredicate: predicate,
+                options: .cumulativeSum,
+                anchorDate: cal.startOfDay(for: start),
+                intervalComponents: DateComponents(day: 1)
+            )
+            query.initialResultsHandler = { _, results, _ in
+                guard let results else { continuation.resume(returning: [:]); return }
+                var dict: [Date: Double] = [:]
+                results.enumerateStatistics(from: start, to: end) { stats, _ in
+                    let v = stats.sumQuantity()?.doubleValue(for: unit) ?? 0
+                    if v > 0 { dict[cal.startOfDay(for: stats.startDate)] = v }
+                }
+                continuation.resume(returning: dict)
+            }
+            HealthKitManager.shared.healthStore.execute(query)
+        }
     }
 }

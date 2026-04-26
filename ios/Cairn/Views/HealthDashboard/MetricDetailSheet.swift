@@ -362,6 +362,10 @@ struct MetricDetailChart: View {
             )
         case .sleepStackedBar:
             SleepDetailChart(samples: samples)
+        case .macroStackedBar:
+            MacroBalanceDetailChart(samples: samples)
+        case .energyDualLine:
+            EnergyBalanceDetailChart(samples: samples)
         }
     }
 
@@ -499,6 +503,70 @@ private struct BloodPressureDetailChart: View {
                     )
                     .interpolationMethod(.catmullRom)
                     .foregroundStyle(accent.opacity(0.45))
+                    .lineStyle(StrokeStyle(lineWidth: 2))
+                }
+            }
+        }
+        .chartYAxis { AxisMarks(position: .leading) }
+        .chartLegend(.visible)
+    }
+}
+
+private struct MacroBalanceDetailChart: View {
+    let samples: [MetricSample]
+    var body: some View {
+        Chart {
+            ForEach(samples) { sample in
+                if let m = sample.macros, m.totalGrams > 0 {
+                    BarMark(
+                        x: .value("Day", sample.date, unit: .day),
+                        y: .value("Protein", m.proteinGrams)
+                    )
+                    .foregroundStyle(by: .value("Macro", "Protein"))
+                    BarMark(
+                        x: .value("Day", sample.date, unit: .day),
+                        y: .value("Carbs", m.carbsGrams)
+                    )
+                    .foregroundStyle(by: .value("Macro", "Carbs"))
+                    BarMark(
+                        x: .value("Day", sample.date, unit: .day),
+                        y: .value("Fat", m.fatGrams)
+                    )
+                    .foregroundStyle(by: .value("Macro", "Fat"))
+                }
+            }
+        }
+        .chartForegroundStyleScale([
+            "Protein": Color.emerald,
+            "Carbs":   Color.emerald.opacity(0.65),
+            "Fat":     Color.emerald.opacity(0.4),
+        ])
+        .chartYAxis { AxisMarks(position: .leading) }
+        .chartLegend(.visible)
+    }
+}
+
+private struct EnergyBalanceDetailChart: View {
+    let samples: [MetricSample]
+    var body: some View {
+        Chart {
+            ForEach(samples) { sample in
+                LineMark(
+                    x: .value("Date", sample.date),
+                    y: .value("Intake", sample.value),
+                    series: .value("Series", "Intake")
+                )
+                .interpolationMethod(.catmullRom)
+                .foregroundStyle(.green)
+                .lineStyle(StrokeStyle(lineWidth: 2))
+                if let burned = sample.secondary {
+                    LineMark(
+                        x: .value("Date", sample.date),
+                        y: .value("Burned", burned),
+                        series: .value("Series", "Burned")
+                    )
+                    .interpolationMethod(.catmullRom)
+                    .foregroundStyle(.orange)
                     .lineStyle(StrokeStyle(lineWidth: 2))
                 }
             }

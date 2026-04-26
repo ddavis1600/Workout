@@ -36,6 +36,9 @@ struct HealthMetric: Identifiable, Hashable {
         case sleepCategory          // custom asleepCore/Deep/REM bucketing
         case bloodPressure          // HKCorrelationType: paired sys/dia
         case standHourCategory      // count of `.standHour` per day
+        case mindfulCategory        // sum sample durations per day — mindful minutes
+        case macroBalance           // per-day protein/carbs/fat in grams (Tier 3)
+        case energyBalance          // per-day intake vs. burned (Tier 3)
     }
 
     enum Chart: Hashable {
@@ -48,6 +51,8 @@ struct HealthMetric: Identifiable, Hashable {
         case dotBand            // dots + threshold band — SpO2
         case barWithGoal        // bars per day + goal line — exercise / stand
         case sparkline          // tiny line behind a big number — VO2 max
+        case macroStackedBar    // stacked protein/carbs/fat per day — nutrition balance
+        case energyDualLine     // intake (green) vs. burned (amber) — energy balance
     }
 
     let id: String
@@ -277,6 +282,22 @@ struct HealthMetric: Identifiable, Hashable {
             healthAppPath: "Browse/Activity/Stand%20Hours",
             hkQuantity: nil,
             hkCategory: .appleStandHour
+        ),
+
+        // MARK: Tier 3 — Wellness
+
+        HealthMetric(
+            id: "mindfulMinutes",
+            label: "Mindful Minutes",
+            icon: "leaf.fill",
+            unit: "min",
+            tier: .wellness,
+            aggregation: .mindfulCategory,
+            chart: .bar,
+            windowDays: 30,
+            healthAppPath: "Browse/Mindfulness/Mindful%20Minutes",
+            hkQuantity: nil,
+            hkCategory: .mindfulSession
         ),
     ]
 

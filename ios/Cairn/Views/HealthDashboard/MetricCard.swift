@@ -81,6 +81,13 @@ struct MetricCard: View {
             // overlay (coloured threshold band) lives in the detail
             // sheet; the on-card sparkline stays minimal.
             DotSparkline(samples: summary.series, accent: Color.emerald)
+        case .macroStackedBar:
+            MacroStackedSparkline(samples: summary.series)
+        case .energyDualLine:
+            // Intake (value) vs. burned (secondary). Reuses the same
+            // shape as BP — both lines superimposed in one Chart —
+            // so the dashboard stays visually coherent.
+            DualLineSparkline(samples: summary.series, accent: Color.emerald)
         }
     }
 
@@ -159,6 +166,10 @@ struct MetricCard: View {
             // Per-day count of hours with ≥1 min of stand motion.
             // Always an integer (0…24).
             return "\(Int(v))"
+        case "mindfulMinutes":
+            // Daily total of meditation minutes — usually small
+            // integer-ish; round to whole minutes for the card.
+            return "\(Int(v.rounded()))"
         default:
             return v.formatted(.number)
         }
@@ -264,6 +275,46 @@ private struct DotSparkline: View {
         }
         .chartXAxis(.hidden)
         .chartYAxis(.hidden)
+        .frame(height: 44)
+    }
+}
+
+// Stacked bar per day — protein/carbs/fat in grams. Used by the
+// Tier 3 Nutrition Balance card. Each macro is its own coloured
+// segment within the daily bar; legend lives in the detail sheet.
+private struct MacroStackedSparkline: View {
+    let samples: [MetricSample]
+
+    var body: some View {
+        Chart {
+            ForEach(samples) { sample in
+                if let macros = sample.macros, macros.totalGrams > 0 {
+                    BarMark(
+                        x: .value("Day", sample.date, unit: .day),
+                        y: .value("Protein", macros.proteinGrams)
+                    )
+                    .foregroundStyle(by: .value("Macro", "Protein"))
+                    BarMark(
+                        x: .value("Day", sample.date, unit: .day),
+                        y: .value("Carbs", macros.carbsGrams)
+                    )
+                    .foregroundStyle(by: .value("Macro", "Carbs"))
+                    BarMark(
+                        x: .value("Day", sample.date, unit: .day),
+                        y: .value("Fat", macros.fatGrams)
+                    )
+                    .foregroundStyle(by: .value("Macro", "Fat"))
+                }
+            }
+        }
+        .chartXAxis(.hidden)
+        .chartYAxis(.hidden)
+        .chartLegend(.hidden)
+        .chartForegroundStyleScale([
+            "Protein": Color.emerald,
+            "Carbs":   Color.emerald.opacity(0.65),
+            "Fat":     Color.emerald.opacity(0.4),
+        ])
         .frame(height: 44)
     }
 }
