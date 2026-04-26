@@ -5,35 +5,42 @@ import UserNotifications
 
 /// Multi-step first-launch onboarding flow (audit ref F5).
 ///
-/// Five screens, each a sub-view in this file:
+/// Six screens, each a sub-view in this file:
 ///   1. **Welcome** — large logo + tagline + "Get Started" CTA.
 ///   2. **Goals** — pick 1–4 of: Build muscle / Lose weight /
 ///      Track nutrition / Daily habits.
 ///   3. **Permissions** — explains HK + Notifications BEFORE the
 ///      system prompts (M1 fix), then triggers them on tap.
-///   4. **Profile** — name / age / weight / height. All optional,
+///   4. **Theme** — pick a colour palette. Preview is live because
+///      the root view re-paints on `colorTheme` change.
+///   5. **Profile** — name / age / weight / height. All optional,
 ///      "Set up later" skips without writing.
-///   5. **Sample data** — toggle to seed 3 sample workouts +
+///   6. **Sample data** — toggle to seed 3 sample workouts +
 ///      1 week of habit completions so empty states aren't lonely.
 ///
 /// On completion the view sets `@AppStorage("hasCompletedOnboarding")`
 /// to true. `CairnApp` reads that to decide which root view to
 /// show on launch.
 ///
-/// Why a new file rather than expanding the existing
-/// `OnboardingView.swift`: that one is a single-screen theme picker
-/// with elaborate live-preview cards that's worth keeping as a
-/// distinct affordance — it's now reused as a polish step *after*
-/// the new flow finishes (see `ContentView` integration), so first-
-/// time users still get to pick their palette.
+/// The legacy `OnboardingView.swift` (single-screen theme picker)
+/// is now dead code — its `fullScreenCover` gate in `ContentView`
+/// fires only when `!hasCompletedOnboarding`, which is also when
+/// this flow is mounted instead of ContentView. The theme picker
+/// has been folded directly into this flow (step 4) so the choice
+/// happens once, in context, with a live preview.
 struct OnboardingFlow: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var profiles: [UserProfile]
 
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    /// Bound to the same key the rest of the app reads. The root
+    /// view's `.id(colorTheme + appTheme)` modifier rebuilds the
+    /// subtree on each change, so picking a palette here previews
+    /// itself instantly.
+    @AppStorage("colorTheme") private var colorTheme = "fieldNotes"
 
     enum Step: Int, CaseIterable {
-        case welcome, goals, permissions, profile, sampleData
+        case welcome, goals, permissions, theme, profile, sampleData
     }
 
     @State private var step: Step = .welcome
@@ -68,11 +75,12 @@ struct OnboardingFlow: View {
                 // time we add chrome.
                 Group {
                     switch step {
-                    case .welcome:    welcomeStep
-                    case .goals:      goalsStep
+                    case .welcome:     welcomeStep
+                    case .goals:       goalsStep
                     case .permissions: permissionsStep
-                    case .profile:    profileStep
-                    case .sampleData: sampleDataStep
+                    case .theme:       themeStep
+                    case .profile:     profileStep
+                    case .sampleData:  sampleDataStep
                     }
                 }
                 .transition(.asymmetric(
@@ -240,7 +248,60 @@ struct OnboardingFlow: View {
         }
     }
 
-    // MARK: - Step 4: Profile
+    // MARK: - Step 4: Theme
+
+    private var themeStep: some View {
+        VStack(spacing: 0) {
+            stepHeader(
+                title: "Pick a palette",
+                subtitle: "You can change this any time in Settings."
+            )
+
+            ScrollView {
+                // Reuses `ThemeSwatchButton` from SettingsView so the
+                // visual treatment matches what users see in Settings
+                // later. Three columns fit five palettes in two rows
+                // without crowding on the smallest iPhone width.
+                LazyVGrid(
+                    columns: [
+                        GridItem(.flexible(), spacing: 12),
+                        GridItem(.flexible(), spacing: 12),
+                        GridItem(.flexible(), spacing: 12),
+                    ],
+                    spacing: 14
+                ) {
+                    ForEach(ThemePalette.allCases) { palette in
+                        ThemeSwatchButton(
+                            palette: palette,
+                            isSelected: colorTheme == palette.rawValue
+                        ) {
+                            colorTheme = palette.rawValue
+                            // Light haptic so the live re-paint feels
+                            // committed, not accidental.
+                            UIImpactFeedbackGenerator(style: .light)
+                                .impactOccurred()
+                        }
+                    }
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 12)
+
+                Text("Preview updates instantly — try a few.")
+                    .font(.caption)
+                    .foregroundStyle(Color.slateText)
+                    .padding(.top, 14)
+            }
+
+            primaryAndSkipButtons(
+                primary: "Continue",
+                primaryEnabled: true,
+                primaryAction: { advance() },
+                skipAction: { advance() }
+            )
+        }
+    }
+
+    // MARK: - Step 5: Profile
 
     private var profileStep: some View {
         VStack(spacing: 0) {
@@ -303,7 +364,7 @@ struct OnboardingFlow: View {
         }
     }
 
-    // MARK: - Step 5: Sample data
+    // MARK: - Step 6: Sample data
 
     private var sampleDataStep: some View {
         VStack(spacing: 0) {
