@@ -106,17 +106,41 @@ struct CairnApp: App {
     /// whether we even show the main UI.
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
+    /// Theme prefs duplicated here from `ContentView` so the
+    /// OnboardingFlow (which renders BEFORE ContentView mounts) also
+    /// gets themed. Without these, a user who picks Dark + Ocean in
+    /// onboarding would see Light + Field Notes until they finish
+    /// onboarding — an obvious miss now that theme is an onboarding
+    /// step (F-theme).
+    @AppStorage("appTheme")   private var appTheme   = "system"
+    @AppStorage("colorTheme") private var colorTheme = "fieldNotes"
+
     var body: some Scene {
         WindowGroup {
             // Single switch on the AppStorage flag. The transition
             // animation lives on `OnboardingFlow.finish()` so the
             // hand-off from flow → main UI feels intentional rather
             // than a hard cut.
-            if hasCompletedOnboarding {
-                ContentView()
-            } else {
-                OnboardingFlow()
+            Group {
+                if hasCompletedOnboarding {
+                    ContentView()
+                } else {
+                    OnboardingFlow()
+                }
             }
+            // Brightness pref → SwiftUI color scheme. `nil` = follow
+            // system. Lives on the WindowGroup root so onboarding is
+            // covered too (ContentView has its own copy that takes
+            // over once mounted; both produce the same scheme).
+            .preferredColorScheme(
+                appTheme == "system" ? nil :
+                appTheme == "dark"   ? .dark : .light
+            )
+            // Force a rebuild of the entire root subtree when either
+            // pref changes. The semantic Color tokens read
+            // `ThemePalette.current` on each render pass, so the
+            // rebuild is what actually swaps the palette in-place.
+            .id(colorTheme + appTheme)
         }
         .modelContainer(container)
         .onChange(of: scenePhase) { _, newPhase in
