@@ -17,7 +17,7 @@
                BlueprintIdentifier = "A50000000000000000000001"
                BuildableName = "FitTrack.app"
                BlueprintName = "FitTrack"
-               ReferencedContainer = "container:FitTrack.xcodeproj">
+               ReferencedContainer = "container:Cairn.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -46,7 +46,7 @@
             BlueprintIdentifier = "A50000000000000000000001"
             BuildableName = "FitTrack.app"
             BlueprintName = "FitTrack"
-            ReferencedContainer = "container:FitTrack.xcodeproj">
+            ReferencedContainer = "container:Cairn.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -63,7 +63,7 @@
             BlueprintIdentifier = "A50000000000000000000001"
             BuildableName = "FitTrack.app"
             BlueprintName = "FitTrack"
-            ReferencedContainer = "container:FitTrack.xcodeproj">
+            ReferencedContainer = "container:Cairn.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
