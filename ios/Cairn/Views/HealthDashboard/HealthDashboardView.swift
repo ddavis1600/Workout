@@ -88,9 +88,27 @@ struct HealthDashboardView: View {
     }
 
     private var wellnessSection: some View {
-        // Tier 3 is still a Phase C placeholder. Same empty-message
-        // pattern as Tier 2 will apply when its cards land.
-        TierSection(tier: .wellness, icon: "leaf.fill", hasContent: false) { EmptyView() }
+        // Tier 3 mirrors Tier 2's pattern: real expandable section
+        // once the user has data in any wellness card OR has
+        // completed the auth handshake; placeholder header until
+        // then so the dashboard doesn't sprawl on a fresh install.
+        TierSection(
+            tier: .wellness,
+            icon: "leaf.fill",
+            hasContent: tier3HasAnyCardsOrAuth
+        ) {
+            VStack(spacing: 12) {
+                if wellnessCards.isEmpty {
+                    EmptyTierMessage(
+                        text: "No Wellness data yet. Log a meditation, drink some water, or fill in your food diary — these cards populate from Apple Health automatically."
+                    )
+                } else {
+                    ForEach(wellnessCards) { summary in
+                        MetricCard(summary: summary)
+                    }
+                }
+            }
+        }
     }
 
     // MARK: Filtering
@@ -109,12 +127,24 @@ struct HealthDashboardView: View {
             .filter { $0.hasData }
     }
 
+    private var wellnessCards: [MetricSummary] {
+        HealthMetric.all
+            .filter { $0.tier == .wellness }
+            .compactMap { service.summaries[$0.id] }
+            .filter { $0.hasData }
+    }
+
     /// Tier 2 should render its header + content (or empty-state
     /// message) once auth has been requested at least once OR any
     /// fitness card has data. Until then, leave it as a flat
     /// placeholder so the dashboard doesn't sprawl on first launch.
     private var tier2HasAnyCardsOrAuth: Bool {
         service.hasRequestedAuth || !fitnessCards.isEmpty
+    }
+
+    /// Tier 3 mirrors the Tier 2 gate.
+    private var tier3HasAnyCardsOrAuth: Bool {
+        service.hasRequestedAuth || !wellnessCards.isEmpty
     }
 
     private var shouldShowAuthHandshake: Bool {
