@@ -236,6 +236,19 @@ struct HealthMetric: Identifiable, Hashable {
             hkQuantity: .vo2Max,
             hkCategory: nil
         ),
+        HealthMetric(
+            id: "activeEnergy",
+            label: "Active Energy",
+            icon: "flame.fill",
+            unit: "kcal",
+            tier: .fitness,
+            aggregation: .sum,
+            chart: .bar,
+            windowDays: 30,
+            healthAppPath: "Browse/Activity/Active%20Energy",
+            hkQuantity: .activeEnergyBurned,
+            hkCategory: nil
+        ),
     ]
 
     // Used by the dashboard to scope queries to currently-shipping metrics

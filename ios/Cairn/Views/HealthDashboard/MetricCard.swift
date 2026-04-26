@@ -147,6 +147,11 @@ struct MetricCard: View {
             // values are 25–60. One decimal preserves Apple's
             // displayed precision in the Health app.
             return String(format: "%.1f", v)
+        case "activeEnergy":
+            // Daily kcal burn — typically 200–800. Integer rounded
+            // because tenths of a kcal aren't meaningful at the
+            // dashboard glance level.
+            return "\(Int(v.rounded()))"
         default:
             return v.formatted(.number)
         }
