@@ -184,6 +184,26 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    // Brightness — segmented above palette so the
+                    // light/dark choice reads as the headline control,
+                    // and the palette below is "the colour you'd like
+                    // ON TOP of that". Matches the layout used in the
+                    // pre-onboarding ThemePickerScreen.
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Mode")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(Color.ink)
+
+                        Picker("Mode", selection: $appTheme) {
+                            Text("System").tag("system")
+                            Text("Light").tag("light")
+                            Text("Dark").tag("dark")
+                        }
+                        .pickerStyle(.segmented)
+                    }
+                    .listRowBackground(Color.slateCard)
+                    .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
+
                     // Colour palette grid
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Colour Palette")
@@ -205,25 +225,6 @@ struct SettingsView: View {
                     }
                     .listRowBackground(Color.slateCard)
                     .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
-
-                    // Brightness picker
-                    Picker(selection: $appTheme) {
-                        Label("Light",  systemImage: "sun.max.fill").tag("light")
-                        Label("System", systemImage: "circle.lefthalf.filled").tag("system")
-                        Label("Dark",   systemImage: "moon.fill").tag("dark")
-                    } label: {
-                        HStack(spacing: 12) {
-                            Image(systemName: appTheme == "dark" ? "moon.fill"
-                                           : appTheme == "light" ? "sun.max.fill"
-                                           : "circle.lefthalf.filled")
-                                .foregroundColor(.emerald)
-                                .frame(width: 24)
-                            Text("Brightness")
-                                .foregroundColor(Color.ink)
-                        }
-                    }
-                    .tint(.emerald)
-                    .listRowBackground(Color.slateCard)
                 } header: {
                     Text("Appearance")
                         .foregroundColor(.slateText)
