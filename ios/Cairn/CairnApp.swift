@@ -4,7 +4,7 @@ import WatchConnectivity
 import os.log
 
 @main
-struct FitTrackApp: App {
+struct CairnApp: App {
     let container: ModelContainer
 
     init() {
@@ -25,7 +25,7 @@ struct FitTrackApp: App {
                         WeightEntry.self, JournalEntry.self,
                         WorkoutTemplate.self, TemplateExercise.self,
                         BodyMeasurement.self, FoodFavorite.self, ProgressPhoto.self,
-                    migrationPlan: FitTrackMigrationPlan.self,
+                    migrationPlan: CairnMigrationPlan.self,
                     configurations: cloudConfig)
             } catch {
                 cloudKitError = error
@@ -49,7 +49,7 @@ struct FitTrackApp: App {
                         WeightEntry.self, JournalEntry.self,
                         WorkoutTemplate.self, TemplateExercise.self,
                         BodyMeasurement.self, FoodFavorite.self, ProgressPhoto.self,
-                    migrationPlan: FitTrackMigrationPlan.self,
+                    migrationPlan: CairnMigrationPlan.self,
                     configurations: localConfig
                 )
             } catch {
@@ -70,7 +70,7 @@ struct FitTrackApp: App {
                             WeightEntry.self, JournalEntry.self,
                             WorkoutTemplate.self, TemplateExercise.self,
                             BodyMeasurement.self, FoodFavorite.self, ProgressPhoto.self,
-                        migrationPlan: FitTrackMigrationPlan.self,
+                        migrationPlan: CairnMigrationPlan.self,
                         configurations: localConfig
                     )
                 } catch {

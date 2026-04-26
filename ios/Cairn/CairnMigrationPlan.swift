@@ -98,7 +98,7 @@ enum SchemaV2: VersionedSchema {
 
 // MARK: - Migration Plan
 
-enum FitTrackMigrationPlan: SchemaMigrationPlan {
+enum CairnMigrationPlan: SchemaMigrationPlan {
     static let schemas: [any VersionedSchema.Type] = [
         SchemaV1.self, SchemaV2.self,
     ]

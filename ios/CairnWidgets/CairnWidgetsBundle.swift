@@ -16,7 +16,7 @@ import SwiftUI
 /// also flows through `WidgetCenter.shared.reloadAllTimelines()` calls
 /// on the main app's save paths, so most updates are immediate.
 @main
-struct FitTrackWidgetsBundle: WidgetBundle {
+struct CairnWidgetsBundle: WidgetBundle {
     var body: some Widget {
         TodayStatsWidget()
         StreakWidget()

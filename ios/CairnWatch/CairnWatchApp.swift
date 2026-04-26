@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct FitTrackWatchApp: App {
+struct CairnWatchApp: App {
     @StateObject private var heartRateService = WatchHeartRateService.shared
 
     init() {
