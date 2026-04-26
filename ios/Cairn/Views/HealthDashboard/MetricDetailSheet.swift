@@ -375,16 +375,34 @@ enum MetricSpec {
     }
 
     /// One-liner shown below the chart for context-helpful metrics.
+    /// Captions stay short and never give medical advice — they
+    /// frame the chart, not diagnose.
     static func normalCaption(for metric: HealthMetric) -> String? {
         switch metric.id {
         case "hrv":
-            return "Normal adult HRV (SDNN) typically falls between 20–80 ms — higher tends to mean better recovery."
+            return "Higher generally indicates better recovery. Compare to your own baseline; absolute values vary by age and fitness."
         case "spo2":
-            return "Healthy resting blood oxygen is 95–100%. Sustained readings below 95% are worth checking with a clinician."
+            return "95% and above is typical at sea level. Persistent readings under 95% can signal a respiratory issue — talk to a doctor."
+        case "vo2Max":
+            return "Your aerobic capacity. Use as a long-term trend, not a daily metric."
+        case "bloodPressure":
+            return "Optimal: under 120/80 mmHg. Numbers above 140/90 sustained warrant a conversation with your doctor."
         case "exerciseMinutes":
             return "Apple's default Exercise ring goal is 30 minutes per day."
         case "standHours":
             return "Apple's default Stand ring goal is 12 hours per day."
+        case "hydration":
+            return "The common 64 oz / 1.9 L target is a baseline. Hot weather, exercise, and individual physiology can all push it higher."
+        case "respiratoryRate":
+            return "Adults at rest typically breathe 12–20 times per minute. Sustained drift outside that range is worth noting."
+        case "bodyTemperature":
+            return "Resting human body temperature averages around 98.6°F / 37°C, but varies through the day and across people."
+        case "energyBalance":
+            return "Surplus (+) means intake exceeded burn for the day; deficit (−) means burn exceeded intake. Sustained direction drives weight change."
+        case "nutritionBalance":
+            return "Bars stack protein, carbs, and fat in grams. The kcal number above is the day's total dietary energy."
+        case "mindfulMinutes":
+            return "Even a few minutes of mindfulness per day shows up in stress, sleep, and HRV trends over time."
         default:
             return nil
         }
