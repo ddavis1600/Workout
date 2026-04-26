@@ -5,18 +5,23 @@ import UserNotifications
 
 /// Multi-step first-launch onboarding flow (audit ref F5).
 ///
-/// Six screens, each a sub-view in this file:
+/// Five screens, each a sub-view in this file:
 ///   1. **Welcome** — large logo + tagline + "Get Started" CTA.
 ///   2. **Goals** — pick 1–4 of: Build muscle / Lose weight /
 ///      Track nutrition / Daily habits.
 ///   3. **Permissions** — explains HK + Notifications BEFORE the
 ///      system prompts (M1 fix), then triggers them on tap.
-///   4. **Theme** — pick a colour palette. Preview is live because
-///      the root view re-paints on `colorTheme` change.
-///   5. **Profile** — name / age / weight / height. All optional,
+///   4. **Profile** — name / age / weight / height. All optional,
 ///      "Set up later" skips without writing.
-///   6. **Sample data** — toggle to seed 3 sample workouts +
+///   5. **Sample data** — toggle to seed 3 sample workouts +
 ///      1 week of habit completions so empty states aren't lonely.
+///
+/// Theme is picked on the dedicated `ThemePickerScreen` BEFORE
+/// this flow mounts (see `CairnApp.body`). It used to be an inline
+/// step here, but tapping a palette tile while inside the wizard
+/// caused the root to rebuild and the wizard's `@State` to reset
+/// to step 1. Lifting the picker out of the wizard removes the
+/// ordering hazard entirely.
 ///
 /// On completion the view sets `@AppStorage("hasCompletedOnboarding")`
 /// to true. `CairnApp` reads that to decide which root view to
@@ -25,22 +30,16 @@ import UserNotifications
 /// The legacy `OnboardingView.swift` (single-screen theme picker)
 /// is now dead code — its `fullScreenCover` gate in `ContentView`
 /// fires only when `!hasCompletedOnboarding`, which is also when
-/// this flow is mounted instead of ContentView. The theme picker
-/// has been folded directly into this flow (step 4) so the choice
-/// happens once, in context, with a live preview.
+/// this flow is mounted instead of ContentView. Theme picking now
+/// lives on `ThemePickerScreen`, presented before this flow.
 struct OnboardingFlow: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var profiles: [UserProfile]
 
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
-    /// Bound to the same key the rest of the app reads. The root
-    /// view's `.id(colorTheme + appTheme)` modifier rebuilds the
-    /// subtree on each change, so picking a palette here previews
-    /// itself instantly.
-    @AppStorage("colorTheme") private var colorTheme = "fieldNotes"
 
     enum Step: Int, CaseIterable {
-        case welcome, goals, permissions, theme, profile, sampleData
+        case welcome, goals, permissions, profile, sampleData
     }
 
     @State private var step: Step = .welcome
@@ -78,7 +77,6 @@ struct OnboardingFlow: View {
                     case .welcome:     welcomeStep
                     case .goals:       goalsStep
                     case .permissions: permissionsStep
-                    case .theme:       themeStep
                     case .profile:     profileStep
                     case .sampleData:  sampleDataStep
                     }
@@ -248,60 +246,7 @@ struct OnboardingFlow: View {
         }
     }
 
-    // MARK: - Step 4: Theme
-
-    private var themeStep: some View {
-        VStack(spacing: 0) {
-            stepHeader(
-                title: "Pick a palette",
-                subtitle: "You can change this any time in Settings."
-            )
-
-            ScrollView {
-                // Reuses `ThemeSwatchButton` from SettingsView so the
-                // visual treatment matches what users see in Settings
-                // later. Three columns fit five palettes in two rows
-                // without crowding on the smallest iPhone width.
-                LazyVGrid(
-                    columns: [
-                        GridItem(.flexible(), spacing: 12),
-                        GridItem(.flexible(), spacing: 12),
-                        GridItem(.flexible(), spacing: 12),
-                    ],
-                    spacing: 14
-                ) {
-                    ForEach(ThemePalette.allCases) { palette in
-                        ThemeSwatchButton(
-                            palette: palette,
-                            isSelected: colorTheme == palette.rawValue
-                        ) {
-                            colorTheme = palette.rawValue
-                            // Light haptic so the live re-paint feels
-                            // committed, not accidental.
-                            UIImpactFeedbackGenerator(style: .light)
-                                .impactOccurred()
-                        }
-                    }
-                }
-                .padding(.horizontal, 24)
-                .padding(.top, 12)
-
-                Text("Preview updates instantly — try a few.")
-                    .font(.caption)
-                    .foregroundStyle(Color.slateText)
-                    .padding(.top, 14)
-            }
-
-            primaryAndSkipButtons(
-                primary: "Continue",
-                primaryEnabled: true,
-                primaryAction: { advance() },
-                skipAction: { advance() }
-            )
-        }
-    }
-
-    // MARK: - Step 5: Profile
+    // MARK: - Step 4: Profile
 
     private var profileStep: some View {
         VStack(spacing: 0) {
@@ -364,7 +309,7 @@ struct OnboardingFlow: View {
         }
     }
 
-    // MARK: - Step 6: Sample data
+    // MARK: - Step 5: Sample data
 
     private var sampleDataStep: some View {
         VStack(spacing: 0) {
