@@ -106,32 +106,45 @@ struct CairnApp: App {
     /// whether we even show the main UI.
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
+    /// Pre-onboarding gate (F-theme-pre). Flipped to `true` when the
+    /// user taps Continue on `ThemePickerScreen`. Two flags rather
+    /// than one because we want the user's theme choice locked in
+    /// BEFORE `OnboardingFlow` mounts — putting the palette tap
+    /// inside the wizard caused the wizard to restart on every tap
+    /// (palette change → root rebuild → wizard `@State` destroyed).
+    @AppStorage("hasCompletedPreOnboarding") private var hasCompletedPreOnboarding = false
+
     /// Theme prefs duplicated here from `ContentView` so the
-    /// OnboardingFlow (which renders BEFORE ContentView mounts) also
-    /// gets themed. Without these, a user who picks Dark + Ocean in
-    /// onboarding would see Light + Field Notes until they finish
-    /// onboarding — an obvious miss now that theme is an onboarding
-    /// step (F-theme).
+    /// pre-onboarding screen + wizard (which both render BEFORE
+    /// ContentView mounts) also get themed.
     @AppStorage("appTheme")   private var appTheme   = "system"
     @AppStorage("colorTheme") private var colorTheme = "fieldNotes"
 
     var body: some Scene {
         WindowGroup {
-            // Single switch on the AppStorage flag. The transition
-            // animation lives on `OnboardingFlow.finish()` so the
-            // hand-off from flow → main UI feels intentional rather
-            // than a hard cut.
+            // Three-way root switch. The order matters: pre-onboarding
+            // first so a fresh install sees the palette picker, then
+            // the multi-step wizard, then the main app.
             Group {
-                if hasCompletedOnboarding {
-                    ContentView()
-                } else {
+                if !hasCompletedPreOnboarding {
+                    ThemePickerScreen {
+                        // Continue tap → flip the gate, which naturally
+                        // re-evaluates this Group and slides
+                        // OnboardingFlow in. Animation kept short so
+                        // the hand-off doesn't feel laggy.
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            hasCompletedPreOnboarding = true
+                        }
+                    }
+                } else if !hasCompletedOnboarding {
                     OnboardingFlow()
+                } else {
+                    ContentView()
                 }
             }
             // Brightness pref → SwiftUI color scheme. `nil` = follow
-            // system. Lives on the WindowGroup root so onboarding is
-            // covered too (ContentView has its own copy that takes
-            // over once mounted; both produce the same scheme).
+            // system. Lives on the WindowGroup root so every branch
+            // is covered.
             .preferredColorScheme(
                 appTheme == "system" ? nil :
                 appTheme == "dark"   ? .dark : .light
@@ -140,6 +153,10 @@ struct CairnApp: App {
             // pref changes. The semantic Color tokens read
             // `ThemePalette.current` on each render pass, so the
             // rebuild is what actually swaps the palette in-place.
+            // NB: this also destroys any state held above
+            // ContentView (e.g. OnboardingFlow's @State). The
+            // follow-up commit scopes this `.id` down to ContentView
+            // only — see fix(theme): scope .id() to ContentView.
             .id(colorTheme + appTheme)
         }
         .modelContainer(container)
