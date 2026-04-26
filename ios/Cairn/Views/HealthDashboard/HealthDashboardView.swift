@@ -48,6 +48,15 @@ struct HealthDashboardView: View {
             .background(Color.slateBackground)
             .navigationTitle("Health")
             .toolbar { editToolbarItem }
+            .refreshable {
+                // Pull-to-refresh — full reload bypassing the 5-min
+                // TTL. Distinct from save-path invalidation: this
+                // refetches every catalog metric, useful when the
+                // user knows new data exists in Apple Health (e.g.
+                // they just finished a workout on the Watch and
+                // want to confirm it landed).
+                await service.refresh()
+            }
             .task {
                 // Don't auto-fire requestAuthorizationIfNeeded on appear.
                 // HKHealthStore can raise an uncatchable Objective-C NSException
