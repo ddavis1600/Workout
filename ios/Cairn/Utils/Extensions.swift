@@ -25,56 +25,75 @@ extension Double {
 }
 
 // MARK: - Color Extensions
-// Field Notes palette — adaptive light (paper/ink/olive) + dark (warm dark)
+//
+// All semantic Color tokens resolve through `ThemePalette.current`
+// inside a `UIColor { tc in … }` dynamic provider. The closure runs
+// every time UIKit/SwiftUI resolves the color (each render pass), so
+// flipping the `colorTheme` AppStorage value and forcing a re-render
+// (via `.id(colorTheme + appTheme)` on the root view) picks up the
+// new palette without any view-level wiring.
+//
+// Token names are kept (`emerald`, `slateBackground`, etc.) for
+// compatibility with hundreds of call sites — they're now palette
+// roles, not literal colors. `fieldNotesAlert` stays a fixed red so
+// destructive UI always reads as a warning regardless of theme.
 
 extension Color {
-    // MARK: Accent — olive #556B2F / #7DA03A (brighter for dark bg)
+    // MARK: Accent — palette.accentLight / accentDark
     static let emerald = Color(UIColor { tc in
-        tc.userInterfaceStyle == .dark
-            ? UIColor(red: 125/255, green: 160/255, blue:  58/255, alpha: 1) // #7DA03A
-            : UIColor(red:  85/255, green: 107/255, blue:  47/255, alpha: 1) // #556B2F
+        let p = ThemePalette.current
+        return tc.userInterfaceStyle == .dark ? p.accentDark : p.accentLight
     })
 
     // MARK: Backgrounds
-    // Main page background: paper #EDE8DC / dark warm #1C1A14
+    /// Main page background.
     static let slateBackground = Color(UIColor { tc in
-        tc.userInterfaceStyle == .dark
-            ? UIColor(red:  28/255, green:  26/255, blue:  20/255, alpha: 1) // #1C1A14
-            : UIColor(red: 237/255, green: 232/255, blue: 220/255, alpha: 1) // #EDE8DC
+        let p = ThemePalette.current
+        return tc.userInterfaceStyle == .dark ? p.bgDark : p.bgLight
     })
-    // Card background: paper2 #E5DFD1 / dark card #252219
+    /// Card / surface background.
     static let slateCard = Color(UIColor { tc in
-        tc.userInterfaceStyle == .dark
-            ? UIColor(red:  37/255, green:  34/255, blue:  25/255, alpha: 1) // #252219
-            : UIColor(red: 229/255, green: 223/255, blue: 209/255, alpha: 1) // #E5DFD1
+        let p = ThemePalette.current
+        return tc.userInterfaceStyle == .dark ? p.cardDark : p.cardLight
     })
-    // Border: olive rule #C7C9B1 / dark border #3A362A
+    /// Hairline border between surfaces.
     static let slateBorder = Color(UIColor { tc in
-        tc.userInterfaceStyle == .dark
-            ? UIColor(red:  58/255, green:  54/255, blue:  42/255, alpha: 1) // #3A362A
-            : UIColor(red: 199/255, green: 201/255, blue: 177/255, alpha: 1) // #C7C9B1
+        let p = ThemePalette.current
+        return tc.userInterfaceStyle == .dark ? p.borderDark : p.borderLight
     })
 
     // MARK: Text
-    // Muted text: #8A8470 — same in both modes (readable on both backgrounds)
-    static let slateText = Color(red: 138/255, green: 132/255, blue: 112/255)
-    // Primary text: ink #1A1A14 / paper #EDE8DC
+    /// Muted / secondary text.
+    static let slateText = Color(UIColor { tc in
+        let p = ThemePalette.current
+        return tc.userInterfaceStyle == .dark ? p.mutedDark : p.mutedLight
+    })
+    /// Primary text.
     static let ink = Color(UIColor { tc in
-        tc.userInterfaceStyle == .dark
-            ? UIColor(red: 237/255, green: 232/255, blue: 220/255, alpha: 1) // #EDE8DC
-            : UIColor(red:  26/255, green:  26/255, blue:  20/255, alpha: 1) // #1A1A14
+        let p = ThemePalette.current
+        return tc.userInterfaceStyle == .dark ? p.textDark : p.textLight
     })
 
-    // MARK: Fixed tokens (not adaptive)
-    // paper is always the warm off-white — used as text on olive-filled selected states
-    static let paper = Color(red: 237/255, green: 232/255, blue: 220/255) // #EDE8DC
-    // Olive tint surface: #D4DDB8 / dark olive tint #3D4A1E
-    static let oliveTint = Color(UIColor { tc in
-        tc.userInterfaceStyle == .dark
-            ? UIColor(red:  61/255, green:  74/255, blue:  30/255, alpha: 1) // #3D4A1E
-            : UIColor(red: 212/255, green: 221/255, blue: 184/255, alpha: 1) // #D4DDB8
+    // MARK: Surface tones
+    /// "Paper" — used as the foreground on accent-filled buttons. Maps
+    /// to the palette's light-mode background so contrast against the
+    /// accent stays correct in both light and dark themes (the accent
+    /// itself was tuned against `bgLight`).
+    static let paper = Color(UIColor { _ in
+        ThemePalette.current.bgLight
     })
-    // Alert red #8B3A2A / #C4543C (brighter on dark)
+    /// Subtle accent-tinted surface (used for selected-row chrome,
+    /// goal-card icon backgrounds, etc.). Derived from the accent at
+    /// low alpha so it picks up the active theme automatically.
+    static let oliveTint = Color(UIColor { tc in
+        let p = ThemePalette.current
+        let base = tc.userInterfaceStyle == .dark ? p.accentDark : p.accentLight
+        return base.withAlphaComponent(0.18)
+    })
+
+    // MARK: Fixed alert red — intentionally NOT palette-driven.
+    /// Destructive / warning surfaces should always read as red so
+    /// users can recognise them regardless of which theme is active.
     static let fieldNotesAlert = Color(UIColor { tc in
         tc.userInterfaceStyle == .dark
             ? UIColor(red: 196/255, green:  84/255, blue:  60/255, alpha: 1) // #C4543C
