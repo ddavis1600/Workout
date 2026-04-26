@@ -59,6 +59,25 @@ class HealthKitManager {
     }
 
     /// Every HK type the app might ever READ.
+    ///
+    /// Resolution strategy: pre-V3 types use the non-failable
+    /// `HKQuantityType(_:)` initializer (added iOS 15.4) since
+    /// they shipped in Phase A without issues. V3 (Phase B) types
+    /// resolve through the failable
+    /// `HKObjectType.quantityType(forIdentifier:)` API + compactMap
+    /// instead.
+    ///
+    /// Why the change: build 36 introduced a hard crash at the
+    /// auth-flow handshake on Daniel's device. Apple documents the
+    /// non-failable initializer as "a convenience initializer for
+    /// non-deprecated identifiers" — it asserts (unrecoverable
+    /// crash) on any identifier the running OS can't resolve. The
+    /// failable form returns nil instead, which the compactMap
+    /// then drops, so a transient mismatch downgrades to "the
+    /// dashboard quietly misses one card" rather than "the app
+    /// terminates before the auth sheet renders". This also
+    /// matches the pattern already used for category and
+    /// correlation types below.
     static var allReadTypes: Set<HKObjectType> {
         var types: Set<HKObjectType> = [
             HKWorkoutType.workoutType(),
@@ -75,15 +94,22 @@ class HealthKitManager {
             HKQuantityType(.dietaryProtein),
             HKQuantityType(.dietaryCarbohydrates),
             HKQuantityType(.dietaryFatTotal),
-            // V3 — Phase B Health Dashboard read types.
-            HKQuantityType(.heartRateVariabilitySDNN),
-            HKQuantityType(.bloodPressureSystolic),
-            HKQuantityType(.bloodPressureDiastolic),
-            HKQuantityType(.oxygenSaturation),
-            HKQuantityType(.respiratoryRate),
-            HKQuantityType(.bodyTemperature),
-            HKQuantityType(.vo2Max),
         ]
+        // V3 — Phase B Health Dashboard quantity reads. Failable
+        // resolution per the doc-comment above.
+        let v3QuantityIDs: [HKQuantityTypeIdentifier] = [
+            .heartRateVariabilitySDNN,
+            .bloodPressureSystolic,
+            .bloodPressureDiastolic,
+            .oxygenSaturation,
+            .respiratoryRate,
+            .bodyTemperature,
+            .vo2Max,
+        ]
+        types.formUnion(
+            v3QuantityIDs.compactMap { HKObjectType.quantityType(forIdentifier: $0) }
+        )
+
         if let mindful = HKObjectType.categoryType(forIdentifier: .mindfulSession) {
             types.insert(mindful)
         }
@@ -94,13 +120,23 @@ class HealthKitManager {
         if let standHour = HKObjectType.categoryType(forIdentifier: .appleStandHour) {
             types.insert(standHour)
         }
-        // V3 — blood pressure correlation. The two quantity types
-        // above are technically sufficient for the underlying read,
-        // but registering the correlation explicitly makes intent
-        // visible in the Health Privacy sheet.
-        if let bpCorr = HKObjectType.correlationType(forIdentifier: .bloodPressure) {
-            types.insert(bpCorr)
-        }
+        // ⚠️ DO NOT add HKCorrelationType to this set.
+        //
+        // V3 originally registered the blood-pressure correlation
+        // here "for visibility in the Privacy sheet". On Daniel's
+        // device that triggered an unrecoverable
+        // `_throwIfAuthorizationDisallowedForSharing` NSException
+        // at the auth-handshake — the same crash class documented
+        // in the Food Diary comment below (~line 608): correlation
+        // types in the auth set raise an uncatchable Objective-C
+        // exception that bypasses Swift's `try`/`catch` and tears
+        // the process down before the permission sheet renders.
+        //
+        // The two component types (`bloodPressureSystolic` /
+        // `bloodPressureDiastolic`) registered above are sufficient
+        // — `HKSampleQuery(sampleType: bpCorrelation, …)` works as
+        // long as the components are authorised. The correlation
+        // type itself never needs to appear in the auth set.
         return types
     }
 
@@ -120,10 +156,21 @@ class HealthKitManager {
     /// `requestAuthorizationIfNeeded()` calls stay silent.
     func requestAuthorization() async -> Bool {
         guard isAvailable else { return false }
+        let shareTypes = Self.allShareTypes
+        let readTypes  = Self.allReadTypes
+        // Diagnostic — sorted identifier list goes to the device
+        // console so that if the auth handshake ever crashes again
+        // (the kind of uncatchable Objective-C NSException that
+        // build 36 hit) the last log line names every type that was
+        // about to be requested. Cheap; runs at most once per
+        // bundle-version bump per install.
+        print("[HK] auth bundle V\(Self.currentAuthBundleVersion) — share=\(shareTypes.count), read=\(readTypes.count)")
+        print("[HK]   share: \(shareTypes.map { $0.identifier }.sorted())")
+        print("[HK]   read:  \(readTypes.map { $0.identifier }.sorted())")
         do {
             try await healthStore.requestAuthorization(
-                toShare: Self.allShareTypes,
-                read:    Self.allReadTypes
+                toShare: shareTypes,
+                read:    readTypes
             )
             UserDefaults.standard.set(Self.currentAuthBundleVersion, forKey: Self.authBundleVersionKey)
             return true
