@@ -1,16 +1,38 @@
 import SwiftUI
 
-// Phase A entry-point. Renders the three tier sections; Tier 1 holds
-// the four MVP metric cards (sleep, resting HR, steps, weight),
-// Tiers 2/3 are header-only placeholders for Phase B.
+// Health Dashboard entry point — three tier sections with the
+// hide-when-no-data policy from Phase A and per-user reorder /
+// hide customization from Phase C.
 //
-// Empty-card policy: cards self-hide when their MetricSummary lacks
-// a latest sample. On the very first launch — before HK auth has been
-// requested — Tier 1 shows a single AuthHandshakeCard that fires the
-// batched authorization. After auth has been requested at least once,
-// the strict hide-when-no-data rule applies (no lock CTAs, no nags).
+// Customization model:
+// - Edit toolbar button toggles `editing`. In editing mode each
+//   visible card grows a chevron-up / chevron-down / hide trio
+//   in its trailing region, plus a faint reorder background to
+//   signal the mode switch. Tap chevrons to reorder within the
+//   tier (saved to `dashboard.cardOrder.<tier>`); tap the eye-
+//   slash to hide (saved to `dashboard.hiddenCards`).
+// - Hidden cards drop out of every tier list immediately and
+//   reappear in Settings → Hidden cards, where they can be
+//   un-hidden one tap.
+//
+// On the first launch — before HK auth has been requested —
+// Tier 1 shows a single AuthHandshakeCard that fires the batched
+// authorization. After auth has been requested at least once,
+// the strict hide-when-no-data rule applies.
 struct HealthDashboardView: View {
     private let service = HealthDashboardService.shared
+
+    @State private var editing: Bool = false
+
+    @AppStorage(DashboardCustomization.hiddenKey)
+    private var hiddenCSV: String = ""
+
+    // Per-tier order — backed by individual @AppStorage entries
+    // because @AppStorage values must be statically known at
+    // declaration time (no key-by-tier indirection at the wrapper).
+    @AppStorage("dashboard.cardOrder.1") private var orderCoreCSV:    String = ""
+    @AppStorage("dashboard.cardOrder.2") private var orderFitnessCSV: String = ""
+    @AppStorage("dashboard.cardOrder.3") private var orderWellnessCSV: String = ""
 
     var body: some View {
         NavigationStack {
@@ -25,6 +47,7 @@ struct HealthDashboardView: View {
             }
             .background(Color.slateBackground)
             .navigationTitle("Health")
+            .toolbar { editToolbarItem }
             .task {
                 // Don't auto-fire requestAuthorizationIfNeeded on appear.
                 // HKHealthStore can raise an uncatchable Objective-C NSException
@@ -36,6 +59,28 @@ struct HealthDashboardView: View {
                 await service.refreshIfStale()
             }
         }
+    }
+
+    // MARK: Toolbar
+
+    @ToolbarContentBuilder
+    private var editToolbarItem: some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            // Hide the button entirely if there are no cards yet —
+            // editing an empty dashboard would just be confusing.
+            if anyVisibleCardsAcrossTiers {
+                Button(editing ? "Done" : "Edit") {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        editing.toggle()
+                    }
+                }
+                .accessibilityLabel(editing ? "Done editing dashboard" : "Edit dashboard")
+            }
+        }
+    }
+
+    private var anyVisibleCardsAcrossTiers: Bool {
+        !coreVitalsCards.isEmpty || !fitnessCards.isEmpty || !wellnessCards.isEmpty
     }
 
     // MARK: Tier 1 — Core Vitals
@@ -52,7 +97,7 @@ struct HealthDashboardView: View {
                     }
                 }
                 ForEach(coreVitalsCards) { summary in
-                    MetricCard(summary: summary)
+                    cardRow(summary, in: .coreVitals)
                 }
             }
         }
@@ -61,13 +106,6 @@ struct HealthDashboardView: View {
     // MARK: Tier 2 — Fitness
 
     private var fitnessSection: some View {
-        // Tier 2 is "real" once any of its cards land — even with zero
-        // populated cards we still show the header (collapsible) plus
-        // an empty-state row, so the user knows the section exists and
-        // why it's bare. Only when auth has never been requested AND
-        // Tier 1 also has nothing do we suppress the section entirely;
-        // that keeps the first-launch experience focused on the
-        // Core Vitals handshake.
         TierSection(
             tier: .fitness,
             icon: "figure.run",
@@ -80,18 +118,16 @@ struct HealthDashboardView: View {
                     )
                 } else {
                     ForEach(fitnessCards) { summary in
-                        MetricCard(summary: summary)
+                        cardRow(summary, in: .fitness)
                     }
                 }
             }
         }
     }
 
+    // MARK: Tier 3 — Wellness
+
     private var wellnessSection: some View {
-        // Tier 3 mirrors Tier 2's pattern: real expandable section
-        // once the user has data in any wellness card OR has
-        // completed the auth handshake; placeholder header until
-        // then so the dashboard doesn't sprawl on a fresh install.
         TierSection(
             tier: .wellness,
             icon: "leaf.fill",
@@ -104,53 +140,146 @@ struct HealthDashboardView: View {
                     )
                 } else {
                     ForEach(wellnessCards) { summary in
-                        MetricCard(summary: summary)
+                        cardRow(summary, in: .wellness)
                     }
                 }
             }
         }
     }
 
-    // MARK: Filtering
+    // MARK: Card row (with optional edit-mode chrome)
 
-    private var coreVitalsCards: [MetricSummary] {
-        HealthMetric.all
-            .filter { $0.tier == .coreVitals }
-            .compactMap { service.summaries[$0.id] }
-            .filter { $0.hasData }
+    @ViewBuilder
+    private func cardRow(_ summary: MetricSummary, in tier: HealthMetric.Tier) -> some View {
+        if editing {
+            HStack(alignment: .center, spacing: 8) {
+                MetricCard(summary: summary)
+                    // Tapping the card while editing shouldn't open
+                    // the detail sheet — let the buttons do their
+                    // jobs. `allowsHitTesting(false)` on a Button is
+                    // the simplest way to neutralise it.
+                    .allowsHitTesting(false)
+
+                VStack(spacing: 6) {
+                    moveButton(summary, in: tier, direction: .up)
+                    moveButton(summary, in: tier, direction: .down)
+                    hideButton(summary)
+                }
+                .padding(.trailing, 4)
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.emerald.opacity(0.4), lineWidth: 1)
+            )
+        } else {
+            MetricCard(summary: summary)
+        }
     }
 
-    private var fitnessCards: [MetricSummary] {
-        HealthMetric.all
-            .filter { $0.tier == .fitness }
-            .compactMap { service.summaries[$0.id] }
-            .filter { $0.hasData }
+    private enum MoveDir { case up, down }
+
+    private func moveButton(_ summary: MetricSummary, in tier: HealthMetric.Tier, direction: MoveDir) -> some View {
+        let canMove = canMove(summary, in: tier, direction: direction)
+        return Button {
+            move(summary, in: tier, direction: direction)
+        } label: {
+            Image(systemName: direction == .up ? "chevron.up" : "chevron.down")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(canMove ? Color.emerald : Color.secondary.opacity(0.4))
+                .frame(width: 28, height: 22)
+                .background(Color.slateCard)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+        }
+        .disabled(!canMove)
+        .accessibilityLabel(direction == .up ? "Move \(summary.metric.label) up" : "Move \(summary.metric.label) down")
     }
 
-    private var wellnessCards: [MetricSummary] {
-        HealthMetric.all
-            .filter { $0.tier == .wellness }
-            .compactMap { service.summaries[$0.id] }
-            .filter { $0.hasData }
+    private func hideButton(_ summary: MetricSummary) -> some View {
+        Button {
+            hide(summary)
+        } label: {
+            Image(systemName: "eye.slash.fill")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(Color.fieldNotesAlert)
+                .frame(width: 28, height: 22)
+                .background(Color.slateCard)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+        }
+        .accessibilityLabel("Hide \(summary.metric.label)")
     }
 
-    /// Tier 2 should render its header + content (or empty-state
-    /// message) once auth has been requested at least once OR any
-    /// fitness card has data. Until then, leave it as a flat
-    /// placeholder so the dashboard doesn't sprawl on first launch.
+    // MARK: Reorder + hide actions
+
+    private func canMove(_ summary: MetricSummary, in tier: HealthMetric.Tier, direction: MoveDir) -> Bool {
+        let cards = visibleCards(in: tier)
+        guard let i = cards.firstIndex(where: { $0.metric.id == summary.metric.id }) else { return false }
+        return direction == .up ? i > 0 : i < cards.count - 1
+    }
+
+    private func move(_ summary: MetricSummary, in tier: HealthMetric.Tier, direction: MoveDir) {
+        var ids = visibleCards(in: tier).map { $0.metric.id }
+        guard let i = ids.firstIndex(of: summary.metric.id) else { return }
+        let j = direction == .up ? i - 1 : i + 1
+        guard ids.indices.contains(j) else { return }
+        ids.swapAt(i, j)
+        write(orderCSV: DashboardCustomization.encode(ids), for: tier)
+    }
+
+    private func hide(_ summary: MetricSummary) {
+        var hidden = Set(DashboardCustomization.decode(hiddenCSV))
+        hidden.insert(summary.metric.id)
+        hiddenCSV = DashboardCustomization.encode(Array(hidden).sorted())
+    }
+
+    private func write(orderCSV csv: String, for tier: HealthMetric.Tier) {
+        switch tier {
+        case .coreVitals: orderCoreCSV    = csv
+        case .fitness:    orderFitnessCSV = csv
+        case .wellness:   orderWellnessCSV = csv
+        }
+    }
+
+    private func orderCSV(for tier: HealthMetric.Tier) -> String {
+        switch tier {
+        case .coreVitals: return orderCoreCSV
+        case .fitness:    return orderFitnessCSV
+        case .wellness:   return orderWellnessCSV
+        }
+    }
+
+    // MARK: Filtering — applies hide + order on top of the
+    // base hasData filter from Phase A.
+
+    private var hidden: Set<String> {
+        Set(DashboardCustomization.decode(hiddenCSV))
+    }
+
+    private func visibleCards(in tier: HealthMetric.Tier) -> [MetricSummary] {
+        let base = HealthMetric.all
+            .filter { $0.tier == tier }
+            .compactMap { service.summaries[$0.id] }
+            .filter { $0.hasData && !hidden.contains($0.metric.id) }
+        return DashboardCustomization.ordered(
+            base,
+            order: DashboardCustomization.decode(orderCSV(for: tier))
+        )
+    }
+
+    private var coreVitalsCards: [MetricSummary] { visibleCards(in: .coreVitals) }
+    private var fitnessCards:    [MetricSummary] { visibleCards(in: .fitness) }
+    private var wellnessCards:   [MetricSummary] { visibleCards(in: .wellness) }
+
+    // MARK: Tier-content gates (unchanged from Phase B/C)
+
     private var tier2HasAnyCardsOrAuth: Bool {
         service.hasRequestedAuth || !fitnessCards.isEmpty
     }
 
-    /// Tier 3 mirrors the Tier 2 gate.
     private var tier3HasAnyCardsOrAuth: Bool {
         service.hasRequestedAuth || !wellnessCards.isEmpty
     }
 
     private var shouldShowAuthHandshake: Bool {
-        // Show only when we've never asked AND no metric has any data.
-        // Once auth has been asked once (granted or denied), the strict
-        // hide-when-no-data rule takes over.
         !service.hasRequestedAuth && coreVitalsCards.isEmpty
     }
 

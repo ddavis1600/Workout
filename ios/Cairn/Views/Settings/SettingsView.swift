@@ -232,6 +232,27 @@ struct SettingsView: View {
 
                 Section {
                     NavigationLink {
+                        HiddenCardsView()
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "eye.slash.fill")
+                                .foregroundColor(.emerald)
+                                .frame(width: 24)
+                            Text("Hidden Cards")
+                                .foregroundColor(Color.ink)
+                        }
+                    }
+                    .listRowBackground(Color.slateCard)
+                } header: {
+                    Text("Health Dashboard")
+                        .foregroundColor(.slateText)
+                } footer: {
+                    Text("Cards hidden from the dashboard's Edit mode appear here. Tap to restore.")
+                        .foregroundColor(.slateText)
+                }
+
+                Section {
+                    NavigationLink {
                         NotificationSettingsView()
                     } label: {
                         HStack(spacing: 12) {

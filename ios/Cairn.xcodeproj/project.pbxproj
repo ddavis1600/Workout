@@ -137,6 +137,8 @@
 		ONBF10000001 /* OnboardingFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = ONBF20000001 /* OnboardingFlow.swift */; };
 		ONBS10000001 /* OnboardingSampleData.swift in Sources */ = {isa = PBXBuildFile; fileRef = ONBS20000001 /* OnboardingSampleData.swift */; };
 		THPS10000001 /* ThemePickerScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = THPS20000001 /* ThemePickerScreen.swift */; };
+		DCUS10000001 /* DashboardCustomization.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCUS20000001 /* DashboardCustomization.swift */; };
+		HCDS10000001 /* HiddenCardsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = HCDS20000001 /* HiddenCardsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -298,6 +300,8 @@
 		ONBF20000001 /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlow.swift; sourceTree = "<group>"; };
 		ONBS20000001 /* OnboardingSampleData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSampleData.swift; sourceTree = "<group>"; };
 		THPS20000001 /* ThemePickerScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemePickerScreen.swift; sourceTree = "<group>"; };
+		DCUS20000001 /* DashboardCustomization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardCustomization.swift; sourceTree = "<group>"; };
+		HCDS20000001 /* HiddenCardsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HiddenCardsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -505,6 +509,8 @@
 				HD2000000000000000000004 /* TierSection.swift */,
 				HD2000000000000000000005 /* MetricCard.swift */,
 				HD2000000000000000000006 /* MetricDetailSheet.swift */,
+				DCUS20000001 /* DashboardCustomization.swift */,
+				HCDS20000001 /* HiddenCardsView.swift */,
 			);
 			path = HealthDashboard;
 			sourceTree = "<group>";
@@ -933,6 +939,8 @@
 				HD1000000000000000000004 /* TierSection.swift in Sources */,
 				HD1000000000000000000005 /* MetricCard.swift in Sources */,
 				HD1000000000000000000006 /* MetricDetailSheet.swift in Sources */,
+				DCUS10000001 /* DashboardCustomization.swift in Sources */,
+				HCDS10000001 /* HiddenCardsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
