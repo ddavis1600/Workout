@@ -263,6 +263,21 @@ struct HealthMetric: Identifiable, Hashable {
             hkQuantity: .appleExerciseTime,
             hkCategory: nil
         ),
+        HealthMetric(
+            id: "standHours",
+            label: "Stand",
+            // Apple's Stand ring — count of hours per day with
+            // ≥1 minute of standing motion. Default goal is 12.
+            icon: "figure.stand",
+            unit: "hr",
+            tier: .fitness,
+            aggregation: .standHourCategory,
+            chart: .barWithGoal,
+            windowDays: 30,
+            healthAppPath: "Browse/Activity/Stand%20Hours",
+            hkQuantity: nil,
+            hkCategory: .appleStandHour
+        ),
     ]
 
     // Used by the dashboard to scope queries to currently-shipping metrics

@@ -155,6 +155,10 @@ struct MetricCard: View {
         case "exerciseMinutes":
             // Latest day's exercise total — integer minutes.
             return "\(Int(v.rounded()))"
+        case "standHours":
+            // Per-day count of hours with ≥1 min of stand motion.
+            // Always an integer (0…24).
+            return "\(Int(v))"
         default:
             return v.formatted(.number)
         }
