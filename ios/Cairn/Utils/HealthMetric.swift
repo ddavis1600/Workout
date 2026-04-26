@@ -249,6 +249,20 @@ struct HealthMetric: Identifiable, Hashable {
             hkQuantity: .activeEnergyBurned,
             hkCategory: nil
         ),
+        HealthMetric(
+            id: "exerciseMinutes",
+            label: "Exercise",
+            // Apple's Exercise ring metric — defaults to 30 min/day.
+            icon: "figure.mixed.cardio",
+            unit: "min",
+            tier: .fitness,
+            aggregation: .sum,
+            chart: .barWithGoal,
+            windowDays: 30,
+            healthAppPath: "Browse/Activity/Exercise%20Minutes",
+            hkQuantity: .appleExerciseTime,
+            hkCategory: nil
+        ),
     ]
 
     // Used by the dashboard to scope queries to currently-shipping metrics

@@ -152,6 +152,9 @@ struct MetricCard: View {
             // because tenths of a kcal aren't meaningful at the
             // dashboard glance level.
             return "\(Int(v.rounded()))"
+        case "exerciseMinutes":
+            // Latest day's exercise total — integer minutes.
+            return "\(Int(v.rounded()))"
         default:
             return v.formatted(.number)
         }
