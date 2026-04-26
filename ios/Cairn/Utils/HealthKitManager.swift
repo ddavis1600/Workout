@@ -75,6 +75,14 @@ class HealthKitManager {
             HKQuantityType(.dietaryProtein),
             HKQuantityType(.dietaryCarbohydrates),
             HKQuantityType(.dietaryFatTotal),
+            // V3 — Phase B Health Dashboard read types.
+            HKQuantityType(.heartRateVariabilitySDNN),
+            HKQuantityType(.bloodPressureSystolic),
+            HKQuantityType(.bloodPressureDiastolic),
+            HKQuantityType(.oxygenSaturation),
+            HKQuantityType(.respiratoryRate),
+            HKQuantityType(.bodyTemperature),
+            HKQuantityType(.vo2Max),
         ]
         if let mindful = HKObjectType.categoryType(forIdentifier: .mindfulSession) {
             types.insert(mindful)
@@ -82,13 +90,27 @@ class HealthKitManager {
         if let sleep = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) {
             types.insert(sleep)
         }
+        // V3 — stand hour category for the Tier 2 Stand card.
+        if let standHour = HKObjectType.categoryType(forIdentifier: .appleStandHour) {
+            types.insert(standHour)
+        }
+        // V3 — blood pressure correlation. The two quantity types
+        // above are technically sufficient for the underlying read,
+        // but registering the correlation explicitly makes intent
+        // visible in the Health Privacy sheet.
+        if let bpCorr = HKObjectType.correlationType(forIdentifier: .bloodPressure) {
+            types.insert(bpCorr)
+        }
         return types
     }
 
-    /// Current HK auth bundle version. Bump when adding new write
-    /// types so existing users get prompted once for the expanded set.
+    /// Current HK auth bundle version. Bump when adding new types so
+    /// existing users get prompted once for the expanded set.
     /// V2 added bodyFatPercentage + mindfulSession.
-    private static let currentAuthBundleVersion = 2
+    /// V3 (Phase B Health Dashboard) added HRV, blood pressure
+    /// correlation + components, oxygen saturation, respiratory
+    /// rate, body temperature, VO2 max, stand hour.
+    private static let currentAuthBundleVersion = 3
 
     private static let authBundleVersionKey = "hasRequestedHKBundleVersion"
 
