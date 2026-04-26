@@ -110,6 +110,10 @@ struct MetricCard: View {
             // Service returns kg; convert when user pref is imperial.
             let display = unitSystem == "metric" ? v : v * 2.20462
             return String(format: "%.1f", display)
+        case "hrv":
+            // SDNN reads as an integer in HK; sub-ms precision is
+            // noise on a sparkline.
+            return "\(Int(v.rounded()))"
         default:
             return v.formatted(.number)
         }

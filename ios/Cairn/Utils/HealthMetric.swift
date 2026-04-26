@@ -130,8 +130,28 @@ struct HealthMetric: Identifiable, Hashable {
 
     /// Phase B catalog — populated incrementally across the per-metric
     /// commits. A metric appears in this array AND in `.all` when its
-    /// commit lands. Empty for now (filled by subsequent commits).
-    static let phaseB: [HealthMetric] = []
+    /// commit lands.
+    static let phaseB: [HealthMetric] = [
+        // MARK: Tier 1 — Core Vitals (Phase B additions)
+
+        HealthMetric(
+            id: "hrv",
+            label: "Heart Rate Variability",
+            // SDNN — beat-to-beat variability in ms; the canonical
+            // "stress / recovery" proxy on Apple Watch.
+            icon: "waveform.path.ecg",
+            unit: "ms",
+            tier: .coreVitals,
+            aggregation: .average,
+            chart: .line,
+            // 30-day window: HRV is noisy day-to-day, so the on-card
+            // sparkline reads as a trend rather than a daily metric.
+            windowDays: 30,
+            healthAppPath: "Browse/Heart/Heart%20Rate%20Variability",
+            hkQuantity: .heartRateVariabilitySDNN,
+            hkCategory: nil
+        ),
+    ]
 
     // Used by the dashboard to scope queries to currently-shipping metrics
     // without committing to the full Phase B/C catalog yet.
