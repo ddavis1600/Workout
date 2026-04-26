@@ -129,6 +129,10 @@ struct MetricCard: View {
             // multiply for percentage display. One decimal — Watch
             // SpO2 readings are stable enough to read as e.g. 97.5%.
             return String(format: "%.1f", v * 100)
+        case "respiratoryRate":
+            // Adult resting RR clusters around 12–20; one decimal so
+            // the value isn't visually pinned to "12 → 13" jumps.
+            return String(format: "%.1f", v)
         default:
             return v.formatted(.number)
         }

@@ -186,6 +186,19 @@ struct HealthMetric: Identifiable, Hashable {
             hkQuantity: .oxygenSaturation,
             hkCategory: nil
         ),
+        HealthMetric(
+            id: "respiratoryRate",
+            label: "Respiratory Rate",
+            icon: "wind",
+            unit: "br/min",
+            tier: .coreVitals,
+            aggregation: .average,
+            chart: .line,
+            windowDays: 30,
+            healthAppPath: "Browse/Respiratory/Respiratory%20Rate",
+            hkQuantity: .respiratoryRate,
+            hkCategory: nil
+        ),
     ]
 
     // Used by the dashboard to scope queries to currently-shipping metrics
