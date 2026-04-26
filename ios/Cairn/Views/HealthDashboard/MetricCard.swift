@@ -33,10 +33,17 @@ struct MetricCard: View {
         }
     }
 
+    /// Semantic per-metric accent (Phase C — F-tint). Falls back to
+    /// the palette accent (Color.emerald) so unmapped metrics keep
+    /// the existing look.
+    private var tint: Color {
+        MetricSpec.tintColor(for: summary.metric)
+    }
+
     private var header: some View {
         HStack(spacing: 8) {
             Image(systemName: summary.metric.icon)
-                .foregroundStyle(Color.emerald)
+                .foregroundStyle(tint)
             Text(summary.metric.label)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -59,35 +66,38 @@ struct MetricCard: View {
     private var sparkline: some View {
         switch summary.metric.chart {
         case .sleepStackedBar:
-            SleepStackedSparkline(samples: summary.series)
+            // Sleep stages are coloured by stage (Core/REM/Deep) at
+            // varying alphas; using the metric tint as the base keeps
+            // them coordinated with the rest of the card.
+            SleepStackedSparkline(samples: summary.series, tint: tint)
         case .line, .sparkline:
-            LineSparkline(samples: summary.series, accent: Color.emerald)
+            LineSparkline(samples: summary.series, accent: tint)
         case .bar, .barWithGoal:
             // `barWithGoal` adds a goal-line overlay in the per-metric
             // detail sheet; the on-card sparkline reuses the plain bars
             // so the dashboard reads consistently across cards.
-            BarSparkline(samples: summary.series, accent: Color.emerald)
+            BarSparkline(samples: summary.series, accent: tint)
         case .weightLine:
             // Weight uses raw kg values from the service; sparkline is
             // unitless (no axis labels), so the relative shape reads
             // identically regardless of user's unit pref.
-            LineSparkline(samples: summary.series, accent: Color.emerald)
+            LineSparkline(samples: summary.series, accent: tint)
         case .bloodPressureLines:
-            DualLineSparkline(samples: summary.series, accent: Color.emerald)
+            DualLineSparkline(samples: summary.series, accent: tint)
         case .sparseDot:
-            DotSparkline(samples: summary.series, accent: Color.emerald)
+            DotSparkline(samples: summary.series, accent: tint)
         case .dotBand:
             // SpO2 — dots with a 95% threshold marker. Specialised
             // overlay (coloured threshold band) lives in the detail
             // sheet; the on-card sparkline stays minimal.
-            DotSparkline(samples: summary.series, accent: Color.emerald)
+            DotSparkline(samples: summary.series, accent: tint)
         case .macroStackedBar:
-            MacroStackedSparkline(samples: summary.series)
+            MacroStackedSparkline(samples: summary.series, tint: tint)
         case .energyDualLine:
             // Intake (value) vs. burned (secondary). Reuses the same
             // shape as BP — both lines superimposed in one Chart —
             // so the dashboard stays visually coherent.
-            DualLineSparkline(samples: summary.series, accent: Color.emerald)
+            DualLineSparkline(samples: summary.series, accent: tint)
         }
     }
 
@@ -303,6 +313,7 @@ private struct DotSparkline: View {
 // segment within the daily bar; legend lives in the detail sheet.
 private struct MacroStackedSparkline: View {
     let samples: [MetricSample]
+    let tint: Color
 
     var body: some View {
         Chart {
@@ -330,9 +341,9 @@ private struct MacroStackedSparkline: View {
         .chartYAxis(.hidden)
         .chartLegend(.hidden)
         .chartForegroundStyleScale([
-            "Protein": Color.emerald,
-            "Carbs":   Color.emerald.opacity(0.65),
-            "Fat":     Color.emerald.opacity(0.4),
+            "Protein": tint,
+            "Carbs":   tint.opacity(0.65),
+            "Fat":     tint.opacity(0.4),
         ])
         .frame(height: 44)
     }
@@ -343,6 +354,7 @@ private struct MacroStackedSparkline: View {
 // bar so old data still renders something sensible.
 private struct SleepStackedSparkline: View {
     let samples: [MetricSample]
+    let tint: Color
 
     private static let stageOrder = ["Core", "REM", "Deep"]
 
@@ -355,7 +367,7 @@ private struct SleepStackedSparkline: View {
                             x: .value("Night", sample.date, unit: .day),
                             y: .value("Hours", stages.unspecified / 3600.0)
                         )
-                        .foregroundStyle(Color.emerald)
+                        .foregroundStyle(tint)
                         .cornerRadius(2)
                     } else {
                         BarMark(
@@ -381,9 +393,9 @@ private struct SleepStackedSparkline: View {
         .chartYAxis(.hidden)
         .chartLegend(.hidden)
         .chartForegroundStyleScale([
-            "Core": Color.emerald.opacity(0.55),
-            "REM":  Color.emerald.opacity(0.85),
-            "Deep": Color.emerald,
+            "Core": tint.opacity(0.55),
+            "REM":  tint.opacity(0.85),
+            "Deep": tint,
         ])
         .frame(height: 44)
     }

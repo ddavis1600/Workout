@@ -90,11 +90,17 @@ struct MetricDetailSheet: View {
         .pickerStyle(.segmented)
     }
 
+    /// Per-metric semantic accent; resolved once for the whole
+    /// sheet so chart + chrome + buttons stay in lock-step.
+    private var tint: Color {
+        MetricSpec.tintColor(for: summary.metric)
+    }
+
     private var chartCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline) {
                 Image(systemName: summary.metric.icon)
-                    .foregroundStyle(Color.emerald)
+                    .foregroundStyle(tint)
                 Text(summary.metric.label)
                     .font(.headline)
                 Spacer()
@@ -109,7 +115,8 @@ struct MetricDetailSheet: View {
                 MetricDetailChart(
                     metric: summary.metric,
                     samples: samples,
-                    unitSystem: unitSystem
+                    unitSystem: unitSystem,
+                    tint: tint
                 )
                 .frame(minHeight: 260)
             }
@@ -176,7 +183,7 @@ struct MetricDetailSheet: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
-            .background(Color.emerald)
+            .background(tint)
             .foregroundStyle(.white)
             .cornerRadius(10)
         }
@@ -305,6 +312,56 @@ enum MetricSpec {
         }
     }
 
+    /// Per-metric semantic accent color.
+    ///
+    /// Colour buckets (Phase C — F-tint) follow the conventions
+    /// users already see in Apple Health (red for HR, blue for
+    /// respiratory, etc.). Where two cards in the same family share
+    /// a tint that's intentional — the user reads them together.
+    /// Falls back to `Color.emerald` (the active palette accent)
+    /// for anything not explicitly mapped, so future metrics get a
+    /// reasonable default until they earn a category.
+    static func tintColor(for metric: HealthMetric) -> Color {
+        switch metric.id {
+        // Heart-rate-related → red
+        case "restingHR", "hrv", "bloodPressure":
+            return .red
+        // Respiratory → blue
+        case "spo2", "respiratoryRate":
+            return .blue
+        // Body-mass-related → orange
+        case "weight":
+            return .orange
+        // Energy / calories → amber (yellow with warmth)
+        case "activeEnergy", "energyBalance":
+            return .yellow
+        // Activity rings → green
+        case "steps", "standHours", "exerciseMinutes":
+            return .green
+        // Sleep → purple
+        case "sleep":
+            return .purple
+        // Mindful → indigo
+        case "mindfulMinutes":
+            return .indigo
+        // Hydration → cyan
+        case "hydration":
+            return .cyan
+        // VO2 max — keep green family with cardio
+        case "vo2Max":
+            return .green
+        // Body temperature — soft red for warning intuition
+        case "bodyTemperature":
+            return .pink
+        // Nutrition balance — teal (sits between blue and green
+        // visually; reads as "balance" rather than any single ring)
+        case "nutritionBalance":
+            return .teal
+        default:
+            return .emerald
+        }
+    }
+
     /// One-liner shown below the chart for context-helpful metrics.
     static func normalCaption(for metric: HealthMetric) -> String? {
         switch metric.id {
@@ -332,46 +389,51 @@ struct MetricDetailChart: View {
     let metric: HealthMetric
     let samples: [MetricSample]
     let unitSystem: String
+    let tint: Color
 
     var body: some View {
         switch metric.chart {
         case .line, .sparkline, .weightLine:
             LineDetailChart(
                 samples: displaySamples,
-                accent: Color.emerald,
+                accent: tint,
                 overlayBand: MetricSpec.normalBand(for: metric)
             )
         case .bar:
             BarDetailChart(
                 samples: displaySamples,
-                accent: Color.emerald,
+                accent: tint,
                 goalLine: MetricSpec.goalLine(for: metric, unitSystem: unitSystem)
             )
         case .barWithGoal:
             BarDetailChart(
                 samples: displaySamples,
-                accent: Color.emerald,
+                accent: tint,
                 goalLine: MetricSpec.goalLine(for: metric, unitSystem: unitSystem)
             )
         case .bloodPressureLines:
-            BloodPressureDetailChart(samples: samples, accent: Color.emerald)
+            BloodPressureDetailChart(samples: samples, accent: tint)
         case .sparseDot:
             DotDetailChart(
                 samples: displaySamples,
-                accent: Color.emerald,
+                accent: tint,
                 overlayBand: MetricSpec.normalBand(for: metric)
             )
         case .dotBand:
             DotDetailChart(
                 samples: displaySamples,
-                accent: Color.emerald,
+                accent: tint,
                 overlayBand: MetricSpec.normalBand(for: metric)
             )
         case .sleepStackedBar:
-            SleepDetailChart(samples: samples)
+            SleepDetailChart(samples: samples, tint: tint)
         case .macroStackedBar:
-            MacroBalanceDetailChart(samples: samples)
+            MacroBalanceDetailChart(samples: samples, tint: tint)
         case .energyDualLine:
+            // Energy balance keeps green/orange semantic regardless
+            // of the metric's row tint — those colours specifically
+            // mean "intake" / "burned" and the user shouldn't have
+            // to relearn them.
             EnergyBalanceDetailChart(samples: samples)
         }
     }
@@ -525,6 +587,7 @@ private struct BloodPressureDetailChart: View {
 
 private struct MacroBalanceDetailChart: View {
     let samples: [MetricSample]
+    let tint: Color
     var body: some View {
         Chart {
             ForEach(samples) { sample in
@@ -548,9 +611,9 @@ private struct MacroBalanceDetailChart: View {
             }
         }
         .chartForegroundStyleScale([
-            "Protein": Color.emerald,
-            "Carbs":   Color.emerald.opacity(0.65),
-            "Fat":     Color.emerald.opacity(0.4),
+            "Protein": tint,
+            "Carbs":   tint.opacity(0.65),
+            "Fat":     tint.opacity(0.4),
         ])
         .chartYAxis { AxisMarks(position: .leading) }
         .chartLegend(.visible)
@@ -589,6 +652,7 @@ private struct EnergyBalanceDetailChart: View {
 
 private struct SleepDetailChart: View {
     let samples: [MetricSample]
+    let tint: Color
     var body: some View {
         Chart {
             ForEach(samples) { sample in
@@ -612,9 +676,9 @@ private struct SleepDetailChart: View {
             }
         }
         .chartForegroundStyleScale([
-            "Core": Color.emerald.opacity(0.55),
-            "REM":  Color.emerald.opacity(0.85),
-            "Deep": Color.emerald,
+            "Core": tint.opacity(0.55),
+            "REM":  tint.opacity(0.85),
+            "Deep": tint,
         ])
         .chartYAxis { AxisMarks(position: .leading) }
         .chartLegend(.visible)
