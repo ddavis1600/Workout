@@ -60,15 +60,27 @@ struct MetricCard: View {
         switch summary.metric.chart {
         case .sleepStackedBar:
             SleepStackedSparkline(samples: summary.series)
-        case .line:
+        case .line, .sparkline:
             LineSparkline(samples: summary.series, accent: Color.emerald)
-        case .bar:
+        case .bar, .barWithGoal:
+            // `barWithGoal` adds a goal-line overlay in the per-metric
+            // detail sheet; the on-card sparkline reuses the plain bars
+            // so the dashboard reads consistently across cards.
             BarSparkline(samples: summary.series, accent: Color.emerald)
         case .weightLine:
             // Weight uses raw kg values from the service; sparkline is
             // unitless (no axis labels), so the relative shape reads
             // identically regardless of user's unit pref.
             LineSparkline(samples: summary.series, accent: Color.emerald)
+        case .bloodPressureLines:
+            DualLineSparkline(samples: summary.series, accent: Color.emerald)
+        case .sparseDot:
+            DotSparkline(samples: summary.series, accent: Color.emerald)
+        case .dotBand:
+            // SpO2 — dots with a 95% threshold marker. Specialised
+            // overlay (coloured threshold band) lives in the detail
+            // sheet; the on-card sparkline stays minimal.
+            DotSparkline(samples: summary.series, accent: Color.emerald)
         }
     }
 
@@ -142,6 +154,64 @@ private struct BarSparkline: View {
             )
             .foregroundStyle(accent)
             .cornerRadius(2)
+        }
+        .chartXAxis(.hidden)
+        .chartYAxis(.hidden)
+        .frame(height: 44)
+    }
+}
+
+// Two superimposed lines — used by Blood Pressure (systolic over
+// diastolic). The secondary line reads at the same accent at lower
+// alpha so the pair feels like one metric.
+private struct DualLineSparkline: View {
+    let samples: [MetricSample]
+    let accent: Color
+
+    var body: some View {
+        Chart {
+            ForEach(samples) { sample in
+                LineMark(
+                    x: .value("Date", sample.date),
+                    y: .value("Systolic", sample.value),
+                    series: .value("Series", "Systolic")
+                )
+                .interpolationMethod(.catmullRom)
+                .foregroundStyle(accent)
+                .lineStyle(StrokeStyle(lineWidth: 2))
+                if let dia = sample.secondary {
+                    LineMark(
+                        x: .value("Date", sample.date),
+                        y: .value("Diastolic", dia),
+                        series: .value("Series", "Diastolic")
+                    )
+                    .interpolationMethod(.catmullRom)
+                    .foregroundStyle(accent.opacity(0.45))
+                    .lineStyle(StrokeStyle(lineWidth: 2))
+                }
+            }
+        }
+        .chartXAxis(.hidden)
+        .chartYAxis(.hidden)
+        .frame(height: 44)
+    }
+}
+
+// Sparse dots — used by Body Temperature (rarely sampled), and as the
+// on-card variant for SpO2. Each sample renders as a single point;
+// the eye fills in the trend without an over-confident smoothed line.
+private struct DotSparkline: View {
+    let samples: [MetricSample]
+    let accent: Color
+
+    var body: some View {
+        Chart(samples) { sample in
+            PointMark(
+                x: .value("Date", sample.date),
+                y: .value("Value", sample.value)
+            )
+            .foregroundStyle(accent)
+            .symbolSize(28)
         }
         .chartXAxis(.hidden)
         .chartYAxis(.hidden)
