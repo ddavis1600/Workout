@@ -182,6 +182,13 @@ struct MetricCard: View {
         case "nutritionBalance":
             // Big value = kcal for the day. Integer-rounded.
             return "\(Int(v.rounded()))"
+        case "energyBalance":
+            // Big value = signed delta (intake − burned). Positive
+            // means surplus, negative means deficit; show explicit
+            // sign so the user reads direction at a glance.
+            let burned = summary.latest?.secondary ?? 0
+            let delta = Int((v - burned).rounded())
+            return delta >= 0 ? "+\(delta)" : "\(delta)"
         default:
             return v.formatted(.number)
         }

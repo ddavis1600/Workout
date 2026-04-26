@@ -334,6 +334,21 @@ struct HealthMetric: Identifiable, Hashable {
             hkQuantity: nil,
             hkCategory: nil
         ),
+        HealthMetric(
+            id: "energyBalance",
+            label: "Energy Balance",
+            // Up/down arrows — read as "intake vs. burned" at a
+            // glance better than a single flame icon.
+            icon: "arrow.up.arrow.down.circle",
+            unit: "kcal",
+            tier: .wellness,
+            aggregation: .energyBalance,
+            chart: .energyDualLine,
+            windowDays: 30,
+            healthAppPath: "Browse/Activity/Active%20Energy",
+            hkQuantity: nil,
+            hkCategory: nil
+        ),
     ]
 
     // Used by the dashboard to scope queries to currently-shipping metrics
