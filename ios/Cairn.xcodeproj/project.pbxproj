@@ -136,6 +136,7 @@
 		WIDG10000010 /* CairnWidgets.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = WIDG20000008 /* CairnWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		ONBF10000001 /* OnboardingFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = ONBF20000001 /* OnboardingFlow.swift */; };
 		ONBS10000001 /* OnboardingSampleData.swift in Sources */ = {isa = PBXBuildFile; fileRef = ONBS20000001 /* OnboardingSampleData.swift */; };
+		THPS10000001 /* ThemePickerScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = THPS20000001 /* ThemePickerScreen.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -296,6 +297,7 @@
 		WIDG20000008 /* CairnWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = CairnWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		ONBF20000001 /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlow.swift; sourceTree = "<group>"; };
 		ONBS20000001 /* OnboardingSampleData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSampleData.swift; sourceTree = "<group>"; };
+		THPS20000001 /* ThemePickerScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemePickerScreen.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -511,6 +513,7 @@
 			isa = PBXGroup;
 			children = (
 				ONBF20000001 /* OnboardingFlow.swift */,
+				THPS20000001 /* ThemePickerScreen.swift */,
 				E20000000000000000000003 /* OnboardingView.swift */,
 				ISV200000000000000000001 /* IntroSplashView.swift */,
 			);
@@ -923,6 +926,7 @@
 				TRND10000001 /* TrendsView.swift in Sources */,
 				ONBF10000001 /* OnboardingFlow.swift in Sources */,
 				ONBS10000001 /* OnboardingSampleData.swift in Sources */,
+				THPS10000001 /* ThemePickerScreen.swift in Sources */,
 				HD1000000000000000000001 /* HealthMetric.swift in Sources */,
 				HD1000000000000000000002 /* HealthDashboardService.swift in Sources */,
 				HD1000000000000000000003 /* HealthDashboardView.swift in Sources */,
