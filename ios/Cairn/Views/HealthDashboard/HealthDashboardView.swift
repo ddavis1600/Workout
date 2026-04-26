@@ -58,11 +58,38 @@ struct HealthDashboardView: View {
         }
     }
 
+    // MARK: Tier 2 — Fitness
+
     private var fitnessSection: some View {
-        TierSection(tier: .fitness, icon: "figure.run", hasContent: false) { EmptyView() }
+        // Tier 2 is "real" once any of its cards land — even with zero
+        // populated cards we still show the header (collapsible) plus
+        // an empty-state row, so the user knows the section exists and
+        // why it's bare. Only when auth has never been requested AND
+        // Tier 1 also has nothing do we suppress the section entirely;
+        // that keeps the first-launch experience focused on the
+        // Core Vitals handshake.
+        TierSection(
+            tier: .fitness,
+            icon: "figure.run",
+            hasContent: tier2HasAnyCardsOrAuth
+        ) {
+            VStack(spacing: 12) {
+                if fitnessCards.isEmpty {
+                    EmptyTierMessage(
+                        text: "No Fitness data yet. Wear your Apple Watch and these cards will fill in automatically."
+                    )
+                } else {
+                    ForEach(fitnessCards) { summary in
+                        MetricCard(summary: summary)
+                    }
+                }
+            }
+        }
     }
 
     private var wellnessSection: some View {
+        // Tier 3 is still a Phase C placeholder. Same empty-message
+        // pattern as Tier 2 will apply when its cards land.
         TierSection(tier: .wellness, icon: "leaf.fill", hasContent: false) { EmptyView() }
     }
 
@@ -73,6 +100,21 @@ struct HealthDashboardView: View {
             .filter { $0.tier == .coreVitals }
             .compactMap { service.summaries[$0.id] }
             .filter { $0.hasData }
+    }
+
+    private var fitnessCards: [MetricSummary] {
+        HealthMetric.all
+            .filter { $0.tier == .fitness }
+            .compactMap { service.summaries[$0.id] }
+            .filter { $0.hasData }
+    }
+
+    /// Tier 2 should render its header + content (or empty-state
+    /// message) once auth has been requested at least once OR any
+    /// fitness card has data. Until then, leave it as a flat
+    /// placeholder so the dashboard doesn't sprawl on first launch.
+    private var tier2HasAnyCardsOrAuth: Bool {
+        service.hasRequestedAuth || !fitnessCards.isEmpty
     }
 
     private var shouldShowAuthHandshake: Bool {
@@ -118,6 +160,32 @@ private struct AuthHandshakeCard: View {
         .frame(maxWidth: .infinity)
         .background(Color.slateCard)
         .cornerRadius(12)
+    }
+}
+
+// MARK: - Empty-tier message
+
+/// Single-line subdued row used inside an expanded tier when zero
+/// of its cards have data. Distinct from the auth-handshake card
+/// (which is Tier 1 only, and only on first launch).
+private struct EmptyTierMessage: View {
+    let text: String
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "info.circle")
+                .foregroundStyle(.secondary)
+            Text(text)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.slateCard.opacity(0.5))
+        .cornerRadius(10)
     }
 }
 
