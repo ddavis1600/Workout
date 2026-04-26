@@ -292,7 +292,7 @@
 		WIDG20000005 /* TodayWorkoutWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayWorkoutWidget.swift; sourceTree = "<group>"; };
 		TRND20000001 /* TrendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsView.swift; sourceTree = "<group>"; };
 		WIDG20000006 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		WIDG20000007 /* FitTrackWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FitTrackWidgets.entitlements; sourceTree = "<group>"; };
+		WIDG20000007 /* FitTrackWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CairnWidgets.entitlements; sourceTree = "<group>"; };
 		WIDG20000008 /* FitTrackWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FitTrackWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		ONBF20000001 /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlow.swift; sourceTree = "<group>"; };
 		ONBS20000001 /* OnboardingSampleData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSampleData.swift; sourceTree = "<group>"; };
@@ -381,7 +381,7 @@
 				A40000000000000000000006 /* ViewModels */,
 				A40000000000000000000007 /* Views */,
 			);
-			path = FitTrack;
+			path = Cairn;
 			sourceTree = "<group>";
 		};
 		A40000000000000000000003 /* Products */ = {
@@ -579,7 +579,7 @@
 				3C946087B78751B8870890B4 /* Assets.xcassets */,
 			);
 			name = FitTrackWatch;
-			path = FitTrackWatch;
+			path = CairnWatch;
 			sourceTree = "<group>";
 		};
 		C4000000000000000000000D /* Habits */ = {
@@ -669,7 +669,7 @@
 				WIDG20000007 /* FitTrackWidgets.entitlements */,
 			);
 			name = FitTrackWidgets;
-			path = FitTrackWidgets;
+			path = CairnWidgets;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -980,12 +980,12 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = FitTrackWatch/FitTrackWatch.entitlements;
+				CODE_SIGN_ENTITLEMENTS = CairnWatch/CairnWatch.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 31;
 				DEVELOPMENT_TEAM = 95BHKMD86H;
 				ENABLE_BITCODE = NO;
-				INFOPLIST_FILE = FitTrackWatch/Info.plist;
+				INFOPLIST_FILE = CairnWatch/Info.plist;
 				INSTALL_PATH = "";
 				IPHONEOS_DEPLOYMENT_TARGET = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1011,12 +1011,12 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = FitTrackWatch/FitTrackWatch.entitlements;
+				CODE_SIGN_ENTITLEMENTS = CairnWatch/CairnWatch.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 31;
 				DEVELOPMENT_TEAM = 95BHKMD86H;
 				ENABLE_BITCODE = NO;
-				INFOPLIST_FILE = FitTrackWatch/Info.plist;
+				INFOPLIST_FILE = CairnWatch/Info.plist;
 				INSTALL_PATH = "";
 				IPHONEOS_DEPLOYMENT_TARGET = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1166,13 +1166,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
-				CODE_SIGN_ENTITLEMENTS = FitTrack/FitTrack.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Cairn/Cairn.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 31;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = FitTrack/Info.plist;
+				INFOPLIST_FILE = Cairn/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1195,13 +1195,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
-				CODE_SIGN_ENTITLEMENTS = FitTrack/FitTrack.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Cairn/Cairn.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 31;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = FitTrack/Info.plist;
+				INFOPLIST_FILE = Cairn/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1222,13 +1222,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				CODE_SIGN_ENTITLEMENTS = FitTrackWidgets/FitTrackWidgets.entitlements;
+				CODE_SIGN_ENTITLEMENTS = CairnWidgets/CairnWidgets.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 26;
 				DEVELOPMENT_TEAM = 95BHKMD86H;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = FitTrackWidgets/Info.plist;
+				INFOPLIST_FILE = CairnWidgets/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1253,13 +1253,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				CODE_SIGN_ENTITLEMENTS = FitTrackWidgets/FitTrackWidgets.entitlements;
+				CODE_SIGN_ENTITLEMENTS = CairnWidgets/CairnWidgets.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 26;
 				DEVELOPMENT_TEAM = 95BHKMD86H;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = FitTrackWidgets/Info.plist;
+				INFOPLIST_FILE = CairnWidgets/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
