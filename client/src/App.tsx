@@ -8,6 +8,7 @@ import WorkoutHistoryPage from './pages/WorkoutHistoryPage';
 import ExerciseProgressPage from './pages/ExerciseProgressPage';
 import MacrosPage from './pages/MacrosPage';
 import DiaryPage from './pages/DiaryPage';
+import FocusPage from './pages/FocusPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,6 +31,7 @@ export default function App() {
             <Route path="/progress" element={<ExerciseProgressPage />} />
             <Route path="/macros" element={<MacrosPage />} />
             <Route path="/diary" element={<DiaryPage />} />
+            <Route path="/focus" element={<FocusPage />} />
           </Routes>
         </AppShell>
         <Toaster

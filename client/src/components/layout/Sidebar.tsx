@@ -5,6 +5,7 @@ import {
   TrendingUp,
   Calculator,
   UtensilsCrossed,
+  Mountain,
 } from 'lucide-react';
 
 const navItems = [
@@ -13,6 +14,7 @@ const navItems = [
   { to: '/progress', icon: TrendingUp, label: 'Progress' },
   { to: '/macros', icon: Calculator, label: 'Macros' },
   { to: '/diary', icon: UtensilsCrossed, label: 'Food Diary' },
+  { to: '/focus', icon: Mountain, label: 'Focus' },
 ];
 
 export default function Sidebar() {
